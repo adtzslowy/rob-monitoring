@@ -55,7 +55,7 @@
                 </div>
 
                 <x-heroicon-o-chevron-down id="accountArrow"
-                    class="w-4 h-4 transition-transform duration-300" />
+                    class="w-4 h-4 transition-transform duration-300 rotate-90" />
             </button>
 
             <div id="accountMenu" class="hidden ml-8 space-y-2 text-sm">

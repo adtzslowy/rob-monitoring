@@ -8,5 +8,5 @@ Artisan::command('inspire', function () {
     $this->comment(Inspiring::quote());
 })->purpose('Display an inspiring quote');
 
-Schedule::command('fetch:alat')->everySecond();
-Schedule::command('iot:save')->everyThirtySeconds();
+Schedule::command('fetch:alat')->everyTwoSeconds();
+Schedule::command('iot:save')->everyTwoSeconds();

@@ -5,11 +5,14 @@
     <meta charset="utf-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>{{ $title }} - ROB Monitoring</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@300..700&display=swap" rel="stylesheet">
     @vite(['resources/css/app.css', 'resources/js/app.js'])
     @livewireStyles
 </head>
 
-<body class="bg-zinc-900 text-white">
+<body class="bg-zinc-900 text-white font-ibm">
     <div class="flex h-screen overflow-hidden">
         {{-- Sidebar --}}
         <x-sidebar />
@@ -18,6 +21,8 @@
         <main class="flex-1 flex flex-col overflow-y-auto">
             <div class="flex-1 p-6 lg:p-10">
                 {{ $slot }}
+
+                <x-footer/>
             </div>
         </main>
     </div>
