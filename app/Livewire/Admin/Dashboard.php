@@ -69,28 +69,42 @@ class Dashboard extends Component
     private function fuzzify($water, $wind, $direction)
     {
         return [
-            'water_low' => $this->triangular($water, 0, 100, 120),
-            'water_medium' => $this->triangular($water, 100, 120, 140),
-            'water_high' => $this->triangular($water, 120, 140, 160),
+            'water_low' => $this->triangular($water, 0, 150, 200),
+            'water_medium' => $this->triangular($water, 150, 220, 260),
+            'water_high' => $this->triangular($water, 220, 300, 350),
 
-            'wind_weak' => $this->triangular($wind, 0, 5, 10),
-            'wind_medium' => $this->triangular($wind, 5, 10, 15),
+            'wind_weak' => $this->triangular($wind, 0, 3, 6),
+            'wind_medium' => $this->triangular($wind, 4, 8, 12),
             'wind_strong' => $this->triangular($wind, 10, 15, 20),
 
-            'wind_west_danger' => $this->triangular($direction, 230, 270, 310),
+            'west_danger' => $this->triangular($direction, 225, 270, 315),
+            'east_safe' => $this->triangular($direction, 45, 90, 135),
         ];
     }
 
     private function fuzzyInterface($m)
     {
         return [
-            'bahaya' => min($m['water_high'], $m['wind_strong'], $m['wind_west_danger']),
-            'siaga' => max(
-                min($m['water_high'], $m['wind_medium'], $m['wind_west_danger']),
-                min($m['water_medium'], $m['wind_strong'], $m['wind_west_danger']),
+            'bahaya' => min(
+                $m['water_high'],
+                $m['wind_strong'],
+                $m['west_danger'],
             ),
-            'waspada' => min($m['water_medium'], $m['wind_medium']),
-            'aman' => $m['water_low'],
+
+            'siaga' => max(
+                min($m['water_high'], $m['wind_medium'], $m['west_danger']),
+                min($m['water_medium'], $m['wind_strong'], $m['west_danger']),
+            ),
+
+            'waspada' => min(
+                $m['water_medium'],
+                $m['wind_medium'],
+            ),
+
+            'aman' => max(
+                $m['water_low'],
+                $m['east_safe'],
+            ),
         ];
     }
 
