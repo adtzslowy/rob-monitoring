@@ -1,40 +1,18 @@
 <div class="space-y-6 max-w-[1400px] mx-auto">
 
     <div>
-        <h1 class="text-xl font-semibold text-white">
+        <h1 class="text-xl font-semibold text-zinc-900 dark:text-white">
             Peta Monitoring
         </h1>
-        <p class="text-sm text-zinc-400">
+        <p class="text-sm dark:text-white text-zinc-900">
             Klik pada peta untuk menambahkan lokasi sensor
         </p>
     </div>
 
     {{-- MAP --}}
-    <div class="relative w-full h-[500px] rounded-xl overflow-hidden border border-zinc-700">
+    <div class="relative w-full h-[500px] rounded-xl overflow-hidden">
         <div wire:ignore id="map" class="absolute inset-0"></div>
     </div>
-
-    {{-- FORM --}}
-    <div class="bg-zinc-900 p-6 rounded-xl border border-zinc-700 space-y-4">
-
-        <input type="text" wire:model="name" placeholder="Nama Lokasi"
-            class="w-full p-3 rounded bg-zinc-800 border border-zinc-600 text-white">
-
-        <div class="grid grid-cols-2 gap-4">
-            <input type="text" wire:model="latitude" placeholder="Latitude"
-                class="p-3 rounded bg-zinc-800 border border-zinc-600 text-white">
-
-            <input type="text" wire:model="longitude" placeholder="Longitude"
-                class="p-3 rounded bg-zinc-800 border border-zinc-600 text-white">
-        </div>
-
-        <button wire:click="saveLocation"
-            class="px-4 py-2 bg-emerald-500 rounded text-black font-semibold hover:bg-emerald-400 transition cursor-pointer">
-            Simpan Lokasi
-        </button>
-
-    </div>
-
 </div>
 
 

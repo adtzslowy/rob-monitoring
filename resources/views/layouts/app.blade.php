@@ -1,5 +1,12 @@
 <!DOCTYPE html>
-<html lang="{{ str_replace('_', '-', app()->getLocale()) }}">
+<html
+    lang="{{ str_replace('_', '-', app()->getLocale()) }}"
+    x-data="{ dark: document.documentElement.classList.contains('dark') }"
+    x-init="$watch('dark', val => {
+        document.documentElement.classList.toggle('dark', val);
+        localStorage.setItem('theme', val ? 'dark' : 'light');
+    })"
+>
 
 <head>
     <meta charset="utf-8">
@@ -8,50 +15,43 @@
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@300..700&display=swap" rel="stylesheet">
+    <script>
+        (function() {
+            const saved = localStorage.getItem('theme');
+            if (saved === 'dark' || (!saved && window.matchMedia('(prefers-color-scheme: dark)').matches)) {
+                document.documentElement.classList.add('dark');
+            }
+        })();
+    </script>
     @vite(['resources/css/app.css', 'resources/js/app.js'])
     @livewireStyles
 </head>
 
-<body class="bg-zinc-900 text-white font-ibm">
+<body x-data="{sidebarOpen: false, accountOpen: false, alatOpen: false}"
+    class="bg-gray-50 dark:bg-zinc-900 text-zinc-900 dark:text-white font-ibm transition-colors duration-300">
+    <div class="text-underline"></div>
     <div class="flex h-screen overflow-hidden">
+        <div x-show="sidebarOpen" @click="sidebarOpen = false"
+            class="fixed inset-0 bg-black/50 z-40 lg:hidden"
+            style="display: none;"
+            x-transition.opacity
+            >
+        </div>
         {{-- Sidebar --}}
         <x-sidebar />
 
         {{-- main layout --}}
         <main class="flex-1 flex flex-col overflow-y-auto">
+            <x-header/>
             <div class="flex-1 p-6 lg:p-10">
                 {{ $slot }}
 
-                <x-footer/>
             </div>
+            <x-footer/>
         </main>
     </div>
 
     @livewireScripts
-    @stack('scripts')
-    <script>
-        document.addEventListener('DOMContentLoaded', function() {
-
-            const toggle = document.getElementById('accountToggle');
-            const menu = document.getElementById('accountMenu');
-            const arrow = document.getElementById('accountArrow');
-
-            if (!toggle) return;
-
-            toggle.addEventListener('click', function() {
-
-                menu.classList.toggle('hidden');
-
-                if (menu.classList.contains('hidden')) {
-                    arrow.classList.add('rotate-90');
-                } else {
-                    arrow.classList.remove('rotate-90');
-                }
-
-            });
-
-        });
-    </script>
 
 </body>
 
