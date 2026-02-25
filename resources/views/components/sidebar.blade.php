@@ -1,6 +1,4 @@
-
-<aside id="sidebar"
-    :class="{ 'translate-x-0': sidebarOpen }"
+<aside id="sidebar" :class="{ 'translate-x-0': sidebarOpen }"
     class="fixed inset-y-0 left-0 z-50 w-64 bg-gray-50 dark:bg-zinc-900 border-r border-zinc-800/20 dark:border-zinc-800 p-6
            transform -translate-x-full transition-transform duration-300 ease-in-out
            lg:static lg:translate-x-0 lg:flex lg:flex-col lg:h-screen">
@@ -30,7 +28,7 @@
                 class="flex items-center gap-3 px-3 py-2 rounded-lg transition
                 {{ request()->routeIs('dashboard')
                     ? 'bg-blue-500 text-white'
-                    : 'text-zinc-900 dark:text-zinc-400 hover:bg-blue-500/10 hover:text-zinc-900' }}">
+                    : 'text-zinc-900 dark:text-zinc-400 hover:bg-blue-100 hover:text-zinc-900' }}">
                 <x-heroicon-o-squares-2x2 class="w-5 h-5" />
                 Dashboard
             </a>
@@ -39,35 +37,48 @@
                 class="flex items-center gap-3 px-3 py-2 rounded-lg transition
                 {{ request()->routeIs('peta_monitoring')
                     ? 'bg-blue-500 text-white'
-                    : 'text-zinc-900 dark:text-zinc-400 hover:bg-blue-500/10 hover:text-zinc-900' }}">
+                    : 'text-zinc-900 dark:text-zinc-400 hover:bg-blue-100 hover:text-zinc-900' }}">
                 <x-heroicon-o-map class="w-5 h-5" />
                 Peta Monitoring
             </a>
+        </div>
 
+        {{-- menejemen user --}}
+
+        <div class="space-y-2">
+            <p class="px-3 text-xs font-semibold text-zinc-500 uppercase tracking-wider mb-2">
+                Menejemen Data
+            </p>
+            @can('manage users')
+                <a href="{{ route('admin.akun') }}"
+                    class="flex items-center gap-3 px-3 py-2 rounded-lg transition
+            {{ request()->routeIs('admin.akun')
+                ? 'bg-blue-500 text-white'
+                : 'text-zinc-900 dark:text-zinc-400 hover:bg-blue-100 hover:text-zinc-900' }} cursor-pointer">
+                    <x-heroicon-o-user class="w-5 h-5" />
+                    Data Operator
+                </a>
+            @endcan
             <a href="{{ route('peta_monitoring') }}"
                 class="flex items-center gap-3 px-3 py-2 rounded-lg transition
                 {{ request()->routeIs('peta_monitoring')
                     ? 'bg-blue-500 text-white'
-                    : 'text-zinc-900 dark:text-zinc-400 hover:bg-blue-500/10 hover:text-zinc-900' }}">
+                    : 'text-zinc-900 dark:text-zinc-400 hover:bg-blue-100 hover:text-zinc-900' }}">
                 <x-heroicon-o-wrench-screwdriver class="w-5 h-5" />
                 Daftar Alat
             </a>
-
-            <button type="button"
-                @click="alatOpen = !alatOpen"
-                class="w-full flex items-center justify-between px-3 py-2 rounded-lg transition text-zinc-900 dark:text-zinc-400 hover:bg-blue-500/10 hover:text-zinc-900 cursor-pointer">
+            <button type="button" @click="alatOpen = !alatOpen"
+                class="w-full flex items-center justify-between px-3 py-2 rounded-lg transition text-zinc-900 dark:text-zinc-400 hover:bg-blue-100 hover:text-zinc-900 cursor-pointer">
                 <div class="flex items-center gap-3">
                     <x-heroicon-o-server class="w-5 h-5" />
                     Data Sensor
                 </div>
 
-                <x-heroicon-o-chevron-down
-                    :class="{ '-rotate-90': !alatOpen }"
-                    class="w-4 h-4 transition-transform duration-300" />
+                <x-heroicon-o-chevron-down :class="{ '-rotate-90': !alatOpen }" class="w-4 h-4 transition-transform duration-300" />
             </button>
 
             <div x-show="alatOpen" x-transition class="ml-8 space-y-2 text-sm" style="display: none;">
-                {{-- @foreach ($sensors as $sensor )
+                {{-- @foreach ($sensors as $sensor)
                     <a href="" class="block text-sm text-zinc-500 hover:text-white">
                         {{ $sensor->name }}
                     </a>
@@ -75,32 +86,30 @@
             </div>
         </div>
 
+
         {{-- Menejemen Akun --}}
         <div class="space-y-2">
             <p class="px-3 text-xs font-semibold text-zinc-500 uppercase tracking-wider mb-2">
-                Manajemen Akun
+                Akun
             </p>
 
-            <button type="button"
-                @click="accountOpen = !accountOpen"
-                class="w-full flex items-center justify-between px-3 py-2 rounded-lg transition text-zinc-900 dark:text-zinc-400 hover:bg-blue-500/10 hover:text-zinc-900 cursor-pointer">
+            <button type="button" @click="accountOpen = !accountOpen"
+                class="w-full flex items-center justify-between px-3 py-2 rounded-lg transition text-zinc-900 dark:text-zinc-400 hover:bg-blue-100 hover:text-zinc-900 cursor-pointer">
                 <div class="flex items-center gap-3">
                     <x-heroicon-o-user class="w-5 h-5" />
                     Account
                 </div>
 
-                <x-heroicon-o-chevron-down
-                    :class="{ '-rotate-90': !accountOpen }"
-                    class="w-4 h-4 transition-transform duration-300" />
+                <x-heroicon-o-chevron-down :class="{ '-rotate-90': !accountOpen }" class="w-4 h-4 transition-transform duration-300" />
             </button>
 
             <div x-show="accountOpen" x-transition class="ml-8 space-y-2 text-sm" style="display: none;">
 
-                <a href="{{ route('akun_user') }}"
+                <a href="{{ route('admin.akun') }}"
                     class="flex items-center gap-3 px-3 py-2 rounded-lg transition
-            {{ request()->routeIs('akun_user')
+            {{ request()->routeIs('admin.akun')
                 ? 'bg-blue-500 text-white'
-                : 'text-zinc-900 dark:text-zinc-400 hover:bg-blue-500/10 hover:text-zinc-900' }} cursor-pointer">
+                : 'text-zinc-900 dark:text-zinc-400 hover:bg-blue-100 hover:text-zinc-900' }} cursor-pointer">
                     <x-heroicon-o-user class="w-5 h-5" />
                     Profil
                 </a>
@@ -109,7 +118,7 @@
                     class="flex items-center gap-3 px-3 py-2 rounded-lg transition
             {{ request()->routeIs('pengaturan')
                 ? 'bg-blue-500 text-white'
-                : 'text-zinc-900 dark:text-zinc-400 hover:bg-blue-500/10 hover:text-zinc-900' }} cursor-pointer">
+                : 'text-zinc-900 dark:text-zinc-400 hover:bg-blue-100 hover:text-zinc-900' }} cursor-pointer">
                     <x-heroicon-o-cog class="w-5 h-5" />
                     Pengaturan
                 </a>

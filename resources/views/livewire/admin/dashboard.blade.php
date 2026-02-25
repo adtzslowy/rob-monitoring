@@ -85,7 +85,7 @@
 
                 {{-- ARAH ANGIN --}}
                 <div wire:click="openMetric('arah_angin')"
-                    class="bg-white dark:bg-zinc-900 p-6 rounded-xl border border-purple-500/30">
+                    class="bg-white dark:bg-zinc-900 cursor-pointer p-6 rounded-xl border border-purple-500/30">
                     <div class="flex justify-between items-center">
                         <p class="text-sm text-zinc-900 dark:text-white">Arah Angin</p>
                         <x-heroicon-o-arrow-path-rounded-square class="w-5 h-5 text-purple-400" />
