@@ -1,11 +1,14 @@
+@php
+    $dbTheme = auth()->check() ? (optional(auth()->user()->dashSetting)->theme ?? 'dark') : 'dark';
+    $isDark = $dbTheme === 'dark';
+@endphp
+
 <!DOCTYPE html>
 <html
     lang="{{ str_replace('_', '-', app()->getLocale()) }}"
-    x-data="{ dark: document.documentElement.classList.contains('dark') }"
-    x-init="$watch('dark', val => {
-        document.documentElement.classList.toggle('dark', val);
-        localStorage.setItem('theme', val ? 'dark' : 'light');
-    })"
+    x-data="themeRoot()"
+    x-init="initTheme()"
+    :class="{'dark': dark}"
 >
 
 <head>
@@ -15,14 +18,16 @@
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@300..700&display=swap" rel="stylesheet">
+
+    {{-- Anti FOUC: apply tema secepat mungkin dari sesuai database --}}
     <script>
         (function() {
-            const saved = localStorage.getItem('theme');
-            if (saved === 'dark' || (!saved && window.matchMedia('(prefers-color-scheme: dark)').matches)) {
-                document.documentElement.classList.add('dark');
-            }
-        })();
+            const dbTheme = @json($dbTheme);
+            if ($dbTheme === 'dark') document.documentElement.classList.add('dark');
+            else document.documentElement.classList.add.remove('dark');
+        })
     </script>
+
     @vite(['resources/css/app.css', 'resources/js/app.js'])
     @livewireStyles
 </head>
@@ -52,6 +57,22 @@
     </div>
 
     @livewireScripts
+    <script>
+        function themeRoot() {
+            return (
+                dark: @json($isDark),
+                initTheme() {
+                    document.documentElement.classList.toggle('dark', this.dark);
+
+                    window.addEventListener('theme-changed', (e) => {
+                        const t = e.detail.theme;
+                        this.dark === (t === 'dark');
+                        document.documentElement.classList.toggle('dark', this.dark);
+                    });
+                }
+            )
+        }
+    </script>
 
 </body>
 
