@@ -17,4 +17,10 @@ class Device extends Model
     {
         return $this->hasOne(SensorReading::class)->latestOfMany('timestamp');
     }
+
+    public function users()
+    {
+        return $this->belongsToMany(User::class, 'device_user', 'device_id', 'user_id')
+            ->withTimestamps();
+    }
 }

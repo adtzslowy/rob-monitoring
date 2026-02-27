@@ -105,9 +105,9 @@
 
             <div x-show="accountOpen" x-transition class="ml-8 space-y-2 text-sm" style="display: none;">
 
-                <a href="{{ route('admin.akun') }}"
+                <a href="{{ route('profil') }}"
                     class="flex items-center gap-3 px-3 py-2 rounded-lg transition
-            {{ request()->routeIs('admin.akun')
+            {{ request()->routeIs('profil')
                 ? 'bg-blue-500 text-white'
                 : 'text-zinc-900 dark:text-zinc-400 hover:bg-blue-100 hover:text-zinc-900' }} cursor-pointer">
                     <x-heroicon-o-user class="w-5 h-5" />

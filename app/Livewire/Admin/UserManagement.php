@@ -30,7 +30,9 @@ class UserManagement extends Component
     public string $email = '';
     public string $password = '';
     public string $role = 'operator';
-    public ?int $operator_device_id = null;
+
+    /** @var array<int> */
+    public array $operator_device_ids = [];
 
     /** @var array<int, string> */
     public array $roles = [];
@@ -61,16 +63,16 @@ class UserManagement extends Component
         $this->resetForm();
 
         $this->role = 'operator';
-        $this->operator_device_id = null;
+        $this->operator_device_ids = [];
 
-        $this->editId = null; // ✅ jangan false
+        $this->editId = null;
         $this->mode = 'create';
         $this->modalOpen = true;
     }
 
     public function openEdit(int $id): void
     {
-        $u = User::with('dashSetting', 'roles')->findOrFail($id);
+        $u = User::with('dashSetting', 'roles', 'devices')->findOrFail($id);
 
         $this->resetForm();
         $this->mode = 'edit';
@@ -81,8 +83,11 @@ class UserManagement extends Component
 
         $this->role = $u->roles->first()?->name ?? ($this->roles[0] ?? 'operator');
 
-        // ✅ isi device operator dari dashboard_setting
-        $this->operator_device_id = $u->dashSetting?->selected_device_id;
+        // ✅ many-to-many: device ids
+        $this->operator_device_ids = $u->devices()
+            ->pluck('devices.id')
+            ->map(fn ($id) => (int) $id)
+            ->toArray();
 
         $this->modalOpen = true;
     }
@@ -95,6 +100,9 @@ class UserManagement extends Component
     public function save(): void
     {
         $isEdit = $this->mode === 'edit';
+
+        // ✅ normalize ints
+        $this->operator_device_ids = array_values(array_unique(array_map('intval', $this->operator_device_ids ?? [])));
 
         $rules = [
             'name' => ['required', 'string', 'min:2', 'max:255'],
@@ -109,9 +117,11 @@ class UserManagement extends Component
             'role' => ['required', 'string'],
         ];
 
-        // ✅ operator wajib pilih device
         if ($this->role === 'operator') {
-            $rules['operator_device_id'] = ['required', 'integer', 'exists:devices,id'];
+            $rules['operator_device_ids'] = ['required', 'array', 'min:1'];
+            $rules['operator_device_ids.*'] = ['integer', 'exists:devices,id'];
+        } else {
+            $rules['operator_device_ids'] = ['nullable', 'array'];
         }
 
         if ($isEdit) {
@@ -157,27 +167,55 @@ class UserManagement extends Component
         $u->syncRoles([$validated['role']]);
 
         // =========================
-        // DASHBOARD SETTING (create & edit)
+        // DASHBOARD SETTING
         // =========================
         $setting = DashSetting::firstOrCreate(
             ['user_id' => $u->id],
-            [
-                'theme' => 'dark',
-                'visible_sensors' => json_encode([]),
-            ]
+            ['theme' => 'dark', 'visible_sensors' => json_encode([])]
         );
 
         if ($validated['role'] === 'operator') {
+            $ids = array_values(array_unique(array_map('intval', $validated['operator_device_ids'] ?? [])));
+
+            // ✅ backend guard: block devices already owned by other operators
+            $conflicts = Device::query()
+                ->whereIn('id', $ids)
+                ->whereHas('users', function ($uq) {
+                    // users yang role operator
+                    $uq->whereHas('roles', function ($rq) {
+                        $rq->where('name', 'operator');
+                    });
+
+                    // exclude diri sendiri ketika edit
+                    if ($this->editId) {
+                        $uq->where('users.id', '!=', $this->editId);
+                    }
+                })
+                ->pluck('id')
+                ->toArray();
+
+            if (!empty($conflicts)) {
+                $this->addError('operator_device_ids', 'Ada alat yang sudah dimiliki operator lain. Pilih alat lain.');
+                return;
+            }
+
+            // ✅ sync pivot
+            $u->devices()->sync($ids);
+
+            // ✅ keep selected_device_id valid
+            $current = $setting->selected_device_id ? (int) $setting->selected_device_id : null;
+
             $setting->update([
-                'selected_device_id' => $this->operator_device_id,
+                'selected_device_id' => ($current && in_array($current, $ids, true))
+                    ? $current
+                    : ($ids[0] ?? null),
             ]);
         } else {
-            $setting->update([
-                'selected_device_id' => null,
-            ]);
+            $u->devices()->sync([]);
+            $setting->update(['selected_device_id' => null]);
         }
 
-        session()->flash('message', $isEdit ? 'User berhasil diperbarui.' : 'User berhasil ditambahkan.');
+        session()->flash('success', $isEdit ? 'User berhasil diperbarui.' : 'User berhasil ditambahkan.');
 
         $this->closeModal();
         $this->resetForm();
@@ -193,7 +231,7 @@ class UserManagement extends Component
         $u = User::query()->findOrFail($id);
         $u->delete();
 
-        session()->flash('message', 'User berhasil dihapus.');
+        session()->flash('success', 'User berhasil dihapus.');
 
         if ($this->perPage > 1 && $this->getUsersQuery()->paginate($this->perPage)->count() === 0) {
             $this->previousPage();
@@ -209,13 +247,13 @@ class UserManagement extends Component
         $this->email = '';
         $this->password = '';
         $this->role = $this->roles[0] ?? 'operator';
-        $this->operator_device_id = null; // ✅ penting
+        $this->operator_device_ids = [];
     }
 
     private function getUsersQuery()
     {
         return User::query()
-            ->with('roles')
+            ->with(['roles', 'devices'])
             ->when($this->search, function ($q) {
                 $s = trim($this->search);
 
@@ -231,7 +269,34 @@ class UserManagement extends Component
     {
         $users = $this->getUsersQuery()->paginate($this->perPage);
 
-        $devices = Device::orderBy('name')->get(['id', 'name']);
+        // ✅ Filter device:
+        // - CREATE: hanya device yang belum dimiliki operator manapun
+        // - EDIT: tambah device milik user yang sedang diedit (biar tetap muncul)
+        $devicesQuery = Device::query()->orderBy('name');
+
+        if ($this->editId) {
+            $devicesQuery->where(function ($q) {
+                $q->whereDoesntHave('users', function ($uq) {
+                    $uq->whereHas('roles', fn ($rq) => $rq->where('name', 'operator'));
+                });
+
+                $q->orWhereHas('users', function ($uq) {
+                    $uq->where('users.id', $this->editId);
+                });
+            });
+        } else {
+            $devicesQuery->whereDoesntHave('users', function ($uq) {
+                $uq->whereHas('roles', fn ($rq) => $rq->where('name', 'operator'));
+            });
+        }
+
+        $devices = $devicesQuery
+            ->get(['id', 'name'])
+            ->map(fn ($d) => [
+                'value' => (int) $d->id,
+                'label' => (string) ($d->name ?? ('ROB ' . $d->id)),
+            ])
+            ->toArray();
 
         return view('livewire.admin.user-management', [
             'users' => $users,
