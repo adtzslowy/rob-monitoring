@@ -51,4 +51,10 @@ class User extends Authenticatable
     {
         return $this->hasOne(DashSetting::class, 'user_id');
     }
+
+    public function devices()
+    {
+        return $this->belongsToMany(Device::class, 'device_user', 'user_id', 'device_id')
+            ->withTimestamps();
+    }
 }

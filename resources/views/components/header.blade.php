@@ -49,11 +49,6 @@
                 <span class="hidden sm:inline">LIVE</span>
             </div>
 
-            <button x-data @click="$dispatch('open-dashboard-settings')"
-                class="p-2 rounded-lg bg-zinc-200 dark:bg-zinc-800 hover:bg-zinc-300 dark:hover:bg-zinc-700 transition">
-                <x-heroicon-o-cog-6-tooth class="w-5 h-5 text-zinc-700 dark:text-white" />
-            </button>
-
         </div>
 
     </div>

@@ -1,6 +1,7 @@
 <?php
 
 use App\Http\Controllers\Auth\AuthController;
+use App\Http\Controllers\ProfilController;
 use App\Livewire\Admin\Dashboard;
 use App\Livewire\Admin\PetaMonitoring;
 use App\Livewire\Admin\UserManagement;
@@ -17,9 +18,11 @@ Route::middleware('guest')->group(function () {
 
 Route::post('/logout', [AuthController::class, 'logout'])->middleware('auth')->name('logout');
 
-// Admin area
-Route::prefix('admin')->middleware(['auth', 'permission:view dashboard'])->group(function () {
-    Route::get('/dashboard', Dashboard::class)->name('dashboard');
+/**
+ * Dashboard routing
+ */
+Route::prefix('dashboard')->middleware(['auth', 'permission:view dashboard'])->group(function () {
+    Route::get('/', Dashboard::class)->name('dashboard');
     Route::get('/peta-monitoring', PetaMonitoring::class)->middleware('permission:view dashboard')->name('peta_monitoring');
 
     Route::get('/settings', function () {
@@ -27,4 +30,6 @@ Route::prefix('admin')->middleware(['auth', 'permission:view dashboard'])->group
     })->middleware('permission:manage settings')->name('pengaturan');
 
     Route::middleware(['auth', 'permission:manage users'])->get('/users', UserManagement::class)->name('admin.akun');
+
+    Route::get('/profil', [ProfilController::class, 'index'])->name('profil');
 });

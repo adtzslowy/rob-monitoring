@@ -13,7 +13,7 @@
                     <button wire:click="previousPage" wire:loading.attr="disabled"
                         class="flex items-center justify-center h-full py-2 px-3 rounded-l-lg
                                border border-zinc-200 dark:border-zinc-800
-                               bg-white dark:bg-zinc-900 text-zinc-500 hover:bg-zinc-50 dark:hover:bg-zinc-800">
+                               bg-white dark:bg-zinc-900 text-zinc-500 hover:bg-zinc-50 dark:hover:bg-zinc-800 cursor-pointer">
                         ‹
                     </button>
                 @endif
@@ -38,14 +38,14 @@
                                 <span aria-current="page"
                                     class="flex items-center justify-center text-sm z-10 py-2 px-3
                                            border border-blue-500/40
-                                           bg-blue-500/10 text-blue-600 dark:text-blue-300">
+                                           bg-blue-500/10 text-blue-600 dark:text-blue-300 cursor-pointer">
                                     {{ $page }}
                                 </span>
                             @else
                                 <button wire:click="gotoPage({{ $page }})"
                                     class="flex items-center justify-center text-sm py-2 px-3
                                            border border-zinc-200 dark:border-zinc-800
-                                           bg-white dark:bg-zinc-900 text-zinc-500 hover:bg-zinc-50 dark:hover:bg-zinc-800">
+                                           bg-white dark:bg-zinc-900 text-zinc-500 hover:bg-zinc-50 dark:hover:bg-zinc-800 cursor-pointer">
                                     {{ $page }}
                                 </button>
                             @endif
@@ -59,7 +59,7 @@
                 @if ($paginator->hasMorePages())
                     <button wire:click="nextPage" wire:loading.attr="disabled"
                         class="flex items-center justify-center h-full py-2 px-3 rounded-r-lg
-                               border border-zinc-200 dark:border-zinc-800
+                               border border-zinc-200 dark:border-zinc-800 cursor-pointer
                                bg-white dark:bg-zinc-900 text-zinc-500 hover:bg-zinc-50 dark:hover:bg-zinc-800">
                         ›
                     </button>
