@@ -21,7 +21,7 @@
         @if (session('success'))
             <div class="p-3 rounded-xl border border-emerald-500/20 bg-emerald-500/10 text-emerald-300 text-sm">
                 {{ session('success') }}
-            </div>
+            </div
         @endif
         @if (session('error'))
             <div class="p-3 rounded-xl border border-red-500/20 bg-red-500/10 text-red-300 text-sm">

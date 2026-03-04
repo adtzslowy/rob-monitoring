@@ -3,6 +3,7 @@
 use App\Http\Controllers\Auth\AuthController;
 use App\Http\Controllers\ProfilController;
 use App\Livewire\Admin\Dashboard;
+use App\Livewire\Admin\DeviceManage;
 use App\Livewire\Admin\PetaMonitoring;
 use App\Livewire\Admin\UserManagement;
 use Illuminate\Support\Facades\Route;
@@ -24,6 +25,7 @@ Route::post('/logout', [AuthController::class, 'logout'])->middleware('auth')->n
 Route::prefix('dashboard')->middleware(['auth', 'permission:view dashboard'])->group(function () {
     Route::get('/', Dashboard::class)->name('dashboard');
     Route::get('/peta-monitoring', PetaMonitoring::class)->middleware('permission:view dashboard')->name('peta_monitoring');
+    Route::get('/daftar-alat', DeviceManage::class)->name('manajemen_alat');
 
     Route::get('/settings', function () {
         return view('admin.settings');

@@ -44,6 +44,7 @@
         <main class="flex-1 flex flex-col overflow-y-auto">
             <x-header />
             <div class="flex-1 p-6 lg:p-10">
+                <div id="windy" class="hidden"></div>
                 {{ $slot }}
             </div>
             <x-footer />
