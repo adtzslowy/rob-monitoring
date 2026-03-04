@@ -37,6 +37,10 @@ return [
 
     'iot' => [
         'url' => env('API_URL', 'https://iot.ketapangkab.go.id/api/rob')
+    ],
+
+    'windy' => [
+        'key' => env('WINDY_API_KEY')
     ]
 
 ];

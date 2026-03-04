@@ -6,7 +6,12 @@ use Illuminate\Database\Eloquent\Model;
 
 class Device extends Model
 {
-    protected $fillable = ['name', 'lokasi', 'latitude', 'longitude', 'status', 'last_seen'];
+    protected $fillable = ['name', 'alias', 'latitude', 'longitude', 'status', 'last_seen'];
+    protected $cast = [
+        'last_seen' => 'date',
+        'latitude' => 'double',
+        'longitude' => 'double',
+    ];
 
     public function readings()
     {

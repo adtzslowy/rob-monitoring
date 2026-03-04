@@ -2,55 +2,70 @@
 
 namespace App\Livewire\Admin;
 
-use App\Models\PetaMonitoring as ModelsPetaMonitoring;
+use App\Models\Device;
+use Illuminate\Support\Carbon;
 use Livewire\Attributes\Title;
 use Livewire\Component;
 
 #[Title('Peta Monitoring')]
 class PetaMonitoring extends Component
 {
-    public $locations = [];
-    public $name;
-    public $latitude;
-    public $longitude;
+    public bool $canManageDevices = false;
+    public string $windyKey = '';
+    public array $devices = [];
 
-    protected $listeners = ['setCoordinates'];
-
-    public function mount()
+    public function mount(): void
     {
-        $this->loadLocations();
+        $user = auth()->user();
+
+        $this->canManageDevices = (bool) (
+            ($user?->can('manage devices') ?? false) ||
+            ($user?->hasRole('admin') ?? false)
+        );
+
+        // ✅ WINDY API KEY (bukan url)
+        $this->windyKey = (string) config('services.windy.key', env('WINDY_API_KEY', ''));
+
+        $this->loadDevices();
     }
 
-    public function loadLocations()
+    public function loadDevices(): void
     {
-        $this->locations = ModelsPetaMonitoring::all()->toArray();
+        $user = auth()->user();
 
-        $this->dispatch('renderMarkers', locations: $this->locations);
-    }
+        $q = $this->canManageDevices
+            ? Device::query()
+            : $user->devices(); // belongsToMany pivot device_user
 
-    public function setCoordinates($lat, $lng)
-    {
-        $this->latitude = $lat;
-        $this->longitude = $lng;
-    }
+        $rows = $q->select([
+                'devices.id',
+                'devices.name',
+                'devices.alias',
+                'devices.latitude',
+                'devices.longitude',
+                'devices.status',
+                'devices.last_seen',
+            ])
+            ->whereNotNull('devices.latitude')
+            ->whereNotNull('devices.longitude')
+            ->orderBy('devices.id')
+            ->get();
 
-    public function saveLocation()
-    {
-        $this->validate([
-            'name' => 'required|string|max:255',
-            'latitude' => 'required',
-            'longitude' => 'required',
-        ]);
+        // ✅ kirim lat/lng supaya cocok dengan JS
+        $this->devices = $rows->map(fn ($d) => [
+            'id' => (int) $d->id,
+            'name' => $d->name ?? ('ROB ' . $d->id),
+            'alias' => $d->alias,
+            'lat' => (float) $d->latitude,
+            'lng' => (float) $d->longitude,
+            'status' => strtolower((string) ($d->status ?? 'offline')),
+            'last_seen' => $d->last_seen
+                ? Carbon::parse($d->last_seen)->timezone('Asia/Jakarta')->format('d M H:i')
+                : '-',
+        ])->toArray();
 
-        ModelsPetaMonitoring::create([
-            'name' => $this->name,
-            'latitude' => $this->latitude,
-            'longitude' => $this->longitude,
-        ]);
-
-        $this->reset(['name', 'latitude', 'longitude']);
-
-        $this->loadLocations();
+        // ✅ event name harus sama dengan listener Blade: render-markers
+        $this->dispatch('render-markers', devices: $this->devices);
     }
 
     public function render()
