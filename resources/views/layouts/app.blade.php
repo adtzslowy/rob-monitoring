@@ -34,7 +34,7 @@
 
 <body x-data="{ sidebarOpen: false, accountOpen: false, alatOpen: false }"
     class="bg-gray-50 dark:bg-zinc-900 text-zinc-900 dark:text-white font-ibm transition-colors duration-300">
-    <div class="flex h-screen overflow-hidden">
+    <div class="flex h-screen">
         <div x-show="sidebarOpen" @click="sidebarOpen = false" class="fixed inset-0 bg-black/50 z-40 lg:hidden"
             style="display: none;" x-transition.opacity>
         </div>
@@ -43,8 +43,7 @@
 
         <main class="flex-1 flex flex-col overflow-y-auto">
             <x-header />
-            <div class="flex-1 p-6 lg:p-10">
-                <div id="windy" class="hidden"></div>
+            <div class="flex-1">
                 {{ $slot }}
             </div>
             <x-footer />
