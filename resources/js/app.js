@@ -247,6 +247,46 @@ document.addEventListener("alpine:init", () => {
             );
         },
 
+        fitToDevices(devices) {
+            if (!this.map) return;
+
+            const LLeaflet = window.L;
+            const pts = (devices || [])
+                .map(d => [parseFloat(d.lat), parseFloat(d.lng)])
+                .filter(([lat, lng]) => Number.isFinite(lat) && Number.isFinite(lng));
+
+            if (!pts.length) return;
+
+            const doFit = () => {
+                try {
+                    const b = LLeaflet.latLngBounds(pts);
+
+                    // 1 titik → setView
+                    if (pts.length === 1) {
+                        this.map.setView(pts[0], 13, { animate: false });
+                        return;
+                    }
+
+                    // banyak titik → fitBounds TANPA animasi
+                    this.map.fitBounds(b, { padding: [50, 50], animate: false });
+                } catch (e) {
+                    // kalau lagi transisi, coba sekali lagi sebentar
+                    setTimeout(() => {
+                        try {
+                            const b = LLeaflet.latLngBounds(pts);
+                            this.map.fitBounds(b, { padding: [50, 50], animate: false });
+                        } catch (_) { }
+                    }, 150);
+                }
+            };
+
+            // pastikan size benar sebelum fit
+            try { this.map.invalidateSize(true); } catch (_) { }
+
+            // tunggu 2 frame biar leaflet settle
+            requestAnimationFrame(() => requestAnimationFrame(doFit));
+        },
+
         // NEW: called after layout changes
         _invalidateSoon() {
             [0, 100, 300, 600].forEach((ms) => {
@@ -320,6 +360,7 @@ document.addEventListener("alpine:init", () => {
 
             // NEW: after marker refresh, ensure map still fits
             this._invalidateSoon();
+            this.fitToDevices(devices);
         },
 
         renderMarkers(devices) {
