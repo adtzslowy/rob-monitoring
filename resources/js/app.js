@@ -1,7 +1,6 @@
 // resources/js/app.js
 import { Chart } from "chart.js/auto";
 import L from "leaflet";
-import "leaflet/dist/leaflet.css";
 
 window.Chart = Chart;
 const leafletFromNpm = L;
@@ -226,7 +225,7 @@ document.addEventListener("alpine:init", () => {
 
                     const windyEl = document.getElementById("windy");
                     if (windyEl) {
-                        windyEl.classList.remove("hidden", "free-model");
+                        windyEl.classList.remove("hidden");
                         windyEl.style.width = this._vw + "px";
                         windyEl.style.height = this._vh + "px";
                         windyEl.style.display = "block";
@@ -332,7 +331,7 @@ document.addEventListener("alpine:init", () => {
                 if (!el) return;
 
                 if (el.classList.contains("hidden") || el.style.display === "none") {
-                    el.classList.remove("hidden", "free-model");
+                    el.classList.remove("hidden");
                     el.style.removeProperty("display");
                 }
 
@@ -357,8 +356,6 @@ document.addEventListener("alpine:init", () => {
             const devices = event?.detail?.devices || [];
             this.devices = devices;
             this.renderMarkers(devices);
-
-            // NEW: after marker refresh, ensure map still fits
             this._invalidateSoon();
             this.fitToDevices(devices);
         },
@@ -414,8 +411,6 @@ document.addEventListener("alpine:init", () => {
             </div>
         `);
             });
-
-            // ⭐ Auto zoom ke semua device
             if (bounds.length > 0) {
                 const latLngBounds = LLeaflet.latLngBounds(bounds);
                 this.map.fitBounds(latLngBounds, { padding: [50, 50] });
