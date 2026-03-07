@@ -84,19 +84,44 @@ window.addEventListener("modalChart", (e) => renderMetricChart(e.detail || {}));
 document.addEventListener("alpine:init", () => {
     Alpine.data("dashboard", () => ({
         data: {},
+        risk: "AMAN",
+        riskScore: 1,
+        riskStyles: {
+            bg: "bg-emerald-500/10",
+            border: "border-emerald-500/30",
+            text: "text-emerald-600",
+        },
         theme: localStorage.getItem("theme") || "light",
+
         init() {
             this.applyTheme(this.theme);
+
             this.$nextTick(() => {
                 const canvas = this.$refs.waterChart;
                 if (!canvas) return;
+
                 if (!window.__robMainChart) {
                     window.__robMainChart = new Chart(canvas.getContext("2d"), {
                         type: "line",
-                        data: { labels: [], datasets: [{ label: "Water Level", data: [], tension: 0.4, fill: true }] },
-                        options: { responsive: true, maintainAspectRatio: false, animation: false },
+                        data: {
+                            labels: [],
+                            datasets: [
+                                {
+                                    label: "Water Level",
+                                    data: [],
+                                    tension: 0.4,
+                                    fill: true
+                                }
+                            ]
+                        },
+                        options: {
+                            responsive: true,
+                            maintainAspectRatio: false,
+                            animation: false,
+                        },
                     });
                 }
+
                 if (window.__robChartPending) {
                     applyChartPayload(window.__robChartPending);
                     window.__robChartPending = null;
@@ -105,16 +130,31 @@ document.addEventListener("alpine:init", () => {
 
             window.addEventListener("dashboard-updated", (e) => {
                 this.data = e.detail?.data || {};
+                this.risk = e.detail?.risk || "AMAN";
+                this.riskScore = e.detail?.riskScore ?? 1;
+                this.riskStyles = e.detail?.riskStyles || {
+                    bg: "bg-emerald-500/10",
+                    border: "border-emerald-500/30",
+                    text: "text-emerald-600",
+                };
+            });
+
+            window.addEventListener("theme-sync", (e) => {
+                const theme = e.detail?.theme || "light";
+                this.applyTheme(theme);
             });
         },
+
         applyTheme(theme) {
             this.theme = theme;
             document.documentElement.classList.toggle("dark", theme === "dark");
             localStorage.setItem("theme", theme);
         },
+
         toggleTheme() {
             const next = this.theme === "dark" ? "light" : "dark";
             this.applyTheme(next);
+            this.$wire?.set("theme", next);
         },
     }));
 });
@@ -419,6 +459,64 @@ document.addEventListener("alpine:init", () => {
     }));
 });
 
+document.addEventListener("alpine:init", () => {
+    Alpine.data("searchSelect", (config = {}) => ({
+        isOpen: false,
+        query: "",
+        value: config.value ?? null,
+        placeholder: config.placeholder ?? "Pilih...",
+        searchPlaceholder: config.searchPlaceholder ?? "Cari...",
+        getOptions: config.getOptions ?? (() => config.options ?? []),
+
+        init() {
+            this.$watch("isOpen", (open) => {
+                if (open) {
+                    this.$nextTick(() => {
+                        this.$refs.search?.focus();
+                    });
+                }
+            });
+        },
+
+        options() {
+            const result = this.getOptions();
+            return Array.isArray(result) ? result : [];
+        },
+
+        filteredOptions() {
+            const q = this.query.toLowerCase().trim();
+            const opts = this.options();
+
+            if (!q) return opts;
+
+            return opts.filter((opt) =>
+                String(opt.label ?? "").toLowerCase().includes(q)
+            );
+        },
+
+        selectedLabel() {
+            const found = this.options().find(
+                (opt) => String(opt.value) === String(this.value)
+            );
+
+            return found ? found.label : this.placeholder;
+        },
+
+        toggle() {
+            this.isOpen = !this.isOpen;
+        },
+
+        close() {
+            this.isOpen = false;
+        },
+
+        select(val) {
+            this.value = val;
+            this.isOpen = false;
+            this.query = "";
+        },
+    }));
+});
 // Leaflet default icon fix (unchanged)
 try {
     delete leafletFromNpm.Icon.Default.prototype._getIconUrl;
