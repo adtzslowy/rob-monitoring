@@ -476,6 +476,61 @@ document.addEventListener("alpine:init", () => {
                 this.map.fitBounds(latLngBounds, { padding: [50, 50] });
             }
         },
+<<<<<<< HEAD
+=======
+    }));
+});
+
+document.addEventListener("alpine:init", () => {
+    Alpine.data("searchableDeviceSelect", (config = {}) => ({
+        open: false,
+        query: "",
+        selected: config.selected || null,
+        options: config.options || [],
+
+        init() {
+            this.$watch("selected", (value) => {
+                if (config.onChange) {
+                    config.onChange(value);
+                }
+            });
+        },
+
+        get filteredOptions() {
+            const q = (this.query || "").toLowerCase().trim();
+            if (!q) return this.options;
+
+            return this.options.filter((item) => {
+                const label = (item.label || item.alias || item.name || "").toLowerCase();
+                const status = (item.statusLabel || "").toLowerCase();
+                return label.includes(q) || status.includes(q);
+            });
+        },
+
+        get selectedOption() {
+            return this.options.find((item) => String(item.id) === String(this.selected)) || null;
+        },
+
+        select(item) {
+            this.selected = item.id;
+            this.query = "";
+            this.open = false;
+        },
+
+        toggle() {
+            this.open = !this.open;
+            if (this.open) {
+                this.$nextTick(() => {
+                    this.$refs.searchInput?.focus();
+                });
+            }
+        },
+
+        close() {
+            this.open = false;
+            this.query = "";
+        },
+>>>>>>> 0b28abe (updated)
     }));
 });
 
