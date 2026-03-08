@@ -21,7 +21,7 @@ function loadScriptOnce(src) {
 }
 
 // =========================
-// Chart globals (unchanged)
+// Chart globals
 // =========================
 window.__robMainChart = window.__robMainChart || null;
 window.__robMetricChart = window.__robMetricChart || null;
@@ -39,17 +39,29 @@ function normalizePayload(payload) {
 function applyChartPayload(payload) {
     const chart = window.__robMainChart;
     const p = normalizePayload(payload);
+
     if (!chart) {
         window.__robChartPending = p;
         return;
     }
+
     const labels = p.labels ?? [];
     const values = p.values ?? [];
     const title = p.title ?? "Water Level";
+
     chart.data.labels = labels;
+
     if (!chart.data.datasets.length) {
-        chart.data.datasets = [{ label: title, data: [], tension: 0.4, fill: true }];
+        chart.data.datasets = [
+            {
+                label: title,
+                data: [],
+                tension: 0.4,
+                fill: true,
+            },
+        ];
     }
+
     chart.data.datasets[0].label = title;
     chart.data.datasets[0].data = values;
     chart.update();
@@ -60,43 +72,93 @@ window.addEventListener("refreshChart", (e) => applyChartPayload(e.detail || {})
 function renderMetricChart(payload) {
     const p = normalizePayload(payload);
     const canvas = document.getElementById("metricChart");
+
     if (!canvas) {
         window.__robMetricPending = p;
         return;
     }
+
     const labels = p.labels ?? [];
     const values = p.values ?? [];
+
     if (!window.__robMetricChart) {
         window.__robMetricChart = new Chart(canvas.getContext("2d"), {
             type: "line",
-            data: { labels, datasets: [{ label: p.title ?? "Trend", data: values, tension: 0.4, fill: true }] },
-            options: { responsive: true, maintainAspectRatio: false, animation: false },
+            data: {
+                labels,
+                datasets: [
+                    {
+                        label: p.title ?? "Trend",
+                        data: values,
+                        tension: 0.4,
+                        fill: true,
+                    },
+                ],
+            },
+            options: {
+                responsive: true,
+                maintainAspectRatio: false,
+                animation: false,
+            },
         });
         return;
     }
+
     window.__robMetricChart.data.labels = labels;
+    window.__robMetricChart.data.datasets[0].label = p.title ?? "Trend";
     window.__robMetricChart.data.datasets[0].data = values;
     window.__robMetricChart.update();
 }
 
 window.addEventListener("modalChart", (e) => renderMetricChart(e.detail || {}));
 
+// =========================
+// Dashboard Alpine
+// =========================
+// =========================
+// Dashboard Alpine
+// =========================
 document.addEventListener("alpine:init", () => {
-    Alpine.data("dashboard", () => ({
+    Alpine.data("dashboard", (liveTheme) => ({
         data: {},
-        theme: localStorage.getItem("theme") || "light",
+        theme: liveTheme ?? "dark",
+
+        risk: "AMAN",
+        riskStyles: {
+            bg: "bg-emerald-500/10",
+            border: "border-emerald-500/30",
+            text: "text-emerald-600",
+        },
+
         init() {
             this.applyTheme(this.theme);
+
             this.$nextTick(() => {
                 const canvas = this.$refs.waterChart;
                 if (!canvas) return;
+
                 if (!window.__robMainChart) {
                     window.__robMainChart = new Chart(canvas.getContext("2d"), {
                         type: "line",
-                        data: { labels: [], datasets: [{ label: "Water Level", data: [], tension: 0.4, fill: true }] },
-                        options: { responsive: true, maintainAspectRatio: false, animation: false },
+                        data: {
+                            labels: [],
+                            datasets: [
+                                {
+                                    label: "Water Level",
+                                    data: [],
+                                    tension: 0.4,
+                                    fill: true,
+                                },
+                            ],
+                        },
+                        options: {
+                            responsive: true,
+                            maintainAspectRatio: false,
+                            animation: false,
+                        },
                     });
                 }
+
                 if (window.__robChartPending) {
                     applyChartPayload(window.__robChartPending);
                     window.__robChartPending = null;
@@ -105,22 +167,33 @@ document.addEventListener("alpine:init", () => {
 
             window.addEventListener("dashboard-updated", (e) => {
                 this.data = e.detail?.data || {};
+                this.risk = e.detail?.risk || "AMAN";
+                this.riskStyles = e.detail?.riskStyles || {
+                    bg: "bg-emerald-500/10",
+                    border: "border-emerald-500/30",
+                    text: "text-emerald-600",
+                };
+            });
+
+            this.$watch("theme", (value) => {
+                this.applyTheme(value);
             });
         },
+
         applyTheme(theme) {
-            this.theme = theme;
-            document.documentElement.classList.toggle("dark", theme === "dark");
-            localStorage.setItem("theme", theme);
+            const nextTheme = theme === "light" ? "light" : "dark";
+            this.theme = nextTheme;
+            document.documentElement.classList.toggle("dark", nextTheme === "dark");
         },
+
         toggleTheme() {
-            const next = this.theme === "dark" ? "light" : "dark";
-            this.applyTheme(next);
+            this.theme = this.theme === "dark" ? "light" : "dark";
         },
     }));
 });
 
 // =========================
-// Windy Map (UPDATED)
+// Windy Map
 // =========================
 document.addEventListener("alpine:init", () => {
     Alpine.data("windyMapComponent", (cfg) => ({
@@ -136,22 +209,19 @@ document.addEventListener("alpine:init", () => {
         loading: true,
         error: "",
         _observer: null,
-
-        // NEW: keep last known size (so we can re-apply on show/resize)
         _vw: null,
         _vh: null,
+        __resizeBound: false,
 
         async init() {
-            // If map already exists globally, reuse it
             if (window.__windyMap) {
                 this.map = window.__windyMap;
                 this.markersLayer = window.__windyMarkers;
                 this._watchHidden();
                 this.renderMarkers(this.devices);
                 this.loading = false;
-
-                // NEW: make sure it fits current container
                 this._invalidateSoon();
+                this.fitToDevices(this.devices);
                 return;
             }
 
@@ -164,7 +234,6 @@ document.addEventListener("alpine:init", () => {
                 return;
             }
 
-            // Load Windy script
             try {
                 await loadScriptOnce("https://api.windy.com/assets/map-forecast/libBoot.js");
             } catch (e) {
@@ -191,10 +260,7 @@ document.addEventListener("alpine:init", () => {
                 return;
             }
 
-            // IMPORTANT: size container from its parent (card), not window magic numbers
             const rect = container.getBoundingClientRect();
-
-            // Use actual current size; if still 0, fallback to parent size
             const parent = container.parentElement;
             const prect = parent ? parent.getBoundingClientRect() : rect;
 
@@ -225,7 +291,7 @@ document.addEventListener("alpine:init", () => {
 
                     const windyEl = document.getElementById("windy");
                     if (windyEl) {
-                        windyEl.classList.remove("hidden");
+                        windyEl.classList.remove("hidden", "free-model");
                         windyEl.style.width = this._vw + "px";
                         windyEl.style.height = this._vh + "px";
                         windyEl.style.display = "block";
@@ -242,6 +308,7 @@ document.addEventListener("alpine:init", () => {
 
                     this._bindResize();
                     this._invalidateSoon();
+                    this.fitToDevices(this.devices);
                 }
             );
         },
@@ -251,7 +318,7 @@ document.addEventListener("alpine:init", () => {
 
             const LLeaflet = window.L;
             const pts = (devices || [])
-                .map(d => [parseFloat(d.lat), parseFloat(d.lng)])
+                .map((d) => [parseFloat(d.lat), parseFloat(d.lng)])
                 .filter(([lat, lng]) => Number.isFinite(lat) && Number.isFinite(lng));
 
             if (!pts.length) return;
@@ -260,44 +327,39 @@ document.addEventListener("alpine:init", () => {
                 try {
                     const b = LLeaflet.latLngBounds(pts);
 
-                    // 1 titik → setView
                     if (pts.length === 1) {
                         this.map.setView(pts[0], 13, { animate: false });
                         return;
                     }
 
-                    // banyak titik → fitBounds TANPA animasi
                     this.map.fitBounds(b, { padding: [50, 50], animate: false });
                 } catch (e) {
-                    // kalau lagi transisi, coba sekali lagi sebentar
                     setTimeout(() => {
                         try {
                             const b = LLeaflet.latLngBounds(pts);
                             this.map.fitBounds(b, { padding: [50, 50], animate: false });
-                        } catch (_) { }
+                        } catch (_) {}
                     }, 150);
                 }
             };
 
-            // pastikan size benar sebelum fit
-            try { this.map.invalidateSize(true); } catch (_) { }
+            try {
+                this.map.invalidateSize(true);
+            } catch (_) {}
 
-            // tunggu 2 frame biar leaflet settle
             requestAnimationFrame(() => requestAnimationFrame(doFit));
         },
 
-        // NEW: called after layout changes
         _invalidateSoon() {
             [0, 100, 300, 600].forEach((ms) => {
                 setTimeout(() => {
                     try {
                         this.map?.invalidateSize(true);
-                    } catch (_) { }
+                    } catch (_) {}
                 }, ms);
             });
         },
 
-        // NEW: resize handler (card resize / window resize)
         _bindResize() {
             if (this.__resizeBound) return;
             this.__resizeBound = true;
@@ -306,7 +368,6 @@ document.addEventListener("alpine:init", () => {
                 const el = document.getElementById("windy");
                 if (!el) return;
 
-                // Match current CSS size (w-full h-full) from card
                 const rect = el.getBoundingClientRect();
                 if (rect.width > 0 && rect.height > 0) {
                     this._vw = rect.width;
@@ -314,11 +375,11 @@ document.addEventListener("alpine:init", () => {
                     el.style.width = rect.width + "px";
                     el.style.height = rect.height + "px";
                 }
+
                 this._invalidateSoon();
             };
 
             window.addEventListener("resize", handler);
-            // also run once
             setTimeout(handler, 50);
         },
 
@@ -331,13 +392,13 @@ document.addEventListener("alpine:init", () => {
                 if (!el) return;
 
                 if (el.classList.contains("hidden") || el.style.display === "none") {
-                    el.classList.remove("hidden");
+                    el.classList.remove("hidden", "free-model");
                     el.style.removeProperty("display");
                 }
 
-                // Re-apply stored size
                 const w = vw ?? this._vw;
                 const h = vh ?? this._vh;
+
                 if (w && h) {
                     el.style.width = w + "px";
                     el.style.height = h + "px";
@@ -365,7 +426,6 @@ document.addEventListener("alpine:init", () => {
 
             this.markersLayer.clearLayers();
             const LLeaflet = window.L;
-
             const bounds = [];
 
             (devices || []).forEach((d) => {
@@ -397,7 +457,6 @@ document.addEventListener("alpine:init", () => {
                 });
 
                 const marker = LLeaflet.marker([lat, lng], { icon }).addTo(this.markersLayer);
-
                 const last = d.last_seen ? `<br/><small style="color:#888">Last: ${d.last_seen}</small>` : "";
 
                 marker.bindPopup(`
@@ -411,15 +470,70 @@ document.addEventListener("alpine:init", () => {
             </div>
         `);
             });
+
             if (bounds.length > 0) {
                 const latLngBounds = LLeaflet.latLngBounds(bounds);
                 this.map.fitBounds(latLngBounds, { padding: [50, 50] });
             }
-        }
+        },
     }));
 });
 
-// Leaflet default icon fix (unchanged)
+document.addEventListener("alpine:init", () => {
+    Alpine.data("searchableDeviceSelect", (config = {}) => ({
+        open: false,
+        query: "",
+        selected: config.selected || null,
+        options: config.options || [],
+
+        init() {
+            this.$watch("selected", (value) => {
+                if (config.onChange) {
+                    config.onChange(value);
+                }
+            });
+        },
+
+        get filteredOptions() {
+            const q = (this.query || "").toLowerCase().trim();
+            if (!q) return this.options;
+
+            return this.options.filter((item) => {
+                const label = (item.label || item.alias || item.name || "").toLowerCase();
+                const status = (item.statusLabel || "").toLowerCase();
+                return label.includes(q) || status.includes(q);
+            });
+        },
+
+        get selectedOption() {
+            return this.options.find((item) => String(item.id) === String(this.selected)) || null;
+        },
+
+        select(item) {
+            this.selected = item.id;
+            this.query = "";
+            this.open = false;
+        },
+
+        toggle() {
+            this.open = !this.open;
+            if (this.open) {
+                this.$nextTick(() => {
+                    this.$refs.searchInput?.focus();
+                });
+            }
+        },
+
+        close() {
+            this.open = false;
+            this.query = "";
+        },
+    }));
+});
+
+// =========================
+// Leaflet default icon fix
+// =========================
 try {
     delete leafletFromNpm.Icon.Default.prototype._getIconUrl;
     leafletFromNpm.Icon.Default.mergeOptions({
@@ -427,4 +541,4 @@ try {
         iconUrl: new URL("leaflet/dist/images/marker-icon.png", import.meta.url).href,
         shadowUrl: new URL("leaflet/dist/images/marker-shadow.png", import.meta.url).href,
     });
-} catch (e) { }
+} catch (e) {}
