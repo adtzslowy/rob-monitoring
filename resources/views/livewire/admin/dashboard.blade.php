@@ -33,7 +33,6 @@
     @endphp
 
     <div x-data="dashboard(@entangle('theme').live)" x-init="init()" class="flex-1 w-full py-4 px-4 sm:px-6 lg:px-8 space-y-6">
-
         {{-- ===== TOP TOOLBAR ===== --}}
         <div class="rounded-2xl border border-zinc-200 dark:border-zinc-800 bg-white dark:bg-zinc-950/60 p-3 sm:p-4">
             <div class="flex flex-col gap-3 lg:flex-row lg:items-center lg:justify-between">
