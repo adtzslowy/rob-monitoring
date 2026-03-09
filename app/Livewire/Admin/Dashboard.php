@@ -16,7 +16,7 @@ class Dashboard extends Component
     // ===== Realtime state =====
     public array $data = [];
     public string $risk = "AMAN";
-    public float|int $riskScore = 1;
+    public float|int $riskScore = 0;
 
     // ===== RBAC =====
     public bool $canManageDevices = false;

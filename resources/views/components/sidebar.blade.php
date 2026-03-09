@@ -47,7 +47,7 @@
 
         <div class="space-y-2">
             <p class="px-3 text-xs font-semibold text-zinc-500 uppercase tracking-wider mb-2">
-                Menejemen Data
+                Manajemen Data
             </p>
             <a href="{{ route('manajemen_alat') }}"
                 class="flex items-center gap-3 px-3 py-2 rounded-lg transition
@@ -57,15 +57,14 @@
                 <x-heroicon-o-wrench-screwdriver class="w-5 h-5" />
                 Daftar Alat
             </a>
-            <button type="button" @click="alatOpen = !alatOpen"
-                class="w-full flex items-center justify-between px-3 py-2 rounded-lg transition text-zinc-900 dark:text-zinc-400 hover:bg-blue-100 hover:text-zinc-900 cursor-pointer">
-                <div class="flex items-center gap-3">
-                    <x-heroicon-o-server class="w-5 h-5" />
-                    Data Sensor
-                </div>
-
-                <x-heroicon-o-chevron-down :class="{ '-rotate-90': !alatOpen }" class="w-4 h-4 transition-transform duration-300" />
-            </button>
+            <a href="{{ route("sensor.list") }}"
+                class="flex items-center gap-3 px-3 py-2 rounded-lg transition
+    {{ request()->routeIs('sensor.list')
+        ? 'bg-blue-500 text-white'
+        : 'text-zinc-900 dark:text-zinc-400 hover:bg-blue-100 hover:text-zinc-900' }}">
+                <x-heroicon-o-server class="w-5 h-5" />
+                Data Sensor
+            </a>
             @can('manage users')
                 <a href="{{ route('admin.akun') }}"
                     class="flex items-center gap-3 px-3 py-2 rounded-lg transition
@@ -76,14 +75,6 @@
                     Data Operator
                 </a>
             @endcan
-
-            <div x-show="alatOpen" x-transition class="ml-8 space-y-2 text-sm" style="display: none;">
-                {{-- @foreach ($sensors as $sensor)
-                    <a href="" class="block text-sm text-zinc-500 hover:text-white">
-                        {{ $sensor->name }}
-                    </a>
-                @endforeach --}}
-            </div>
         </div>
 
 
@@ -103,7 +94,8 @@
                 <x-heroicon-o-chevron-down :class="{ '-rotate-90': !accountOpen }" class="w-4 h-4 transition-transform duration-300" />
             </button>
 
-            <div x-show="accountOpen" x-transition class="ml-8 space-y-2 text-sm bg-white p-4 rounded-xl" style="display: none;">
+            <div x-show="accountOpen" x-transition class="ml-8 space-y-2 text-sm bg-white p-4 rounded-xl"
+                style="display: none;">
 
                 <a href="{{ route('profil') }}"
                     class="flex items-center gap-3 px-3 py-2 rounded-lg transition
