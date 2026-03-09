@@ -586,9 +586,82 @@ document.addEventListener("alpine:init", () => {
     }));
 });
 
+<<<<<<< HEAD
 // =========================
 // Leaflet default icon fix
 // =========================
+=======
+document.addEventListener("alpine:init", () => {
+    Alpine.data("searchSelect", (config = {}) => ({
+        isOpen: false,
+        query: "",
+        value: config.value ?? null,
+        placeholder: config.placeholder ?? "Pilih...",
+        searchPlaceholder: config.searchPlaceholder ?? "Cari...",
+        items: config.options ?? [],
+        getOptions: config.getOptions ?? null,
+
+        init() {
+            this.$watch("isOpen", (open) => {
+                if (open) {
+                    this.$nextTick(() => {
+                        this.$refs.search?.focus();
+                    });
+                }
+            });
+        },
+
+        options() {
+            if (typeof this.getOptions === "function") {
+                const result = this.getOptions();
+                return Array.isArray(result) ? result : [];
+            }
+
+            return Array.isArray(this.items) ? this.items : [];
+        },
+
+        filteredOptions() {
+            const q = this.query.toLowerCase().trim();
+            const opts = this.options();
+
+            if (!q) return opts;
+
+            return opts.filter((opt) =>
+                String(opt.label ?? "").toLowerCase().includes(q) ||
+                String(opt.name ?? "").toLowerCase().includes(q) ||
+                String(opt.alias ?? "").toLowerCase().includes(q) ||
+                String(opt.statusLabel ?? "").toLowerCase().includes(q)
+            );
+        },
+
+        selectedOption() {
+            return this.options().find(
+                (opt) => String(opt.value) === String(this.value)
+            ) || null;
+        },
+
+        selectedLabel() {
+            return this.selectedOption()?.label ?? this.placeholder;
+        },
+
+        toggle() {
+            this.isOpen = !this.isOpen;
+        },
+
+        close() {
+            this.isOpen = false;
+            this.query = "";
+        },
+
+        select(val) {
+            this.value = val;
+            this.isOpen = false;
+            this.query = "";
+        },
+    }));
+});
+// Leaflet default icon fix (unchanged)
+>>>>>>> 5f7b955 (updated)
 try {
     delete leafletFromNpm.Icon.Default.prototype._getIconUrl;
     leafletFromNpm.Icon.Default.mergeOptions({
