@@ -1,4 +1,3 @@
-// resources/js/app.js
 import { Chart } from "chart.js/auto";
 import L from "leaflet";
 
@@ -112,9 +111,6 @@ function renderMetricChart(payload) {
 
 window.addEventListener("modalChart", (e) => renderMetricChart(e.detail || {}));
 
-// =========================
-// Dashboard Alpine
-// =========================
 // =========================
 // Dashboard Alpine
 // =========================
@@ -476,61 +472,6 @@ document.addEventListener("alpine:init", () => {
                 this.map.fitBounds(latLngBounds, { padding: [50, 50] });
             }
         },
-<<<<<<< HEAD
-=======
-    }));
-});
-
-document.addEventListener("alpine:init", () => {
-    Alpine.data("searchableDeviceSelect", (config = {}) => ({
-        open: false,
-        query: "",
-        selected: config.selected || null,
-        options: config.options || [],
-
-        init() {
-            this.$watch("selected", (value) => {
-                if (config.onChange) {
-                    config.onChange(value);
-                }
-            });
-        },
-
-        get filteredOptions() {
-            const q = (this.query || "").toLowerCase().trim();
-            if (!q) return this.options;
-
-            return this.options.filter((item) => {
-                const label = (item.label || item.alias || item.name || "").toLowerCase();
-                const status = (item.statusLabel || "").toLowerCase();
-                return label.includes(q) || status.includes(q);
-            });
-        },
-
-        get selectedOption() {
-            return this.options.find((item) => String(item.id) === String(this.selected)) || null;
-        },
-
-        select(item) {
-            this.selected = item.id;
-            this.query = "";
-            this.open = false;
-        },
-
-        toggle() {
-            this.open = !this.open;
-            if (this.open) {
-                this.$nextTick(() => {
-                    this.$refs.searchInput?.focus();
-                });
-            }
-        },
-
-        close() {
-            this.open = false;
-            this.query = "";
-        },
->>>>>>> 0b28abe (updated)
     }));
 });
 
@@ -586,11 +527,6 @@ document.addEventListener("alpine:init", () => {
     }));
 });
 
-<<<<<<< HEAD
-// =========================
-// Leaflet default icon fix
-// =========================
-=======
 document.addEventListener("alpine:init", () => {
     Alpine.data("searchSelect", (config = {}) => ({
         isOpen: false,
@@ -660,8 +596,10 @@ document.addEventListener("alpine:init", () => {
         },
     }));
 });
-// Leaflet default icon fix (unchanged)
->>>>>>> 5f7b955 (updated)
+
+// =========================
+// Leaflet default icon fix
+// =========================
 try {
     delete leafletFromNpm.Icon.Default.prototype._getIconUrl;
     leafletFromNpm.Icon.Default.mergeOptions({
