@@ -86,7 +86,9 @@ class DeviceManage extends Component
 
         // datetime-local format: Y-m-d\TH:i (anggap data di DB adalah Asia/Jakarta)
         $this->last_seen = $d->last_seen
-            ? Carbon::parse($d->last_seen)->timezone('Asia/Jakarta')->format('Y-m-d\TH:i')
+            ? Carbon::parse($d->last_seen, 'UTC')
+                ->setTimezone('Asia/Jakarta')
+                ->format('Y-m-d\TH:i')
             : null;
 
         $this->modalOpen = true;
@@ -138,9 +140,9 @@ class DeviceManage extends Component
         ];
 
         if ($this->last_seen) {
-            // input datetime-local dianggap waktu Asia/Jakarta
             $payload['last_seen'] = Carbon::createFromFormat('Y-m-d\TH:i', $this->last_seen, 'Asia/Jakarta')
-                ->timezone('Asia/Jakarta');
+                ->setTimezone('UTC')
+                ->format('Y-m-d H:i:s');
         }
 
         Device::query()->updateOrCreate(

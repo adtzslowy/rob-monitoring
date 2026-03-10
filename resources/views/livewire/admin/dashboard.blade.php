@@ -26,9 +26,13 @@
         $st = ($deviceStatus ?? [])[$selectedDeviceId] ?? null;
         $isOnline = (bool) ($st['online'] ?? false);
 
+        $dateTime = \Illuminate\Support\Carbon::parse($st['last'], 'UTC')
+            ->setTimezone('Asia/Jakarta')
+            ->format('d M H:i');
+
         $lastText = '-';
         if (!empty($st['last'])) {
-            $lastText = \Illuminate\Support\Carbon::parse($st['last'])->setTimezone('Asia/Jakarta')->format('d M H:i');
+            $lastText = $dateTime;
         }
     @endphp
 

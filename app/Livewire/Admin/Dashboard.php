@@ -226,7 +226,7 @@ class Dashboard extends Component
             if ($status === "online") {
                 $online = true;
             } elseif ($last) {
-                $diffSec = $now->diffInSeconds(Carbon::parse($last), false);
+                $diffSec = $now->diffInSeconds(Carbon::parse($last, 'UTC'), false);
                 $online = abs($diffSec) <= 120;
             }
 
@@ -452,7 +452,7 @@ class Dashboard extends Component
         $tz = config("app.timezone", "Asia/Jakarta");
 
         $labels = $records->pluck("timestamp")
-            ->map(fn($t) => Carbon::parse($t)->setTimezone($tz)->format("d M H:i"))
+            ->map(fn($t) => Carbon::parse($t, 'UTC')->setTimezone($tz)->format('d M H:i'))
             ->toArray();
 
         $values = $records->pluck($metric)
@@ -577,7 +577,7 @@ class Dashboard extends Component
         $tz = config("app.timezone", "Asia/Jakarta");
 
         $labels = $rows->map(
-            fn($r) => Carbon::parse($r->timestamp)->setTimezone($tz)->format("d M H:i")
+            fn($r) => Carbon::parse($r->timestamp, 'UTC')->setTimezone($tz)->format('d M H:i')
         )->all();
 
         $values = $rows->map(

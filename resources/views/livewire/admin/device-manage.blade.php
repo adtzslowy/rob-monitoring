@@ -163,7 +163,10 @@
                                 </td>
 
                                 <td class="hidden md:table-cell px-3 sm:px-5 py-3 sm:py-4 text-center text-zinc-600 dark:text-zinc-300 whitespace-nowrap">
-                                    {{ $d->last_seen ? \Illuminate\Support\Carbon::parse($d->last_seen)->timezone('Asia/Jakarta')->format('d M H:i') : '-' }}
+                                    @php
+                                        $carbon = \Illuminate\Support\Carbon::parse($d->last_seen, 'UTC')->setTimezone('Asia/Jakarta')->format('d M H:i');
+                                    @endphp
+                                    {{ $d->last_seen ? $carbon : '-'}}
                                 </td>
 
                                 <td class="px-3 sm:px-5 py-3 sm:py-4">
