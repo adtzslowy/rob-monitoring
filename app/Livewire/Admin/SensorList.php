@@ -192,8 +192,8 @@ class SensorList extends Component
             return '-';
         }
 
-        return Carbon::parse($reading->timestamp)
-            ->setTimezone(config('app.timezone', 'Asia/Jakarta'))
+        return Carbon::parse($reading->timestamp, 'UTC')
+            ->setTimezone('Asia/Jakarta')
             ->format('d M Y H:i');
     }
 

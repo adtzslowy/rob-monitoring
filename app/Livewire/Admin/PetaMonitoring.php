@@ -60,7 +60,7 @@ class PetaMonitoring extends Component
             'lng' => (float) $d->longitude,
             'status' => strtolower((string) ($d->status ?? 'offline')),
             'last_seen' => $d->last_seen
-                ? Carbon::parse($d->last_seen)->timezone('Asia/Jakarta')->format('d M H:i')
+                ? Carbon::parse($d->last_seen)->setTimezone('Asia/Jakarta')->format('d M H:i')
                 : '-',
         ])->toArray();
 
