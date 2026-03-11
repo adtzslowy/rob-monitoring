@@ -19,6 +19,30 @@ function loadScriptOnce(src) {
     });
 }
 
+document.addEventListener('DOMContentLoaded', () => {
+    const password = document.getElementById('password');
+    const toggle = document.getElementById('togglePassword');
+    const eyeOpen = document.getElementById('eyeOpen');
+    const eyeClose = document.getElementById('eyeSlash');
+
+    if (password && toggle) {
+        toggle.addEventListener('click', () => {
+            const isHidden = password.type === 'password';
+            password.type = isHidden ? 'text' : 'password';
+
+            if (eyeOpen && eyeClose) {
+                eyeOpen.classList.toggle('hidden', isHidden);
+                eyeClose.classList.toggle('hidden', !isHidden);
+            }
+
+            toggle.setAttribute(
+                'aria-label',
+                isHidden ? 'Sembunyikan password' : 'Tampilkan password'
+            );
+        });
+    }
+})
+
 // =========================
 // Chart globals
 // =========================
