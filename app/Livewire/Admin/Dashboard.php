@@ -21,7 +21,7 @@ class Dashboard extends Component
     // ===== RBAC =====
     public bool $canManageDevices = false;
 
-    /** @var array<int, array{id:int,name:string}> */
+    /** @var array<int, array{id:int,name:string,alias:?string,label:string}> */
     public array $devices = [];
 
     /** @var array<int, array{online:bool,last:?string,status:?string}> */
@@ -71,13 +71,9 @@ class Dashboard extends Component
         $user = auth()->user();
         $this->canManageDevices = $user?->can("manage devices") ?? false;
 
-        $setting = DashSetting::query()
-            ->where("user_id", auth()->id())
-            ->first();
-
-        if (!$setting) {
-            $setting = DashSetting::query()->create([
-                "user_id" => auth()->id(),
+        $setting = DashSetting::query()->firstOrCreate(
+            ["user_id" => auth()->id()],
+            [
                 "theme" => "dark",
                 "selected_device_id" => null,
                 "selected_sensor" => "ketinggian_air",
@@ -90,21 +86,18 @@ class Dashboard extends Component
                     "arah_angin",
                     "ketinggian_air",
                 ]),
-            ]);
-        }
+            ]
+        );
 
         $this->devices = $this->loadAllowedDevices($setting);
+        $this->theme = $setting->theme ?? "dark";
 
         if (empty($this->devices)) {
-            $this->theme = $setting->theme ?? "dark";
             return;
         }
 
-        $this->theme = $setting->theme ?? "dark";
-
         $requestedDeviceId = (int) ($setting->selected_device_id ?? $this->devices[0]["id"]);
         $resolvedDeviceId = $this->resolveAllowedDeviceId($requestedDeviceId);
-
         $this->selectedDeviceId = $resolvedDeviceId;
 
         if ((int) ($setting->selected_device_id ?? 0) !== $resolvedDeviceId) {
@@ -141,6 +134,7 @@ class Dashboard extends Component
 
         $this->refreshDeviceStatus();
         $this->fetchData();
+        $this->dispatchMainChart();
     }
 
     private function loadAllowedDevices(DashSetting $setting): array
@@ -208,6 +202,11 @@ class Dashboard extends Component
     {
         $ids = array_map(fn($d) => (int) $d["id"], $this->devices);
 
+        if (empty($ids)) {
+            $this->deviceStatus = [];
+            return;
+        }
+
         $rows = Device::query()
             ->whereIn("id", $ids)
             ->get(["id", "status", "last_seen"])
@@ -226,7 +225,7 @@ class Dashboard extends Component
             if ($status === "online") {
                 $online = true;
             } elseif ($last) {
-                $diffSec = $now->diffInSeconds(Carbon::parse($last, 'UTC'), false);
+                $diffSec = $now->diffInSeconds(Carbon::parse($last, "UTC"), false);
                 $online = abs($diffSec) <= 120;
             }
 
@@ -250,62 +249,87 @@ class Dashboard extends Component
         $this->showSettings = false;
     }
 
-    public function updated($property): void
+    public function updatedTheme(): void
     {
-        if ($property === "selectedDeviceId") {
-            if (empty($this->devices)) {
-                return;
-            }
+        $this->theme = $this->theme === "light" ? "light" : "dark";
+        $this->persistSettings();
+    }
 
-            $this->selectedDeviceId = $this->resolveAllowedDeviceId((int) $this->selectedDeviceId);
-            $this->assertCanAccessSelectedDevice();
-
-            $this->persistSettings();
-            $this->fetchData();
+    public function updatedSelectedDeviceId(): void
+    {
+        if (empty($this->devices)) {
             return;
         }
 
-        if ($property === "visibleSensors") {
-            $this->visibleSensors = array_values(array_filter(
-                $this->visibleSensors,
-                fn($key) => array_key_exists($key, $this->metricLabels)
-            ));
-        }
+        $this->selectedDeviceId = $this->resolveAllowedDeviceId((int) $this->selectedDeviceId);
+        $this->assertCanAccessSelectedDevice();
 
-        if (in_array($property, ["theme", "chartMetric", "selectedTimeRange", "visibleSensors"], true)) {
-            if (!$this->selectedDeviceId && !empty($this->devices)) {
-                $this->selectedDeviceId = (int) $this->devices[0]["id"];
-            }
+        $this->persistSettings();
+        $this->fetchData();
+        $this->dispatchMainChart();
 
-            if (!$this->selectedDeviceId) {
-                return;
-            }
-
-            if (!array_key_exists($this->chartMetric, $this->metricLabels)) {
-                $this->chartMetric = "ketinggian_air";
-            }
-
-            if (!array_key_exists($this->selectedTimeRange, $this->timeRanges)) {
-                $this->selectedTimeRange = "5m";
-            }
-
-            $this->persistSettings();
-            $this->fetchData();
-
-            if ($property === "selectedTimeRange") {
-                $this->dispatchMainChart();
-            }
-
-            return;
-        }
-
-        if ($property === "modalTimeRange" && $this->modalOpen) {
-            if (!array_key_exists($this->modalTimeRange, $this->timeRanges)) {
-                $this->modalTimeRange = "5m";
-            }
-
+        if ($this->modalOpen) {
             $this->dispatchMetricChart();
         }
+    }
+
+    public function updatedChartMetric(): void
+    {
+        if (!array_key_exists($this->chartMetric, $this->metricLabels)) {
+            $this->chartMetric = "ketinggian_air";
+        }
+
+        if (!$this->selectedDeviceId) {
+            return;
+        }
+
+        $this->persistSettings();
+        $this->dispatchMainChart();
+    }
+
+    public function updatedSelectedTimeRange(): void
+    {
+        if (!array_key_exists($this->selectedTimeRange, $this->timeRanges)) {
+            $this->selectedTimeRange = "5m";
+        }
+
+        if (!$this->selectedDeviceId) {
+            return;
+        }
+
+        $this->persistSettings();
+        $this->dispatchMainChart();
+    }
+
+    public function updatedVisibleSensors(): void
+    {
+        $this->visibleSensors = array_values(array_filter(
+            $this->visibleSensors,
+            fn($key) => array_key_exists($key, $this->metricLabels)
+        ));
+
+        if (!$this->selectedDeviceId && !empty($this->devices)) {
+            $this->selectedDeviceId = (int) $this->devices[0]["id"];
+        }
+
+        if (!$this->selectedDeviceId) {
+            return;
+        }
+
+        $this->persistSettings();
+    }
+
+    public function updatedModalTimeRange(): void
+    {
+        if (!$this->modalOpen) {
+            return;
+        }
+
+        if (!array_key_exists($this->modalTimeRange, $this->timeRanges)) {
+            $this->modalTimeRange = "5m";
+        }
+
+        $this->dispatchMetricChart();
     }
 
     private function persistSettings(): void
@@ -338,7 +362,7 @@ class Dashboard extends Component
 
         if (!$latest) {
             $this->data = [];
-            $this->risk = 'AMAN';
+            $this->risk = "AMAN";
             $this->riskScore = 0;
 
             $this->dispatch(
@@ -365,7 +389,6 @@ class Dashboard extends Component
         ];
 
         $this->calculateRisk();
-        $this->dispatchMainChart();
 
         $this->dispatch(
             "dashboard-updated",
@@ -452,7 +475,7 @@ class Dashboard extends Component
         $tz = config("app.timezone", "Asia/Jakarta");
 
         $labels = $records->pluck("timestamp")
-            ->map(fn($t) => Carbon::parse($t, 'UTC')->setTimezone($tz)->format('d M H:i'))
+            ->map(fn($t) => Carbon::parse($t, "UTC")->setTimezone($tz)->format("d M H:i"))
             ->toArray();
 
         $values = $records->pluck($metric)
@@ -470,14 +493,14 @@ class Dashboard extends Component
     private function calculateRisk(): void
     {
         $result = app(FuzzyRiskServices::class)->evaluate([
-            'ketinggian_air' => (float) ($this->data['ketinggian_air'] ?? 0),
-            'tekanan_udara' => (float) ($this->data['tekanan_udara'] ?? 0),
-            'kecepatan_angin' => (float) ($this->data['kecepatan_angin'] ?? 0),
-            'arah_angin' => (float) ($this->data['arah_angin'] ?? 0),
+            "ketinggian_air" => (float) ($this->data["ketinggian_air"] ?? 0),
+            "tekanan_udara" => (float) ($this->data["tekanan_udara"] ?? 0),
+            "kecepatan_angin" => (float) ($this->data["kecepatan_angin"] ?? 0),
+            "arah_angin" => (float) ($this->data["arah_angin"] ?? 0),
         ]);
 
-        $this->riskScore = $result['score'];
-        $this->risk = $result['label'];
+        $this->riskScore = $result["score"];
+        $this->risk = $result["label"];
     }
 
     public function getRiskStylesProperty(): array
@@ -578,7 +601,7 @@ class Dashboard extends Component
         $tz = config("app.timezone", "Asia/Jakarta");
 
         $labels = $rows->map(
-            fn($r) => Carbon::parse($r->timestamp, 'UTC')->setTimezone($tz)->format('d M H:i')
+            fn($r) => Carbon::parse($r->timestamp, "UTC")->setTimezone($tz)->format("d M H:i")
         )->all();
 
         $values = $rows->map(
@@ -595,6 +618,10 @@ class Dashboard extends Component
 
     public function render()
     {
-        return view("livewire.admin.dashboard");
+        $currentDevice = collect($this->devices)->firstWhere("id", $this->selectedDeviceId);
+
+        return view("livewire.admin.dashboard", [
+            "currentDevice" => $currentDevice,
+        ]);
     }
 }

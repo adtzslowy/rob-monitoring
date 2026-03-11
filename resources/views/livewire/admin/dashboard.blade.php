@@ -1,6 +1,6 @@
 <div wire:init="fetchData" wire:key="dashboard-root">
     @if (!$modalOpen)
-        <div wire:poll.5s="fetchData"></div>
+        <div wire:poll.3s="fetchData"></div>
     @endif
 
     @php
@@ -36,7 +36,7 @@
         }
     @endphp
 
-    <div x-data="dashboard(@entangle('theme').live)" x-init="init()" class="flex-1 w-full py-4 px-4 sm:px-6 lg:px-8 space-y-6">
+    <div x-data="dashboard(@js($theme))" x-init="init()" class="flex-1 w-full py-4 px-4 sm:px-6 lg:px-8 space-y-6">
         {{-- ===== TOP TOOLBAR ===== --}}
         <div class="rounded-2xl border border-zinc-200 dark:border-zinc-800 bg-white dark:bg-zinc-950/60 p-3 sm:p-4">
             <div class="flex flex-col gap-3 lg:flex-row lg:items-center lg:justify-between">
@@ -141,13 +141,16 @@
 
                     <button type="button"
                         class="inline-flex items-center justify-between sm:justify-center gap-2 rounded-xl border border-zinc-200 dark:border-zinc-800
-                       bg-white/70 dark:bg-zinc-950/50 px-3 py-2.5 sm:py-2 text-sm sm:text-xs min-h-[44px]
-                       text-zinc-700 dark:text-zinc-200 hover:bg-zinc-100 dark:hover:bg-zinc-900 transition cursor-pointer"
-                        x-on:click="toggleTheme()" title="Theme">
+           bg-white/70 dark:bg-zinc-950/50 px-3 py-2.5 sm:py-2 text-sm sm:text-xs min-h-[44px]
+           text-zinc-700 dark:text-zinc-200 hover:bg-zinc-100 dark:hover:bg-zinc-900 transition cursor-pointer"
+                        x-on:click="
+        toggleTheme();
+        $wire.set('theme', theme);
+    " title="Theme">
                         <span x-text="theme === 'dark' ? 'Dark' : 'Light'"></span>
                         <span
                             class="relative inline-flex h-5 w-9 items-center rounded-full border
-                           border-zinc-300 dark:border-zinc-700 bg-zinc-200 dark:bg-zinc-800 shrink-0">
+               border-zinc-300 dark:border-zinc-700 bg-zinc-200 dark:bg-zinc-800 shrink-0">
                             <span
                                 class="inline-block h-4 w-4 transform rounded-full bg-white dark:bg-zinc-200 transition"
                                 :class="theme === 'dark' ? 'translate-x-4' : 'translate-x-1'"></span>
@@ -447,7 +450,7 @@
 
         {{-- ===== MODAL METRIC ===== --}}
         @if ($modalOpen)
-            <div class="fixed inset-0 z-50 flex items-center justify-center" x-data x-init="$nextTick(() => { window.flushMetricChartPending?.() })">
+            <div class="fixed inset-0 z-50 flex items-center justify-center" x-data x-init="$nextTick(() => window.flushMetricChartPending?.())">
                 <div class="absolute inset-0 bg-black/40" wire:click="closeModal"></div>
 
                 <div
@@ -458,7 +461,7 @@
                         <div class="flex items-center gap-2">
                             <select wire:model.live="modalTimeRange"
                                 class="text-xs rounded-xl border border-zinc-200 dark:border-zinc-800
-                                       bg-white dark:bg-zinc-900 text-zinc-900 dark:text-white px-3 py-2">
+                               bg-white dark:bg-zinc-900 text-zinc-900 dark:text-white px-3 py-2">
                                 @foreach ($timeRanges as $key => $label)
                                     <option value="{{ $key }}">{{ $label }}</option>
                                 @endforeach
