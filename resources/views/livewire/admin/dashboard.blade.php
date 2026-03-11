@@ -472,7 +472,7 @@
 
                     <div wire:poll.3s="pollMetric"></div>
 
-                    <div class="h-[360px]" wire:ignore>
+                    <div class="h-[360px]" wire:ignore.self>
                         <canvas id="metricChart" class="w-full h-full"></canvas>
                     </div>
                 </div>
