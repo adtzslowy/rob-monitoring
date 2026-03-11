@@ -534,6 +534,7 @@ class Dashboard extends Component
     public function closeModal(): void
     {
         $this->modalOpen = false;
+        $this->dispatch("destroyModalChart");
     }
 
     public function pollMetric(): void
