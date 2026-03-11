@@ -215,7 +215,7 @@
                 @endphp
 
                 <div wire:click="openMetric('{{ $metric }}')"
-                    class="bg-white dark:bg-zinc-900 p-6 rounded-xl border {{ $c['border'] }}
+                    class="bg-white dark:bg-zinc-950 p-6 rounded-xl border {{ $c['border'] }}
                            cursor-pointer hover:opacity-95 transition">
                     <div class="flex justify-between items-center">
                         <p class="text-sm text-zinc-900 dark:text-white">{{ $c['label'] }}</p>
@@ -259,7 +259,7 @@
 
                 <div class="flex flex-wrap items-center gap-2">
                     <select wire:model.live="chartMetric"
-                        class="text-xs rounded-xl border border-zinc-200 dark:border-zinc-800
+                        class="appearance-none text-xs rounded-xl border border-zinc-200 dark:border-zinc-800
                                bg-white dark:bg-zinc-900 text-zinc-900 dark:text-white px-3 py-2 cursor-pointer">
                         @foreach ($metricLabels as $k => $lbl)
                             <option value="{{ $k }}">{{ $lbl }}</option>
@@ -267,14 +267,13 @@
                     </select>
 
                     <select wire:model.live="selectedTimeRange"
-                        class="text-xs rounded-xl border border-zinc-200 dark:border-zinc-800
+                        class="appearance-none text-xs rounded-xl border border-zinc-200 dark:border-zinc-800
                                bg-white dark:bg-zinc-900 text-zinc-900 dark:text-white px-3 py-2 cursor-pointer">
                         @foreach ($timeRanges as $key => $label)
                             <option value="{{ $key }}">{{ $label }}</option>
                         @endforeach
                     </select>
 
-                    <span class="text-xs text-zinc-400">Range</span>
                 </div>
             </div>
 
@@ -413,7 +412,7 @@
                                     Sensor Trend (Chart)
                                 </div>
                                 <select wire:model.live="chartMetric"
-                                    class="w-full rounded-xl border border-zinc-200 dark:border-zinc-800
+                                    class="appearance-none w-full rounded-xl border border-zinc-200 dark:border-zinc-800
                                            bg-white dark:bg-zinc-950 px-3 py-2 text-sm text-zinc-900 dark:text-zinc-100">
                                     @foreach ($metricLabels as $key => $label)
                                         <option value="{{ $key }}">{{ $label }}</option>
@@ -426,7 +425,7 @@
                                     Range Default
                                 </div>
                                 <select wire:model.live="selectedTimeRange"
-                                    class="w-full rounded-xl border border-zinc-200 dark:border-zinc-800
+                                    class="appearance-none w-full rounded-xl border border-zinc-200 dark:border-zinc-800
                                            bg-white dark:bg-zinc-950 px-3 py-2 text-sm text-zinc-900 dark:text-zinc-100">
                                     @foreach ($timeRanges as $key => $label)
                                         <option value="{{ $key }}">{{ $label }}</option>

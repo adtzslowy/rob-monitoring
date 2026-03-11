@@ -5,6 +5,7 @@ namespace App\Livewire\Admin;
 use App\Models\Device;
 use App\Models\SensorReading;
 use Carbon\Carbon;
+use Illuminate\Contracts\Pagination\LengthAwarePaginator;
 use Illuminate\Support\Collection;
 use Livewire\Attributes\Title;
 use Livewire\Component;
@@ -22,6 +23,9 @@ class SensorList extends Component
 
     public bool $modalOpen = false;
     public ?int $detailDeviceId = null;
+
+    public string $detailRange = '1h';
+    public int $detailPerPage = 10;
 
     /** @var array<int> */
     public array $allowedIds = [];
@@ -76,6 +80,16 @@ class SensorList extends Component
     public function updatedPerPage(): void
     {
         $this->resetPage();
+    }
+
+    public function updatedDetailRange(): void
+    {
+        $this->resetPage('detailPage');
+    }
+
+    public function updatedDetailPerPage(): void
+    {
+        $this->resetPage('detailPage');
     }
 
     private function resolveAllowedDeviceIds(): array
@@ -152,6 +166,10 @@ class SensorList extends Component
         }
 
         $this->detailDeviceId = $deviceId;
+        $this->detailRange = '1h';
+        $this->detailPerPage = 10;
+        $this->resetPage('detailPage');
+
         $this->loadDetailData($deviceId);
         $this->modalOpen = true;
     }
@@ -162,6 +180,7 @@ class SensorList extends Component
         $this->detailDeviceId = null;
         $this->detailDeviceData = null;
         $this->detailReadingData = null;
+        $this->resetPage('detailPage');
     }
 
     private function loadDetailData(int $deviceId): void
@@ -172,6 +191,32 @@ class SensorList extends Component
             ->where('device_id', $deviceId)
             ->latest('timestamp')
             ->first();
+    }
+
+    private function getDetailRangeStart(): Carbon
+    {
+        return match ($this->detailRange) {
+            '1m' => now()->subMinute(),
+            '1h' => now()->subHour(),
+            '1d' => now()->subDay(),
+            '1w' => now()->subWeek(),
+            '1mo' => now()->subMonth(),
+            '1y' => now()->subYear(),
+            default => now()->subHour(),
+        };
+    }
+
+    public function getDetailRangeLabelProperty(): string
+    {
+        return match ($this->detailRange) {
+            '1m' => '1 Menit',
+            '1h' => '1 Jam',
+            '1d' => '1 Hari',
+            '1w' => '1 Minggu',
+            '1mo' => '1 Bulan',
+            '1y' => '1 Tahun',
+            default => '1 Jam',
+        };
     }
 
     public function getDetailDeviceProperty(): ?Device
@@ -195,6 +240,57 @@ class SensorList extends Component
         return Carbon::parse($reading->timestamp, 'UTC')
             ->setTimezone('Asia/Jakarta')
             ->format('d M Y H:i');
+    }
+
+    public function getDetailHistoryProperty(): LengthAwarePaginator
+    {
+        if (!$this->detailDeviceId) {
+            return SensorReading::query()
+                ->whereRaw('1 = 0')
+                ->paginate(
+                    perPage: $this->detailPerPage,
+                    pageName: 'detailPage'
+                );
+        }
+
+        $start = $this->getDetailRangeStart();
+
+        $rows = SensorReading::query()
+            ->where('device_id', $this->detailDeviceId)
+            ->where('timestamp', '>=', $start)
+            ->orderByDesc('timestamp')
+            ->paginate(
+                perPage: $this->detailPerPage,
+                columns: [
+                    'timestamp',
+                    'suhu',
+                    'kelembapan',
+                    'tekanan_udara',
+                    'kecepatan_angin',
+                    'arah_angin',
+                    'ketinggian_air',
+                ],
+                pageName: 'detailPage'
+            );
+
+        $rows->through(function ($row) {
+            return [
+                'timestamp' => $row->timestamp
+                    ? Carbon::parse($row->timestamp, 'UTC')
+                        ->setTimezone('Asia/Jakarta')
+                        ->format('d M Y H:i:s')
+                    : '-',
+                'suhu' => $row->suhu,
+                'kelembapan' => $row->kelembapan,
+                'tekanan_udara' => $row->tekanan_udara,
+                'kecepatan_angin' => $row->kecepatan_angin,
+                'arah_angin' => $row->arah_angin,
+                'arah_angin_label' => $this->getWindDirectionLabel($row->arah_angin),
+                'ketinggian_air' => $row->ketinggian_air,
+            ];
+        });
+
+        return $rows;
     }
 
     public function getWindDirectionLabel($degree): string

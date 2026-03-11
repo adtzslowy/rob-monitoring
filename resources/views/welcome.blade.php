@@ -11,6 +11,10 @@
 <body class="bg-slate-950 text-white ">
 
 
+    <a href="{{ route('login') }}" class="px-4 py-2 bg-white">
+        Sign In
+    </a>
+
     @livewireScripts()
 </body>
 </html>

@@ -321,7 +321,7 @@
                                 <label class="text-sm text-zinc-600 dark:text-zinc-400">Status</label>
                                 <select
                                     wire:model.defer="status"
-                                    class="mt-1 w-full rounded-xl border border-zinc-200 dark:border-zinc-800
+                                    class="appearance-none mt-1 w-full rounded-xl border border-zinc-200 dark:border-zinc-800
                                            bg-white dark:bg-zinc-950 px-3 py-2.5 text-sm text-zinc-900 dark:text-zinc-100">
                                     <option value="online">online</option>
                                     <option value="offline">offline</option>

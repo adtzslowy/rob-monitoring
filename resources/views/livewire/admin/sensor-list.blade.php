@@ -225,6 +225,7 @@
             @php
                 $detailDevice = $this->detailDevice;
                 $detailReading = $this->detailReading;
+                $detailHistory = $this->detailHistory;
                 $detailStatus = $deviceStatus[$detailDevice->id] ?? ['online' => false, 'last' => null];
                 $isOnline = (bool) ($detailStatus['online'] ?? false);
             @endphp
@@ -233,7 +234,7 @@
                 <button wire:click="closeModal" class="absolute inset-0 bg-black/60"></button>
 
                 <div
-                    class="relative w-full sm:max-w-3xl mx-0 sm:mx-4 rounded-t-2xl sm:rounded-2xl border border-zinc-200 dark:border-zinc-800
+                    class="relative w-full sm:max-w-6xl mx-0 sm:mx-4 rounded-t-2xl sm:rounded-2xl border border-zinc-200 dark:border-zinc-800
                             bg-white dark:bg-zinc-950 p-4 sm:p-5 shadow-xl max-h-[90vh] overflow-y-auto">
 
                     <div class="flex items-start justify-between gap-3">
@@ -249,6 +250,36 @@
                         <button wire:click="closeModal" class="p-2 rounded-lg hover:bg-zinc-100 dark:hover:bg-zinc-800">
                             <x-heroicon-o-x-mark class="w-5 h-5 text-zinc-500" />
                         </button>
+                    </div>
+
+                    <div class="mt-4 flex flex-col lg:flex-row lg:items-center lg:justify-between gap-3">
+                        <div class="text-sm text-zinc-600 dark:text-zinc-400">
+                            Pilih range data sensor untuk melihat riwayat pembacaan.
+                        </div>
+
+                        <div class="flex flex-col sm:flex-row gap-2 w-full sm:w-auto">
+                            <select wire:model.live="detailRange"
+                                class="appearance-none w-full sm:w-[180px] rounded-xl border border-zinc-200 dark:border-zinc-800
+                                       bg-white dark:bg-zinc-950 text-zinc-900 dark:text-zinc-100
+                                       px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500/30">
+                                <option value="1m">1 Menit</option>
+                                <option value="1h">1 Jam</option>
+                                <option value="1d">1 Hari</option>
+                                <option value="1w">1 Minggu</option>
+                                <option value="1mo">1 Bulan</option>
+                                <option value="1y">1 Tahun</option>
+                            </select>
+
+                            <select wire:model.live="detailPerPage"
+                                class="appearance-none w-full sm:w-[150px] rounded-xl border border-zinc-200 dark:border-zinc-800
+                                       bg-white dark:bg-zinc-950 text-zinc-900 dark:text-zinc-100
+                                       px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500/30">
+                                <option value="10">10 / halaman</option>
+                                <option value="25">25 / halaman</option>
+                                <option value="50">50 / halaman</option>
+                                <option value="100">100 / halaman</option>
+                            </select>
+                        </div>
                     </div>
 
                     <div class="mt-4 grid grid-cols-1 sm:grid-cols-3 gap-3">
@@ -284,7 +315,8 @@
                                 <tr>
                                     <td class="px-4 py-3 font-medium text-zinc-600 dark:text-zinc-400">Temperature</td>
                                     <td class="px-4 py-3 text-zinc-900 dark:text-zinc-100">
-                                        {{ $detailReading?->suhu !== null ? $detailReading->suhu . ' °C' : '-' }}</td>
+                                        {{ $detailReading?->suhu !== null ? $detailReading->suhu . ' °C' : '-' }}
+                                    </td>
                                 </tr>
                                 <tr>
                                     <td class="px-4 py-3 font-medium text-zinc-600 dark:text-zinc-400">Kelembapan</td>
@@ -326,6 +358,92 @@
                                 </tr>
                             </tbody>
                         </table>
+                    </div>
+
+                    <div class="mt-6">
+                        <div class="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-2 mb-3">
+                            <h3 class="text-sm font-semibold text-zinc-900 dark:text-zinc-100">
+                                Riwayat Sensor
+                            </h3>
+                            <span class="text-xs text-zinc-500 dark:text-zinc-400">
+                                Range: {{ $this->detailRangeLabel }}
+                            </span>
+                        </div>
+
+                        <div class="overflow-x-auto rounded-xl border border-zinc-200 dark:border-zinc-800">
+                            <table class="min-w-[950px] w-full text-sm border-collapse">
+                                <thead class="bg-zinc-50 dark:bg-zinc-900/50 text-zinc-600 dark:text-zinc-400">
+                                    <tr>
+                                        <th class="px-4 py-3 text-left">Waktu</th>
+                                        <th class="px-4 py-3 text-center">Temp</th>
+                                        <th class="px-4 py-3 text-center">Hum</th>
+                                        <th class="px-4 py-3 text-center">Pressure</th>
+                                        <th class="px-4 py-3 text-center">Wind Speed</th>
+                                        <th class="px-4 py-3 text-center">Wind Dir</th>
+                                        <th class="px-4 py-3 text-center">Water</th>
+                                    </tr>
+                                </thead>
+
+                                <tbody class="divide-y divide-zinc-200 dark:divide-zinc-800">
+                                    @forelse ($detailHistory as $row)
+                                        <tr class="hover:bg-zinc-50 dark:hover:bg-zinc-900/40 transition">
+                                            <td class="px-4 py-3 whitespace-nowrap text-zinc-700 dark:text-zinc-200">
+                                                {{ $row['timestamp'] }}
+                                            </td>
+                                            <td class="px-4 py-3 text-center text-zinc-700 dark:text-zinc-200">
+                                                {{ $row['suhu'] !== null ? $row['suhu'] . ' °C' : '-' }}
+                                            </td>
+                                            <td class="px-4 py-3 text-center text-zinc-700 dark:text-zinc-200">
+                                                {{ $row['kelembapan'] !== null ? $row['kelembapan'] . ' %' : '-' }}
+                                            </td>
+                                            <td class="px-4 py-3 text-center text-zinc-700 dark:text-zinc-200">
+                                                {{ $row['tekanan_udara'] !== null ? $row['tekanan_udara'] . ' hPa' : '-' }}
+                                            </td>
+                                            <td class="px-4 py-3 text-center text-zinc-700 dark:text-zinc-200">
+                                                {{ $row['kecepatan_angin'] !== null ? $row['kecepatan_angin'] . ' m/s' : '-' }}
+                                            </td>
+                                            <td class="px-4 py-3 text-center text-zinc-700 dark:text-zinc-200">
+                                                @if ($row['arah_angin'] !== null)
+                                                    {{ $row['arah_angin'] }}° ({{ $row['arah_angin_label'] }})
+                                                @else
+                                                    -
+                                                @endif
+                                            </td>
+                                            <td class="px-4 py-3 text-center font-medium text-blue-600 dark:text-blue-300">
+                                                {{ $row['ketinggian_air'] !== null ? $row['ketinggian_air'] . ' cm' : '-' }}
+                                            </td>
+                                        </tr>
+                                    @empty
+                                        <tr>
+                                            <td colspan="7"
+                                                class="px-4 py-8 text-center text-zinc-500 dark:text-zinc-400">
+                                                Tidak ada data pada range ini.
+                                            </td>
+                                        </tr>
+                                    @endforelse
+                                </tbody>
+                            </table>
+                        </div>
+
+                        <div
+                            class="mt-3 flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3 p-3 rounded-xl
+                                   bg-zinc-50/70 dark:bg-zinc-900/40 border border-zinc-200 dark:border-zinc-800">
+                            <span class="text-sm text-zinc-600 dark:text-zinc-400">
+                                Menampilkan
+                                <span class="font-semibold text-zinc-900 dark:text-zinc-100">
+                                    {{ $detailHistory->firstItem() ?? 0 }}-{{ $detailHistory->lastItem() ?? 0 }}
+                                </span>
+                                dari
+                                <span class="font-semibold text-zinc-900 dark:text-zinc-100">
+                                    {{ $detailHistory->total() }}
+                                </span>
+                                data
+                            </span>
+
+                            <div class="overflow-x-auto">
+                                {{ $detailHistory->onEachSide(1)->links('components.pagination') }}
+                            </div>
+                        </div>
                     </div>
 
                     <div class="mt-5 flex items-center justify-end">
