@@ -1,4 +1,4 @@
-<div wire:init="fetchData" wire:key="dashboard-root">
+<div wire:key="dashboard-root">
     @if (!$modalOpen)
         <div wire:poll.3s="fetchData"></div>
     @endif
@@ -27,14 +27,8 @@
 
         $st = ($deviceStatus ?? [])[$selectedDeviceId] ?? null;
         $isOnline = (bool) ($st['online'] ?? false);
-
-        $lastText = '-';
-        if (!empty($st['last'])) {
-            $lastText = \Illuminate\Support\Carbon::parse($st['last'], 'UTC')
-                ->setTimezone('Asia/Jakarta')
-                ->format('d M H:i');
-        }
     @endphp
+    
 
     <div x-data="dashboard(@js($theme))" x-init="init()" class="flex-1 w-full py-4 px-4 sm:px-6 lg:px-8 space-y-6">
         {{-- ===== TOP TOOLBAR ===== --}}
@@ -473,7 +467,6 @@
                         </div>
                     </div>
 
-                    <div wire:init="pollMetric"></div>
                     <div wire:poll.3s="pollMetric"></div>
 
                     <div class="relative w-full h-[360px]" wire:ignore>
