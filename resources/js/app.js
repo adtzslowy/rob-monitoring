@@ -135,28 +135,50 @@ function renderMetricChart(payload) {
         });
 
         window.__robMetricCanvas = canvas;
+
+        requestAnimationFrame(() => {
+            window.__robMetricChart?.resize();
+        });
+
         return;
     }
 
     window.__robMetricChart.data.labels = labels;
     window.__robMetricChart.data.datasets[0].label = p.title ?? "Trend";
     window.__robMetricChart.data.datasets[0].data = values;
-    window.__robMetricChart.update();
+    window.__robMetricChart.update("none");
     window.__robMetricCanvas = canvas;
+
+    requestAnimationFrame(() => {
+        window.__robMetricChart?.resize();
+    });
 }
 
 function flushMetricChartPending() {
     if (!window.__robMetricPending) return;
 
-    const canvas = document.getElementById("metricChart");
-    if (!canvas) return;
-
-    renderMetricChart(window.__robMetricPending);
+    const payload = window.__robMetricPending;
     window.__robMetricPending = null;
+
+    requestAnimationFrame(() => {
+        requestAnimationFrame(() => {
+            renderMetricChart(payload);
+            window.__robMetricChart?.resize();
+        });
+    });
 }
 
 window.flushMetricChartPending = flushMetricChartPending;
 window.addEventListener("modalChart", (e) => renderMetricChart(e.detail || {}));
+window.addEventListener("destroyModalChart", () => {
+    if (window.__robMetricChart) {
+        window.__robMetricChart.destroy();
+        window.__robMetricChart = null;
+    }
+
+    window.__robMetricCanvas = null;
+    window.__robMetricPending = null;
+});
 
 // =========================
 // Dashboard Alpine

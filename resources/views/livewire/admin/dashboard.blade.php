@@ -1,5 +1,7 @@
 <div wire:init="fetchData" wire:key="dashboard-root">
-    <div wire:poll.5s="fetchData"></div>
+    @if (!$modalOpen)
+        <div wire:poll.5s="fetchData"></div>
+    @endif
 
     @php
         $deviceOptions = collect($devices ?? [])
@@ -26,13 +28,11 @@
         $st = ($deviceStatus ?? [])[$selectedDeviceId] ?? null;
         $isOnline = (bool) ($st['online'] ?? false);
 
-        $dateTime = \Illuminate\Support\Carbon::parse($st['last'], 'UTC')
-            ->setTimezone('Asia/Jakarta')
-            ->format('d M H:i');
-
         $lastText = '-';
         if (!empty($st['last'])) {
-            $lastText = $dateTime;
+            $lastText = \Illuminate\Support\Carbon::parse($st['last'], 'UTC')
+                ->setTimezone('Asia/Jakarta')
+                ->format('d M H:i');
         }
     @endphp
 
@@ -447,10 +447,7 @@
 
         {{-- ===== MODAL METRIC ===== --}}
         @if ($modalOpen)
-            <div class="fixed inset-0 z-50 flex items-center justify-center"
-                x-data
-                x-init="$nextTick(() => { window.flushMetricChartPending?.() })"
-            >
+            <div class="fixed inset-0 z-50 flex items-center justify-center" x-data x-init="$nextTick(() => { window.flushMetricChartPending?.() })">
                 <div class="absolute inset-0 bg-black/40" wire:click="closeModal"></div>
 
                 <div
@@ -473,10 +470,11 @@
                         </div>
                     </div>
 
+                    <div wire:init="pollMetric"></div>
                     <div wire:poll.3s="pollMetric"></div>
 
-                    <div class="h-[360px]" wire:ignore>
-                        <canvas id="metricChart" class="w-full h-full"></canvas>
+                    <div class="relative w-full h-[360px]" wire:ignore>
+                        <canvas id="metricChart"></canvas>
                     </div>
                 </div>
             </div>
