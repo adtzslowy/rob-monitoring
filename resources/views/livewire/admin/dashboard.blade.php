@@ -447,7 +447,10 @@
 
         {{-- ===== MODAL METRIC ===== --}}
         @if ($modalOpen)
-            <div class="fixed inset-0 z-50 flex items-center justify-center">
+            <div class="fixed inset-0 z-50 flex items-center justify-center"
+                x-data
+                x-init="$nextTick(() => { window.flushMetricChartPending?.() })"
+            >
                 <div class="absolute inset-0 bg-black/40" wire:click="closeModal"></div>
 
                 <div

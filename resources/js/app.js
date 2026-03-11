@@ -19,29 +19,39 @@ function loadScriptOnce(src) {
     });
 }
 
-document.addEventListener('DOMContentLoaded', () => {
-    const password = document.getElementById('password');
-    const toggle = document.getElementById('togglePassword');
-    const eyeOpen = document.getElementById('eyeOpen');
-    const eyeClose = document.getElementById('eyeSlash');
+function flushMetricChartPending() {
+    if (!window.__robMetricPending) return;
+
+    const canvas = document.getElementById("metricChart");
+    if (!canvas) return;
+
+    renderMetricChart(window.__robMetricPending);
+    window.__robMetricPending = null;
+}
+
+document.addEventListener("DOMContentLoaded", () => {
+    const password = document.getElementById("password");
+    const toggle = document.getElementById("togglePassword");
+    const eyeOpen = document.getElementById("eyeOpen");
+    const eyeClose = document.getElementById("eyeSlash");
 
     if (password && toggle) {
-        toggle.addEventListener('click', () => {
-            const isHidden = password.type === 'password';
-            password.type = isHidden ? 'text' : 'password';
+        toggle.addEventListener("click", () => {
+            const isHidden = password.type === "password";
+            password.type = isHidden ? "text" : "password";
 
             if (eyeOpen && eyeClose) {
-                eyeOpen.classList.toggle('hidden', isHidden);
-                eyeClose.classList.toggle('hidden', !isHidden);
+                eyeOpen.classList.toggle("hidden", isHidden);
+                eyeClose.classList.toggle("hidden", !isHidden);
             }
 
             toggle.setAttribute(
-                'aria-label',
-                isHidden ? 'Sembunyikan password' : 'Tampilkan password'
+                "aria-label",
+                isHidden ? "Sembunyikan password" : "Tampilkan password",
             );
         });
     }
-})
+});
 
 // =========================
 // Chart globals
@@ -90,11 +100,13 @@ function applyChartPayload(payload) {
     chart.update();
 }
 
-window.addEventListener("refreshChart", (e) => applyChartPayload(e.detail || {}));
+window.addEventListener("refreshChart", (e) =>
+    applyChartPayload(e.detail || {}),
+);
 
 function renderMetricChart(payload) {
     const p = normalizePayload(payload);
-    const canvas = document.getElementById('metricChart');
+    const canvas = document.getElementById("metricChart");
 
     if (!canvas) {
         window.__robMetricPending = p;
@@ -112,30 +124,30 @@ function renderMetricChart(payload) {
     }
 
     if (!window.__robMetricChart) {
-        window.__robMetricChart = new Chart(canvas.getContext('2d'), {
+        window.__robMetricChart = new Chart(canvas.getContext("2d"), {
             type: "line",
             data: {
                 labels,
                 datasets: [
                     {
-                        label: p.title ?? 'Trend',
+                        label: p.title ?? "Trend",
                         data: values,
                         tension: 0.4,
-                        fill: true
-                    }
-                ]
+                        fill: true,
+                    },
+                ],
             },
-
             options: {
                 responsive: true,
                 maintainAspectRatio: false,
-                animation: false
-            }
+                animation: false,
+            },
         });
 
         window.__robMetricCanvas = canvas;
         return;
     }
+
     window.__robMetricChart.data.labels = labels;
     window.__robMetricChart.data.datasets[0].label = p.title ?? "Trend";
     window.__robMetricChart.data.datasets[0].data = values;
@@ -143,6 +155,17 @@ function renderMetricChart(payload) {
     window.__robMetricCanvas = canvas;
 }
 
+function flushMetricChartPending() {
+    if (!window.__robMetricPending) return;
+
+    const canvas = document.getElementById("metricChart");
+    if (!canvas) return;
+
+    renderMetricChart(window.__robMetricPending);
+    window.__robMetricPending = null;
+}
+
+window.flushMetricChartPending = flushMetricChartPending;
 window.addEventListener("modalChart", (e) => renderMetricChart(e.detail || {}));
 
 // =========================
@@ -213,7 +236,10 @@ document.addEventListener("alpine:init", () => {
         applyTheme(theme) {
             const nextTheme = theme === "light" ? "light" : "dark";
             this.theme = nextTheme;
-            document.documentElement.classList.toggle("dark", nextTheme === "dark");
+            document.documentElement.classList.toggle(
+                "dark",
+                nextTheme === "dark",
+            );
         },
 
         toggleTheme() {
@@ -256,7 +282,9 @@ document.addEventListener("alpine:init", () => {
             }
 
             await this.$nextTick();
-            await new Promise((r) => requestAnimationFrame(() => requestAnimationFrame(r)));
+            await new Promise((r) =>
+                requestAnimationFrame(() => requestAnimationFrame(r)),
+            );
 
             const container = document.getElementById("windy");
             if (!container) {
@@ -265,7 +293,9 @@ document.addEventListener("alpine:init", () => {
             }
 
             try {
-                await loadScriptOnce("https://api.windy.com/assets/map-forecast/libBoot.js");
+                await loadScriptOnce(
+                    "https://api.windy.com/assets/map-forecast/libBoot.js",
+                );
             } catch (e) {
                 this.error = "Gagal load libBoot.js. Cek koneksi internet.";
                 return;
@@ -294,8 +324,12 @@ document.addEventListener("alpine:init", () => {
             const parent = container.parentElement;
             const prect = parent ? parent.getBoundingClientRect() : rect;
 
-            const vw = (rect.width > 0 ? rect.width : prect.width) || window.innerWidth;
-            const vh = (rect.height > 0 ? rect.height : prect.height) || (window.innerHeight - 200);
+            const vw =
+                (rect.width > 0 ? rect.width : prect.width) ||
+                window.innerWidth;
+            const vh =
+                (rect.height > 0 ? rect.height : prect.height) ||
+                window.innerHeight - 200;
 
             this._vw = vw;
             this._vh = vh;
@@ -304,7 +338,9 @@ document.addEventListener("alpine:init", () => {
             container.style.height = vh + "px";
             container.style.display = "block";
 
-            await new Promise((r) => requestAnimationFrame(() => requestAnimationFrame(r)));
+            await new Promise((r) =>
+                requestAnimationFrame(() => requestAnimationFrame(r)),
+            );
 
             window.windyInit(
                 {
@@ -339,7 +375,7 @@ document.addEventListener("alpine:init", () => {
                     this._bindResize();
                     this._invalidateSoon();
                     this.fitToDevices(this.devices);
-                }
+                },
             );
         },
 
@@ -349,7 +385,10 @@ document.addEventListener("alpine:init", () => {
             const LLeaflet = window.L;
             const pts = (devices || [])
                 .map((d) => [parseFloat(d.lat), parseFloat(d.lng)])
-                .filter(([lat, lng]) => Number.isFinite(lat) && Number.isFinite(lng));
+                .filter(
+                    ([lat, lng]) =>
+                        Number.isFinite(lat) && Number.isFinite(lng),
+                );
 
             if (!pts.length) return;
 
@@ -362,12 +401,18 @@ document.addEventListener("alpine:init", () => {
                         return;
                     }
 
-                    this.map.fitBounds(b, { padding: [50, 50], animate: false });
+                    this.map.fitBounds(b, {
+                        padding: [50, 50],
+                        animate: false,
+                    });
                 } catch (e) {
                     setTimeout(() => {
                         try {
                             const b = LLeaflet.latLngBounds(pts);
-                            this.map.fitBounds(b, { padding: [50, 50], animate: false });
+                            this.map.fitBounds(b, {
+                                padding: [50, 50],
+                                animate: false,
+                            });
                         } catch (_) {}
                     }, 150);
                 }
@@ -421,7 +466,10 @@ document.addEventListener("alpine:init", () => {
                 const el = document.getElementById("windy");
                 if (!el) return;
 
-                if (el.classList.contains("hidden") || el.style.display === "none") {
+                if (
+                    el.classList.contains("hidden") ||
+                    el.style.display === "none"
+                ) {
                     el.classList.remove("hidden", "free-model");
                     el.style.removeProperty("display");
                 }
@@ -486,8 +534,12 @@ document.addEventListener("alpine:init", () => {
                     popupAnchor: [0, -36],
                 });
 
-                const marker = LLeaflet.marker([lat, lng], { icon }).addTo(this.markersLayer);
-                const last = d.last_seen ? `<br/><small style="color:#888">Last: ${d.last_seen}</small>` : "";
+                const marker = LLeaflet.marker([lat, lng], { icon }).addTo(
+                    this.markersLayer,
+                );
+                const last = d.last_seen
+                    ? `<br/><small style="color:#888">Last: ${d.last_seen}</small>`
+                    : "";
 
                 marker.bindPopup(`
             <div style="font-family:sans-serif;min-width:140px">
@@ -529,14 +581,23 @@ document.addEventListener("alpine:init", () => {
             if (!q) return this.options;
 
             return this.options.filter((item) => {
-                const label = (item.label || item.alias || item.name || "").toLowerCase();
+                const label = (
+                    item.label ||
+                    item.alias ||
+                    item.name ||
+                    ""
+                ).toLowerCase();
                 const status = (item.statusLabel || "").toLowerCase();
                 return label.includes(q) || status.includes(q);
             });
         },
 
         get selectedOption() {
-            return this.options.find((item) => String(item.id) === String(this.selected)) || null;
+            return (
+                this.options.find(
+                    (item) => String(item.id) === String(this.selected),
+                ) || null
+            );
         },
 
         select(item) {
@@ -596,18 +657,29 @@ document.addEventListener("alpine:init", () => {
 
             if (!q) return opts;
 
-            return opts.filter((opt) =>
-                String(opt.label ?? "").toLowerCase().includes(q) ||
-                String(opt.name ?? "").toLowerCase().includes(q) ||
-                String(opt.alias ?? "").toLowerCase().includes(q) ||
-                String(opt.statusLabel ?? "").toLowerCase().includes(q)
+            return opts.filter(
+                (opt) =>
+                    String(opt.label ?? "")
+                        .toLowerCase()
+                        .includes(q) ||
+                    String(opt.name ?? "")
+                        .toLowerCase()
+                        .includes(q) ||
+                    String(opt.alias ?? "")
+                        .toLowerCase()
+                        .includes(q) ||
+                    String(opt.statusLabel ?? "")
+                        .toLowerCase()
+                        .includes(q),
             );
         },
 
         selectedOption() {
-            return this.options().find(
-                (opt) => String(opt.value) === String(this.value)
-            ) || null;
+            return (
+                this.options().find(
+                    (opt) => String(opt.value) === String(this.value),
+                ) || null
+            );
         },
 
         selectedLabel() {
@@ -637,8 +709,15 @@ document.addEventListener("alpine:init", () => {
 try {
     delete leafletFromNpm.Icon.Default.prototype._getIconUrl;
     leafletFromNpm.Icon.Default.mergeOptions({
-        iconRetinaUrl: new URL("leaflet/dist/images/marker-icon-2x.png", import.meta.url).href,
-        iconUrl: new URL("leaflet/dist/images/marker-icon.png", import.meta.url).href,
-        shadowUrl: new URL("leaflet/dist/images/marker-shadow.png", import.meta.url).href,
+        iconRetinaUrl: new URL(
+            "leaflet/dist/images/marker-icon-2x.png",
+            import.meta.url,
+        ).href,
+        iconUrl: new URL("leaflet/dist/images/marker-icon.png", import.meta.url)
+            .href,
+        shadowUrl: new URL(
+            "leaflet/dist/images/marker-shadow.png",
+            import.meta.url,
+        ).href,
     });
 } catch (e) {}
