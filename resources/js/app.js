@@ -94,7 +94,7 @@ window.addEventListener("refreshChart", (e) => applyChartPayload(e.detail || {})
 
 function renderMetricChart(payload) {
     const p = normalizePayload(payload);
-    const canvas = document.getElementById("metricChart");
+    const canvas = document.getElementById('metricChart');
 
     if (!canvas) {
         window.__robMetricPending = p;
@@ -104,33 +104,43 @@ function renderMetricChart(payload) {
     const labels = p.labels ?? [];
     const values = p.values ?? [];
 
+    const existingCanvas = window.__robMetricCanvas;
+
+    if (window.__robMetricChart && existingCanvas !== canvas) {
+        window.__robMetricChart.destroy();
+        window.__robMetricChart = null;
+    }
+
     if (!window.__robMetricChart) {
-        window.__robMetricChart = new Chart(canvas.getContext("2d"), {
+        window.__robMetricChart = new Chart(canvas.getContext('2d'), {
             type: "line",
             data: {
                 labels,
                 datasets: [
                     {
-                        label: p.title ?? "Trend",
+                        label: p.title ?? 'Trend',
                         data: values,
                         tension: 0.4,
-                        fill: true,
-                    },
-                ],
+                        fill: true
+                    }
+                ]
             },
+
             options: {
                 responsive: true,
                 maintainAspectRatio: false,
-                animation: false,
-            },
+                animation: false
+            }
         });
+
+        window.__robMetricCanvas = canvas;
         return;
     }
-
     window.__robMetricChart.data.labels = labels;
     window.__robMetricChart.data.datasets[0].label = p.title ?? "Trend";
     window.__robMetricChart.data.datasets[0].data = values;
     window.__robMetricChart.update();
+    window.__robMetricCanvas = canvas;
 }
 
 window.addEventListener("modalChart", (e) => renderMetricChart(e.detail || {}));
