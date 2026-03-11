@@ -19,16 +19,6 @@ function loadScriptOnce(src) {
     });
 }
 
-function flushMetricChartPending() {
-    if (!window.__robMetricPending) return;
-
-    const canvas = document.getElementById("metricChart");
-    if (!canvas) return;
-
-    renderMetricChart(window.__robMetricPending);
-    window.__robMetricPending = null;
-}
-
 document.addEventListener("DOMContentLoaded", () => {
     const password = document.getElementById("password");
     const toggle = document.getElementById("togglePassword");
