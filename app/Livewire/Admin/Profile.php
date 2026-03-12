@@ -2,6 +2,7 @@
 
 namespace App\Livewire\Admin;
 
+use App\Models\Device;
 use Illuminate\Support\Facades\Hash;
 use Illuminate\Validation\Rule;
 use Livewire\Component;
@@ -22,6 +23,10 @@ class Profile extends Component
     public string $new_password = '';
     public string $new_password_confirmation = '';
 
+    public int $totalAlat = 0;
+    public int $alatAktif = 0;
+    public int $alatOffline = 0;
+
     public function mount(): void
     {
         $user = auth()->user()->loadMissing('roles:id,name');
@@ -30,6 +35,10 @@ class Profile extends Component
         $this->email = (string) $user->email;
         $this->storedFotoProfil = $user->foto_profil;
         $this->roleName = $user->roles->first()?->name ?? 'No Role';
+
+        $this->totalAlat = Device::count();
+        $this->alatAktif = Device::where('status', 'Online')->count();
+        $this->alatOffline = Device::where('status', 'Offline')->count();
     }
 
     public function updateProfile(): void
