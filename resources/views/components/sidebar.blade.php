@@ -77,57 +77,6 @@
             @endcan
         </div>
 
-
-        {{-- Menejemen Akun --}}
-        <div class="space-y-2">
-            <p class="px-3 text-xs font-semibold text-zinc-500 uppercase tracking-wider mb-2">
-                Akun
-            </p>
-
-            <button type="button" @click="accountOpen = !accountOpen"
-                class="w-full flex items-center justify-between px-3 py-2 rounded-lg transition text-zinc-900 dark:text-zinc-400 hover:bg-blue-100 hover:text-zinc-900 cursor-pointer">
-                <div class="flex items-center gap-3">
-                    <x-heroicon-o-user class="w-5 h-5" />
-                    Account
-                </div>
-
-                <x-heroicon-o-chevron-down :class="{ '-rotate-90': !accountOpen }" class="w-4 h-4 transition-transform duration-300" />
-            </button>
-
-            <div x-show="accountOpen" x-transition class="ml-8 space-y-2 text-sm bg-white dark:bg-zinc-900 p-4 rounded-xl"
-                style="display: none;">
-
-                <a href="{{ route('profil') }}"
-                    class="flex items-center gap-3 px-3 py-2 rounded-lg transition
-            {{ request()->routeIs('profil')
-                ? 'bg-blue-500 text-white'
-                : 'text-zinc-900 dark:text-zinc-400 hover:bg-blue-100 hover:text-zinc-900' }} cursor-pointer">
-                    <x-heroicon-o-user class="w-5 h-5" />
-                    Profil
-                </a>
-
-                <a href="{{ route('pengaturan') }}"
-                    class="flex items-center gap-3 px-3 py-2 rounded-lg transition
-            {{ request()->routeIs('pengaturan')
-                ? 'bg-blue-500 text-white'
-                : 'text-zinc-900 dark:text-zinc-400 hover:bg-blue-100 hover:text-zinc-900' }} cursor-pointer">
-                    <x-heroicon-o-cog class="w-5 h-5" />
-                    Pengaturan
-                </a>
-
-                <form method="POST" action="{{ route('logout') }}">
-                    @csrf
-                    <button type="submit"
-                        class="w-full flex items-center gap-3 px-3 py-2 rounded-lg hover:bg-white/20 text-red-400 dark:hover:bg-zinc-400 hover:text-red-500 transition cursor-pointer">
-                        <x-heroicon-o-arrow-right-end-on-rectangle class="w-5 h-5" />
-                        Logout
-                    </button>
-                </form>
-
-            </div>
-        </div>
-
-
     </nav>
 
 </aside>
