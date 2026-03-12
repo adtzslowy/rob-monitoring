@@ -63,16 +63,6 @@
                             {{ strtoupper(substr($headerName, 0, 1)) }}
                         </div>
                     @endif
-
-                    <div class="hidden sm:block text-left leading-tight">
-                        <div class="max-w-[140px] truncate font-medium text-zinc-900 dark:text-white">
-                            {{ $headerName }}
-                        </div>
-                        <div class="text-xs text-zinc-500 dark:text-zinc-400">
-                            {{ ucfirst($headerRole) }}
-                        </div>
-                    </div>
-
                     <x-heroicon-o-chevron-down class="h-4 w-4 text-zinc-500 dark:text-zinc-400" />
                 </button>
 
