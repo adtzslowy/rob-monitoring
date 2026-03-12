@@ -67,6 +67,7 @@
                             class="block w-full text-sm border border-zinc-200 dark:border-zinc-800 rounded-xl px-3 py-2
                                    bg-white dark:bg-zinc-900 text-zinc-900 dark:text-white"
                         >
+                        <p class="text-sm text-zinc-600">minimal file 2mb</p>
                         @error('foto_profil')
                             <p class="mt-1 text-sm text-red-500">{{ $message }}</p>
                         @enderror
