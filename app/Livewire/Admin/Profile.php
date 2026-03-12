@@ -1,55 +1,60 @@
 <?php
 
-namespace App\Livewire\Admin;
+namespace App\Livewire;
 
-use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Hash;
 use Illuminate\Validation\Rule;
 use Livewire\Component;
-use Livewire\Attributes\Title;
 use Livewire\WithFileUploads;
 
-#[Title('Profil Pengguna')]
 class Profile extends Component
 {
-
     use WithFileUploads;
 
     public string $name = '';
     public string $email = '';
+    public ?string $roleName = null;
+    public ?string $storedFotoProfil = null;
+
     public $foto_profil = null;
 
     public string $current_password = '';
     public string $new_password = '';
     public string $new_password_confirmation = '';
 
-    public function mount()
+    public function mount(): void
     {
-        $user = Auth::user();
+        $user = auth()->user()->loadMissing('roles:id,name');
 
-        $this->name = (string) ($user->name ?? '');
-        $this->email = (string) ($user->email ?? '');
+        $this->name = (string) $user->name;
+        $this->email = (string) $user->email;
+        $this->storedFotoProfil = $user->foto_profil;
+        $this->roleName = $user->roles->first()?->name ?? 'No Role';
     }
 
-
-    public function updateProfile()
+    public function updateProfile(): void
     {
-        $user = Auth::user();
+        $user = auth()->user();
 
-        $validate = $this->validate([
+        $validated = $this->validate([
             'name' => ['required', 'string', 'min:2', 'max:255'],
-            'email' => ['required', 'email', 'max:255', Rule::unique('users', 'email')->ignore($user->id)],
-            'foto_profil' => ['nullable', 'image', 'max:2048'],
+            'email' => [
+                'required',
+                'email',
+                'max:255',
+                Rule::unique('users', 'email')->ignore($user->id),
+            ],
+            'foto_profil' => ['nullable', 'image', 'max:1024'],
         ]);
 
         $data = [
-            'name' => $validate['name'],
-            'email' => $validate['email'],
+            'name' => $validated['name'],
+            'email' => $validated['email'],
         ];
 
         if ($this->foto_profil) {
             if (!empty($user->foto_profil)) {
-                $oldPath = storage_path('app/public' . $user->foto_profil);
+                $oldPath = storage_path('app/public/' . $user->foto_profil);
                 if (file_exists($oldPath)) {
                     @unlink($oldPath);
                 }
@@ -59,17 +64,24 @@ class Profile extends Component
         }
 
         $user->update($data);
+
+        $fresh = $user->fresh();
+        $this->storedFotoProfil = $fresh->foto_profil;
+        $this->name = (string) $fresh->name;
+        $this->email = (string) $fresh->email;
+
         $this->reset('foto_profil');
+
         session()->flash('success', 'Profil berhasil diperbarui.');
     }
 
-    public function updatePassword()
+    public function updatePassword(): void
     {
-        $user = Auth::user();
+        $user = auth()->user();
 
         $this->validate([
             'current_password' => ['required'],
-            'new_password' => ['required', 'string', 'min:6', 'confirmed']
+            'new_password' => ['required', 'string', 'min:6', 'confirmed'],
         ]);
 
         if (!Hash::check($this->current_password, $user->password)) {
@@ -87,17 +99,11 @@ class Profile extends Component
             'new_password_confirmation',
         ]);
 
-        session()->flash('success_password', 'Password berhasil diperbarui');
+        session()->flash('success_password', 'Password berhasil diperbarui.');
     }
-
-
 
     public function render()
     {
-        $user = auth()->user()->loadMissing('roles:id,name');
-        return view('livewire.admin.profile', [
-            'user' => $user,
-            'roleName' => $user->roles->first()?->name ?? 'NO ROLE',
-        ]);
+        return view('livewire.profile-page');
     }
 }
