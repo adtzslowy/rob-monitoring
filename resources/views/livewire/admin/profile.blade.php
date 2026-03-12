@@ -102,13 +102,6 @@
                             <p class="mt-4 text-xs leading-5 text-slate-500 dark:text-slate-400">
                                 Scan QR ini untuk identifikasi akun pengguna.
                             </p>
-
-                            <div class="mt-4 rounded-2xl bg-white/70 px-4 py-3 text-left ring-1 ring-slate-200 dark:bg-slate-900/70 dark:ring-slate-700">
-                                <p class="mb-2 text-[11px] font-semibold uppercase tracking-wider text-slate-400 dark:text-slate-500">
-                                    Data QR
-                                </p>
-                                <pre class="whitespace-pre-wrap break-words text-xs text-slate-600 dark:text-slate-300">{{ $qrPayload }}</pre>
-                            </div>
                         </div>
 
                         <!-- Footer Info -->
