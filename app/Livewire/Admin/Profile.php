@@ -19,7 +19,9 @@ class Profile extends Component
     public string $email = '';
     public ?string $roleName = null;
     public ?string $storedFotoProfil = null;
+
     public string $qrCode = '';
+    public string $qrPayload = '';
 
     public $foto_profil = null;
 
@@ -48,13 +50,12 @@ class Profile extends Component
 
         $writer = new Writer($renderer);
 
-        $payload = json_encode([
-            'id' => $user->id,
-            'name' => $user->name,
-            'email' => $user->email,
-            'role' => $this->roleName,
-        ], JSON_UNESCAPED_UNICODE);
+        $payload = "ID: {$user->id}\n"
+            . "Nama: {$user->name}\n"
+            . "Email: {$user->email}\n"
+            . "Role: {$this->roleName}";
 
+        $this->qrPayload = $payload;
         $this->qrCode = $writer->writeString($payload);
     }
 
