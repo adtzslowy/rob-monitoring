@@ -81,7 +81,7 @@
                     x-show="open"
                     @click.outside="open = false"
                     x-transition
-                    class="absolute right-0 mt-2 w-64 overflow-hidden rounded-2xl border border-zinc-200 bg-white shadow-lg dark:border-zinc-700 dark:bg-zinc-900"
+                    class="cursor-pointer absolute right-0 mt-2 w-64 overflow-hidden rounded-2xl border border-zinc-200 bg-white shadow-lg dark:border-zinc-700 dark:bg-zinc-900"
                     style="display: none;"
                 >
                     <div class="border-b border-zinc-200 px-4 py-4 dark:border-zinc-700">
