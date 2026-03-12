@@ -84,17 +84,6 @@
                     class="cursor-pointer absolute right-0 mt-2 w-64 overflow-hidden rounded-2xl border border-zinc-200 bg-white shadow-lg dark:border-zinc-700 dark:bg-zinc-900"
                     style="display: none;"
                 >
-                    <div class="border-b border-zinc-200 px-4 py-4 dark:border-zinc-700">
-                        <div class="font-semibold text-zinc-900 dark:text-white">
-                            {{ $headerName }}
-                        </div>
-                        <div class="mt-1 text-sm text-zinc-500 dark:text-zinc-400">
-                            {{ auth()->user()?->email }}
-                        </div>
-                        <div class="mt-2 inline-flex rounded-full bg-blue-50 px-2.5 py-1 text-xs font-medium text-blue-700 dark:bg-blue-500/10 dark:text-blue-300">
-                            {{ ucfirst($headerRole) }}
-                        </div>
-                    </div>
 
                     <div class="p-2">
                         <a
