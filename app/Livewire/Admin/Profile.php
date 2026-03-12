@@ -94,7 +94,7 @@ class Profile extends Component
 
     public function render()
     {
-        $user = auth()->user()->loadMissing('roles');
+        $user = auth()->user()->loadMissing('roles:id,name');
         return view('livewire.admin.profile', [
             'user' => $user,
             'roleName' => $user->roles->first()?->name ?? 'NO ROLE',
