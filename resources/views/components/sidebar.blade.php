@@ -94,7 +94,7 @@
                 <x-heroicon-o-chevron-down :class="{ '-rotate-90': !accountOpen }" class="w-4 h-4 transition-transform duration-300" />
             </button>
 
-            <div x-show="accountOpen" x-transition class="ml-8 space-y-2 text-sm bg-white p-4 rounded-xl"
+            <div x-show="accountOpen" x-transition class="ml-8 space-y-2 text-sm bg-white dark:bg-zinc-900 p-4 rounded-xl"
                 style="display: none;">
 
                 <a href="{{ route('profil') }}"
