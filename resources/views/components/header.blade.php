@@ -41,7 +41,7 @@
                 <button
                     @click="open = !open"
                     type="button"
-                    class="flex items-center gap-3 rounded-xl border border-zinc-200 bg-white px-2.5 py-2 shadow-sm transition hover:bg-zinc-50 dark:border-zinc-700 dark:bg-zinc-900 dark:hover:bg-zinc-800"
+                    class="cursor-pointer flex items-center gap-3 rounded-xl border border-zinc-200 bg-white px-2.5 py-2 shadow-sm transition hover:bg-zinc-50 dark:border-zinc-700 dark:bg-zinc-900 dark:hover:bg-zinc-800"
                 >
                     @php
                         $headerAvatar = auth()->user()?->foto_profil
@@ -81,7 +81,7 @@
                     x-show="open"
                     @click.outside="open = false"
                     x-transition
-                    class="cursor-pointer absolute right-0 mt-2 w-64 overflow-hidden rounded-2xl border border-zinc-200 bg-white shadow-lg dark:border-zinc-700 dark:bg-zinc-900"
+                    class="absolute right-0 mt-2 w-64 overflow-hidden rounded-2xl border border-zinc-200 bg-white shadow-lg dark:border-zinc-700 dark:bg-zinc-900"
                     style="display: none;"
                 >
 
@@ -108,7 +108,7 @@
                             @csrf
                             <button
                                 type="submit"
-                                class="flex w-full items-center gap-3 rounded-xl px-3 py-2.5 text-sm text-red-600 transition hover:bg-red-50 dark:text-red-400 dark:hover:bg-red-500/10"
+                                class="cursor-pointer flex w-full items-center gap-3 rounded-xl px-3 py-2.5 text-sm text-red-600 transition hover:bg-red-50 dark:text-red-400 dark:hover:bg-red-500/10"
                             >
                                 <x-heroicon-o-arrow-right-on-rectangle class="h-5 w-5" />
                                 Logout
