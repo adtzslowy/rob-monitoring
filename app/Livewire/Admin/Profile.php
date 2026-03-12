@@ -2,7 +2,10 @@
 
 namespace App\Livewire\Admin;
 
-use App\Models\Device;
+use BaconQrCode\Renderer\ImageRenderer;
+use BaconQrCode\Renderer\Image\SvgImageBackEnd;
+use BaconQrCode\Renderer\RendererStyle\RendererStyle;
+use BaconQrCode\Writer;
 use Illuminate\Support\Facades\Hash;
 use Illuminate\Validation\Rule;
 use Livewire\Component;
@@ -16,16 +19,13 @@ class Profile extends Component
     public string $email = '';
     public ?string $roleName = null;
     public ?string $storedFotoProfil = null;
+    public string $qrCode = '';
 
     public $foto_profil = null;
 
     public string $current_password = '';
     public string $new_password = '';
     public string $new_password_confirmation = '';
-
-    public int $totalAlat = 0;
-    public int $alatAktif = 0;
-    public int $alatOffline = 0;
 
     public function mount(): void
     {
@@ -36,9 +36,26 @@ class Profile extends Component
         $this->storedFotoProfil = $user->foto_profil;
         $this->roleName = $user->roles->first()?->name ?? 'No Role';
 
-        $this->totalAlat = Device::count();
-        $this->alatAktif = Device::where('status', 'Online')->count();
-        $this->alatOffline = Device::where('status', 'Offline')->count();
+        $this->generateQrCode($user);
+    }
+
+    private function generateQrCode($user): void
+    {
+        $renderer = new ImageRenderer(
+            new RendererStyle(180),
+            new SvgImageBackEnd()
+        );
+
+        $writer = new Writer($renderer);
+
+        $payload = json_encode([
+            'id' => $user->id,
+            'name' => $user->name,
+            'email' => $user->email,
+            'role' => $this->roleName,
+        ], JSON_UNESCAPED_UNICODE);
+
+        $this->qrCode = $writer->writeString($payload);
     }
 
     public function updateProfile(): void
@@ -64,6 +81,7 @@ class Profile extends Component
         if ($this->foto_profil) {
             if (!empty($user->foto_profil)) {
                 $oldPath = storage_path('app/public/' . $user->foto_profil);
+
                 if (file_exists($oldPath)) {
                     @unlink($oldPath);
                 }
@@ -74,10 +92,14 @@ class Profile extends Component
 
         $user->update($data);
 
-        $fresh = $user->fresh();
+        $fresh = $user->fresh()->loadMissing('roles:id,name');
+
         $this->storedFotoProfil = $fresh->foto_profil;
         $this->name = (string) $fresh->name;
         $this->email = (string) $fresh->email;
+        $this->roleName = $fresh->roles->first()?->name ?? 'No Role';
+
+        $this->generateQrCode($fresh);
 
         $this->reset('foto_profil');
 
