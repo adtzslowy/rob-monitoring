@@ -46,11 +46,32 @@
                             <div class="rounded-2xl bg-slate-50 p-4 transition-colors duration-300 dark:bg-slate-800">
                                 <p
                                     class="text-xs font-semibold uppercase tracking-wider text-slate-400 dark:text-slate-500">
-                                    Status Akun
+                                    Role
                                 </p>
-                                <p class="mt-1 text-sm font-bold text-emerald-600 dark:text-emerald-400">
-                                    Aktif
+                                <p class="mt-1 text-sm font-bold text-slate-700 dark:text-slate-200">
+                                    {{ $roleName ?? 'No Role' }}
                                 </p>
+                            </div>
+
+                            <!-- QR CODE -->
+                            <div
+                                class="rounded-2xl bg-slate-50 p-5 text-center transition-colors duration-300 dark:bg-slate-800">
+
+                                <p
+                                    class="mb-3 text-xs font-semibold uppercase tracking-wider text-slate-400 dark:text-slate-500">
+                                    QR Identitas
+                                </p>
+
+                                <div class="flex justify-center">
+                                    <div class="rounded-xl bg-white p-3 shadow-sm dark:bg-slate-900">
+                                        {!! QrCode::size(180)->generate(auth()->user()->email) !!}
+                                    </div>
+                                </div>
+
+                                <p class="mt-3 text-xs text-slate-500 dark:text-slate-400">
+                                    Scan untuk identifikasi akun
+                                </p>
+
                             </div>
 
                             <div class="rounded-2xl bg-slate-50 p-4 transition-colors duration-300 dark:bg-slate-800">
@@ -61,48 +82,6 @@
                                 <p class="mt-1 text-sm font-bold text-slate-700 dark:text-slate-200">
                                     {{ $roleName ?? 'No Role' }}
                                 </p>
-                            </div>
-
-                            <!-- Ringkasan Alat -->
-                            <div class="rounded-2xl bg-slate-50 p-4 transition-colors duration-300 dark:bg-slate-800">
-                                <div class="mb-3 flex items-center justify-between">
-                                    <p
-                                        class="text-xs font-semibold uppercase tracking-wider text-slate-400 dark:text-slate-500">
-                                        Ringkasan Alat
-                                    </p>
-                                    <span
-                                        class="rounded-full bg-blue-50 px-2.5 py-1 text-[11px] font-semibold text-blue-700 dark:bg-blue-500/10 dark:text-blue-300">
-                                        Monitoring
-                                    </span>
-                                </div>
-
-                                <div class="grid grid-cols-2 gap-3">
-                                    <div
-                                        class="rounded-xl bg-white p-3 ring-1 ring-slate-200 dark:bg-slate-900 dark:ring-slate-700">
-                                        <p class="text-[11px] font-medium text-slate-500 dark:text-slate-400">Total Alat
-                                        </p>
-                                        <p class="mt-1 text-lg font-bold text-slate-800 dark:text-slate-100">
-                                            {{ $totalAlat ?? 0 }}
-                                        </p>
-                                    </div>
-
-                                    <div
-                                        class="rounded-xl bg-white p-3 ring-1 ring-slate-200 dark:bg-slate-900 dark:ring-slate-700">
-                                        <p class="text-[11px] font-medium text-slate-500 dark:text-slate-400">Aktif</p>
-                                        <p class="mt-1 text-lg font-bold text-emerald-600 dark:text-emerald-400">
-                                            {{ $alatAktif ?? 0 }}
-                                        </p>
-                                    </div>
-
-                                    <div
-                                        class="rounded-xl bg-white p-3 ring-1 ring-slate-200 dark:bg-slate-900 dark:ring-slate-700">
-                                        <p class="text-[11px] font-medium text-slate-500 dark:text-slate-400">Offline
-                                        </p>
-                                        <p class="mt-1 text-lg font-bold text-rose-600 dark:text-rose-400">
-                                            {{ $alatOffline ?? 0 }}
-                                        </p>
-                                    </div>
-                                </div>
                             </div>
                         </div>
                     </div>
