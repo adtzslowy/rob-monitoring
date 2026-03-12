@@ -1,6 +1,6 @@
 <?php
 
-namespace App\Livewire;
+namespace App\Livewire\Admin;
 
 use Illuminate\Support\Facades\Hash;
 use Illuminate\Validation\Rule;
