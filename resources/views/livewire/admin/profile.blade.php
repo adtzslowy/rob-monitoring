@@ -170,7 +170,7 @@
 
                         <button
                             type="submit"
-                            class="inline-flex w-full items-center justify-center rounded-2xl bg-zinc-900 dark:bg-white px-4 py-3 text-sm font-semibold text-white dark:text-black transition hover:bg-zinc-800 dark:hover:bg-zinc-200"
+                            class="cursor-pointer inline-flex w-full items-center justify-center rounded-2xl bg-zinc-900 dark:bg-white px-4 py-3 text-sm font-semibold text-white dark:text-black transition hover:bg-zinc-800 dark:hover:bg-zinc-200"
                         >
                             Simpan Profil
                         </button>
@@ -247,7 +247,7 @@
 
                         <button
                             type="submit"
-                            class="inline-flex w-full items-center justify-center rounded-2xl bg-blue-600 px-4 py-3 text-sm font-semibold text-white transition hover:bg-blue-700"
+                            class="cursor-pointer inline-flex w-full items-center justify-center rounded-2xl bg-blue-600 px-4 py-3 text-sm font-semibold text-white transition hover:bg-blue-700"
                         >
                             Update Password
                         </button>
