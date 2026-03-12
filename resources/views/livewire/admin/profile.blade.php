@@ -11,7 +11,7 @@
 
         <div class="grid grid-cols-1 gap-6 lg:grid-cols-3">
             <!-- Card kiri -->
-            <div class="lg:col-span-1">
+            <div class="lg:col-span-2">
                 <div class="overflow-hidden rounded-3xl bg-white shadow-md ring-1 ring-slate-200 transition-colors duration-300 dark:bg-slate-900 dark:ring-slate-800">
                     <!-- Header -->
                     <div class="relative h-36 overflow-hidden bg-gradient-to-br from-blue-600 via-indigo-500 to-cyan-400">
