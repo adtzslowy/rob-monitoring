@@ -72,7 +72,9 @@
 
                         <div class="rounded-2xl border border-zinc-200 dark:border-zinc-800 bg-white/80 dark:bg-zinc-900/60 p-4 text-center">
                             <div class="text-xs text-zinc-500 dark:text-zinc-500">Role</div>
-                            <div class="mt-1 text-sm font-semibold text-zinc-900 dark:text-white">User</div>
+                            <div class="mt-1 text-sm font-semibold text-zinc-900 dark:text-white">
+                                {{ ucfirst($roleName) }}
+                            </div>
                         </div>
 
                         <div class="rounded-2xl border border-zinc-200 dark:border-zinc-800 bg-white/80 dark:bg-zinc-900/60 p-4 text-center">
