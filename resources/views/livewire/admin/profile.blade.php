@@ -57,10 +57,6 @@
                             <p class="mt-1 break-all text-sm text-slate-500 dark:text-slate-400">
                                 {{ $email }}
                             </p>
-
-                            <span class="mt-4 inline-flex rounded-full bg-blue-50 px-4 py-1.5 text-sm font-semibold text-blue-700 ring-1 ring-blue-100 dark:bg-blue-500/10 dark:text-blue-300 dark:ring-blue-400/20">
-                                {{ $roleName ?? 'No Role' }}
-                            </span>
                         </div>
 
                         <!-- Mini Info -->
