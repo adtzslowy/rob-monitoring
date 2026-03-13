@@ -398,6 +398,8 @@ class Dashboard extends Component
             riskStyles: $this->riskStyles
         );
 
+        $this->fetchData();
+
         if ($this->modalOpen) {
             $this->dispatchMetricChart();
         }
