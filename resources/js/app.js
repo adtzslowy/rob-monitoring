@@ -19,7 +19,7 @@ const SENSOR_COLORS = {
         bg: "rgba(52,211,153,0.18)",
     },
 
-    ecepatan_angin: {
+    kecepatan_angin: {
         border: "#fbbf24",
         bg: "rgba(251,191,36,0.18)",
     },
