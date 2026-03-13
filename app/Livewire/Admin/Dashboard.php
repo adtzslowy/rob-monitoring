@@ -486,7 +486,8 @@ class Dashboard extends Component
             "refreshChart",
             labels: $labels,
             values: $values,
-            title: $this->metricLabels[$metric] ?? $metric
+            title: $this->metricLabels[$metric] ?? $metric,
+            metric: $metric,
         );
     }
 
@@ -612,7 +613,8 @@ class Dashboard extends Component
             "modalChart",
             title: $this->metricLabels[$metric] ?? $metric,
             labels: $labels,
-            values: $values
+            values: $values,
+            metric: $metric
         );
     }
 

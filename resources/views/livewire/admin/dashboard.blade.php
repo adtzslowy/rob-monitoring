@@ -28,11 +28,11 @@
         $st = ($deviceStatus ?? [])[$selectedDeviceId] ?? null;
         $isOnline = (bool) ($st['online'] ?? false);
     @endphp
-    
+
 
     <div x-data="dashboard(@js($theme))" x-init="init()" class="flex-1 w-full py-4 px-4 sm:px-6 lg:px-8 space-y-6">
         {{-- ===== TOP TOOLBAR ===== --}}
-        <div class="rounded-2xl border border-zinc-200 dark:border-zinc-800 bg-white dark:bg-zinc-950/60 p-3 sm:p-4">
+        <div class="rounded-2xl border border-zinc-200 dark:border-zinc-800 bg-white dark:bg-zinc-900 p-3 sm:p-4">
             <div class="flex flex-col gap-3 lg:flex-row lg:items-center lg:justify-between">
                 {{-- LEFT --}}
                 <div class="flex flex-col gap-3 sm:flex-row sm:flex-wrap sm:items-center">
@@ -57,7 +57,7 @@
                             <div class="relative min-w-[220px]">
                                 <button type="button" @click="toggle()"
                                     class="w-full rounded-xl border border-zinc-200 dark:border-zinc-800
-                       bg-white dark:bg-zinc-950 text-zinc-900 dark:text-zinc-100
+                       bg-white dark:bg-zinc-900 text-zinc-900 dark:text-zinc-100
                        px-3 py-2.5 text-sm flex items-center justify-between gap-3 cursor-pointer">
                                     <div class="flex items-center gap-2 min-w-0">
                                         <span class="inline-flex h-2.5 w-2.5 rounded-full"
@@ -127,35 +127,18 @@
 
                     <button type="button" wire:click="openSettings"
                         class="inline-flex items-center justify-center gap-2 rounded-xl border border-zinc-200 dark:border-zinc-800
-                       bg-white dark:bg-zinc-950 px-3 py-2.5 sm:py-2 text-sm sm:text-xs min-h-[44px]
+                       bg-white dark:bg-zinc-900 px-3 py-2.5 sm:py-2 text-sm sm:text-xs min-h-[44px]
                        text-zinc-700 dark:text-zinc-200 hover:bg-zinc-100 dark:hover:bg-zinc-900 transition cursor-pointer">
                         <x-heroicon-o-cog-6-tooth class="w-4 h-4" />
                         Settings
-                    </button>
-
-                    <button type="button"
-                        class="inline-flex items-center justify-between sm:justify-center gap-2 rounded-xl border border-zinc-200 dark:border-zinc-800
-           bg-white/70 dark:bg-zinc-950/50 px-3 py-2.5 sm:py-2 text-sm sm:text-xs min-h-[44px]
-           text-zinc-700 dark:text-zinc-200 hover:bg-zinc-100 dark:hover:bg-zinc-900 transition cursor-pointer"
-                        x-on:click="
-        toggleTheme();
-        $wire.set('theme', theme);
-    " title="Theme">
-                        <span x-text="theme === 'dark' ? 'Dark' : 'Light'"></span>
-                        <span
-                            class="relative inline-flex h-5 w-9 items-center rounded-full border
-               border-zinc-300 dark:border-zinc-700 bg-zinc-200 dark:bg-zinc-800 shrink-0">
-                            <span
-                                class="inline-block h-4 w-4 transform rounded-full bg-white dark:bg-zinc-200 transition"
-                                :class="theme === 'dark' ? 'translate-x-4' : 'translate-x-1'"></span>
-                        </span>
                     </button>
                 </div>
             </div>
         </div>
 
         {{-- ===== METRIC CARDS ===== --}}
-        <div class="grid grid-cols-1 md:grid-cols-3 gap-5">
+        <div class="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-3 gap-6">
+
             @php
                 $cards = $visibleSensors ?: ['suhu', 'kelembapan', 'ketinggian_air'];
             @endphp
@@ -168,89 +151,136 @@
                         'suhu' => [
                             'label' => 'Temperature',
                             'unit' => '°C',
+                            'bg' => 'from-orange-500/20 via-orange-500/10 to-transparent',
                             'border' => 'border-orange-500/40',
+                            'text' => 'text-orange-500',
                             'icon' => 'fire',
                             'valueKey' => 'suhu',
                         ],
+
                         'kelembapan' => [
                             'label' => 'Kelembapan',
                             'unit' => '%',
-                            'border' => 'border-cyan-500/30',
+                            'bg' => 'from-cyan-500/20 via-cyan-500/10 to-transparent',
+                            'border' => 'border-cyan-500/40',
+                            'text' => 'text-cyan-500',
                             'icon' => 'beaker',
                             'valueKey' => 'kelembapan',
                         ],
+
                         'tekanan_udara' => [
                             'label' => 'Tekanan Udara',
                             'unit' => 'hPa',
-                            'border' => 'border-emerald-500/30',
+                            'bg' => 'from-emerald-500/20 via-emerald-500/10 to-transparent',
+                            'border' => 'border-emerald-500/40',
+                            'text' => 'text-emerald-500',
                             'icon' => 'cloud',
                             'valueKey' => 'tekanan_udara',
                         ],
+
                         'kecepatan_angin' => [
                             'label' => 'Kecepatan Angin',
                             'unit' => 'm/s',
-                            'border' => 'border-amber-500/30',
+                            'bg' => 'from-amber-500/20 via-amber-500/10 to-transparent',
+                            'border' => 'border-amber-500/40',
+                            'text' => 'text-amber-500',
                             'icon' => 'flag',
                             'valueKey' => 'kecepatan_angin',
                         ],
+
                         'arah_angin' => [
                             'label' => 'Arah Angin',
                             'unit' => '°',
-                            'border' => 'border-purple-500/30',
+                            'bg' => 'from-purple-500/20 via-purple-500/10 to-transparent',
+                            'border' => 'border-purple-500/40',
+                            'text' => 'text-purple-500',
                             'icon' => 'arrow-path-rounded-square',
                             'valueKey' => 'arah_angin',
                         ],
+
                         'ketinggian_air' => [
                             'label' => 'Ketinggian Air',
                             'unit' => 'cm',
-                            'border' => 'border-blue-500/30',
+                            'bg' => 'from-sky-500/20 via-sky-500/10 to-transparent',
+                            'border' => 'border-sky-500/40',
+                            'text' => 'text-sky-500',
                             'icon' => 'arrow-trending-up',
                             'valueKey' => 'ketinggian_air',
                         ],
                     ];
+
                     $c = $cardMap[$metric];
                 @endphp
 
-                <div wire:click="openMetric('{{ $metric }}')"
-                    class="bg-white dark:bg-zinc-950 p-6 rounded-xl border {{ $c['border'] }}
-                           cursor-pointer hover:opacity-95 transition">
-                    <div class="flex justify-between items-center">
-                        <p class="text-sm text-zinc-900 dark:text-white">{{ $c['label'] }}</p>
 
-                        @if ($c['icon'] === 'fire')
-                            <x-heroicon-o-fire class="w-5 h-5 text-orange-500" />
-                        @elseif($c['icon'] === 'beaker')
-                            <x-heroicon-o-beaker class="w-5 h-5 text-cyan-400" />
-                        @elseif($c['icon'] === 'cloud')
-                            <x-heroicon-o-cloud class="w-5 h-5 text-emerald-400" />
-                        @elseif($c['icon'] === 'flag')
-                            <x-heroicon-o-flag class="w-5 h-5 text-amber-400" />
-                        @elseif($c['icon'] === 'arrow-path-rounded-square')
-                            <x-heroicon-o-arrow-path-rounded-square class="w-5 h-5 text-purple-400" />
+                <div wire:click="openMetric('{{ $metric }}')"
+                    class="
+relative overflow-hidden rounded-xl
+border border-zinc-200 dark:border-zinc-800
+bg-white dark:bg-zinc-900
+shadow-sm dark:shadow-none
+p-6
+cursor-pointer
+hover:scale-[1.02]
+transition
+">
+
+                    <div class="absolute inset-0 bg-gradient-to-br {{ $c['bg'] }}"></div>
+
+                    <div class="relative z-10">
+
+                        <div class="flex justify-between items-center">
+
+                            <p class="text-sm font-medium {{ $c['text'] }}">
+                                {{ $c['label'] }}
+                            </p>
+
+                            @if ($c['icon'] === 'fire')
+                                <x-heroicon-o-fire class="w-5 h-5 text-orange-500" />
+                            @elseif($c['icon'] === 'beaker')
+                                <x-heroicon-o-beaker class="w-5 h-5 text-cyan-500" />
+                            @elseif($c['icon'] === 'cloud')
+                                <x-heroicon-o-cloud class="w-5 h-5 text-emerald-500" />
+                            @elseif($c['icon'] === 'flag')
+                                <x-heroicon-o-flag class="w-5 h-5 text-amber-500" />
+                            @elseif($c['icon'] === 'arrow-path-rounded-square')
+                                <x-heroicon-o-arrow-path-rounded-square class="w-5 h-5 text-purple-500" />
+                            @else
+                                <x-heroicon-o-arrow-trending-up class="w-5 h-5 text-sky-500" />
+                            @endif
+
+                        </div>
+
+
+                        @if ($metric === 'arah_angin')
+                            <div class="flex justify-between items-end mt-4">
+
+                                <h2 class="text-3xl font-semibold text-zinc-900 dark:text-white">
+                                    <span x-text="data.arah_angin ?? '--'"></span>°
+                                </h2>
+
+                                <span class="text-lg font-medium text-purple-500" x-text="data.arah_angin_label ?? '-'">
+                                </span>
+
+                            </div>
                         @else
-                            <x-heroicon-o-arrow-trending-up class="w-5 h-5 text-blue-400" />
+                            <h2 class="text-3xl font-semibold text-zinc-900 dark:text-white mt-3">
+
+                                <span x-text="data.{{ $c['valueKey'] }} ?? '--'"></span>
+
+                                {{ $c['unit'] }}
+
+                            </h2>
                         @endif
+
                     </div>
 
-                    @if ($metric === 'arah_angin')
-                        <div class="flex justify-between items-end mt-4">
-                            <h2 class="text-3xl font-bold text-zinc-900 dark:text-white">
-                                <span x-text="data.arah_angin ?? '--'"></span>°
-                            </h2>
-                            <span class="text-lg text-purple-400 font-medium"
-                                x-text="data.arah_angin_label ?? '-'"></span>
-                        </div>
-                    @else
-                        <h2 class="text-3xl font-bold text-zinc-900 dark:text-white mt-3">
-                            <span x-text="data.{{ $c['valueKey'] }} ?? '--'"></span> {{ $c['unit'] }}
-                        </h2>
-                    @endif
                 </div>
             @endforeach
         </div>
 
         {{-- ===== CHART ===== --}}
-        <div class="bg-white dark:bg-zinc-950 rounded-xl border border-zinc-200 dark:border-zinc-800 p-6">
+        <div class="bg-white dark:bg-zinc-900 rounded-xl border border-zinc-200 dark:border-zinc-800 p-6">
             <div class="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3 mb-4">
                 <h3 class="text-sm font-semibold text-zinc-900 dark:text-white">Trend Sensor</h3>
 
@@ -403,6 +433,27 @@
                             </div>
                         </div>
 
+                        <div
+                            class="flex items-center justify-between 
+rounded-lg border border-zinc-200 dark:border-zinc-700 px-3 py-2">
+
+                            <span class="text-sm text-zinc-700 dark:text-zinc-200">
+                                Theme
+                            </span>
+
+                            <button type="button" x-on:click="
+toggleTheme();
+$wire.set('theme', theme);
+"
+                                class="px-3 py-1.5 text-sm rounded-lg
+bg-zinc-200 dark:bg-zinc-800
+text-zinc-800 dark:text-zinc-100 cursor-pointer grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-3r">
+
+                                <span x-text="theme === 'dark' ? 'Dark Mode' : 'Light Mode'"></span>
+
+                            </button>
+
+                        </div>
                         <div class="grid grid-cols-1 sm:grid-cols-2 gap-3">
                             <div>
                                 <div class="text-sm font-medium text-zinc-700 dark:text-zinc-200 mb-2">

@@ -1,5 +1,5 @@
 <header
-    class="sticky top-0 z-30 bg-gray-50 text-zinc-900 dark:text-white dark:bg-zinc-900/80 backdrop-blur-md border-b border-zinc-900/20 shadow-sm dark:border-zinc-800">
+    class="sticky top-0 z-30 bg-zinc-100 text-zinc-900 dark:text-zinc-100 dark:bg-zinc-950 backdrop-blur-md border-b border-zinc-900/20 shadow-sm dark:border-zinc-800">
 
     <div class="flex items-center justify-between px-4 sm:px-6 lg:px-8 h-16">
 
@@ -30,18 +30,15 @@
         </div>
 
         {{-- RIGHT SECTION --}}
-        <div class="flex items-center gap-3 sm:gap-4 text-sm">
-            {{-- Time --}}
-            <div class="hidden md:block px-3 py-1 rounded-full bg-zinc-200 text-zinc-700 dark:bg-zinc-800 dark:text-zinc-300">
-                {{ now()->setTimezone('Asia/Jakarta')->format('d M Y H:i') }}
-            </div>
+        <div class="flex items-center sm:gap-3 text-sm">
 
             {{-- User Menu --}}
             <div x-data="{ open: false }" class="relative">
+                
                 <button
                     @click="open = !open"
                     type="button"
-                    class="cursor-pointer flex items-center gap-3 rounded-xl border border-zinc-200 bg-white px-2.5 py-2 shadow-sm transition hover:bg-zinc-50 dark:border-zinc-700 dark:bg-zinc-900 dark:hover:bg-zinc-800"
+                    class="cursor-pointer flex items-center gap-2 rounded-xl"
                 >
                     @php
                         $headerAvatar = auth()->user()?->foto_profil
@@ -51,19 +48,18 @@
                         $headerName = auth()->user()?->name ?? 'User';
                         $headerRole = auth()->user()?->roles->first()?->name ?? 'No Role';
                     @endphp
-
+                    <p class="hidden md:block text-sm text-zinc-900 dark:text-zinc-100">{{ $headerName }}</p>
                     @if ($headerAvatar)
                         <img
                             src="{{ $headerAvatar }}"
                             alt="Foto Profil"
-                            class="h-7 w-7 rounded-full object-cover border border-zinc-200 dark:border-zinc-700"
+                            class="h-5 w-5 rounded-full object-cover border border-zinc-200 dark:border-zinc-700"
                         >
                     @else
                         <div class="flex h-9 w-9 items-center justify-center rounded-full bg-blue-600 text-sm font-semibold text-white">
                             {{ strtoupper(substr($headerName, 0, 1)) }}
                         </div>
                     @endif
-                    <x-heroicon-o-chevron-down class="h-4 w-4 text-zinc-500 dark:text-zinc-400" />
                 </button>
 
                 {{-- Dropdown --}}
