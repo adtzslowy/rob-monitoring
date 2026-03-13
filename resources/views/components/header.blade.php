@@ -53,7 +53,7 @@
                         <img
                             src="{{ $headerAvatar }}"
                             alt="Foto Profil"
-                            class="h-5 w-5 rounded-full object-cover border border-zinc-200 dark:border-zinc-700"
+                            class="h-7 w-7 rounded-full object-cover border border-zinc-200 dark:border-zinc-700"
                         >
                     @else
                         <div class="flex h-9 w-9 items-center justify-center rounded-full bg-blue-600 text-sm font-semibold text-white">
