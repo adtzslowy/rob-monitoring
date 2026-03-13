@@ -518,7 +518,7 @@ text-zinc-800 dark:text-zinc-100 cursor-pointer grid grid-cols-1 sm:grid-cols-2 
                         </div>
                     </div>
 
-                    <div wire:poll.3s="pollMetric"></div>
+                    <div wire:poll.2s="pollMetric"></div>
 
                     <div class="relative w-full h-[360px]" wire:ignore>
                         <canvas id="metricChart"></canvas>
