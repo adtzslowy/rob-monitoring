@@ -129,7 +129,7 @@ function applyChartPayload(payload) {
     chart.data.datasets[0].data = values;
     chart.data.datasets[0].borderColor = color.border;
     chart.data.datasets[0].backgroundColor = color.bg;
-    chart.update();
+    chart.update("none");
 }
 
 window.addEventListener("refreshChart", (e) =>

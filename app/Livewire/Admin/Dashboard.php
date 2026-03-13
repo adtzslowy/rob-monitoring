@@ -13,12 +13,10 @@ use Livewire\Component;
 #[Title("Dashboard")]
 class Dashboard extends Component
 {
-    // ===== Realtime state =====
     public array $data = [];
     public string $risk = "AMAN";
     public float|int $riskScore = 0;
 
-    // ===== RBAC =====
     public bool $canManageDevices = false;
 
     /** @var array<int, array{id:int,name:string,alias:?string,label:string}> */
@@ -27,7 +25,6 @@ class Dashboard extends Component
     /** @var array<int, array{online:bool,last:?string,status:?string}> */
     public array $deviceStatus = [];
 
-    // ===== Settings =====
     public bool $showSettings = false;
     public string $theme = "dark";
     public ?int $selectedDeviceId = null;
@@ -35,7 +32,6 @@ class Dashboard extends Component
     public string $selectedTimeRange = "5m";
     public array $visibleSensors = [];
 
-    // ===== Time ranges =====
     public array $timeRanges = [
         "1m"  => "1 Menit",
         "5m"  => "5 Menit",
@@ -57,7 +53,6 @@ class Dashboard extends Component
         "ketinggian_air"  => "Ketinggian Air (cm)",
     ];
 
-    // ===== Modal metric chart =====
     public bool $modalOpen = false;
     public string $selectedMetric = "ketinggian_air";
     public string $modalTimeRange = "5m";
@@ -239,6 +234,11 @@ class Dashboard extends Component
         $this->deviceStatus = $out;
     }
 
+    public function refreshStatusesOnly(): void
+    {
+        $this->refreshDeviceStatus();
+    }
+
     public function openSettings(): void
     {
         $this->showSettings = true;
@@ -266,6 +266,7 @@ class Dashboard extends Component
 
         $this->persistSettings();
         $this->fetchData();
+        $this->refreshDeviceStatus();
         $this->dispatchMainChart();
 
         if ($this->modalOpen) {
@@ -353,7 +354,6 @@ class Dashboard extends Component
         }
 
         $this->assertCanAccessSelectedDevice();
-        $this->refreshDeviceStatus();
 
         $latest = SensorReading::query()
             ->where("device_id", $this->selectedDeviceId)
@@ -398,11 +398,18 @@ class Dashboard extends Component
             riskStyles: $this->riskStyles
         );
 
-        $this->fetchData();
-
         if ($this->modalOpen) {
             $this->dispatchMetricChart();
         }
+    }
+
+    public function refreshMainChart(): void
+    {
+        if (!$this->selectedDeviceId) {
+            return;
+        }
+
+        $this->dispatchMainChart();
     }
 
     private function rangeStartUtc(string $range): ?Carbon
@@ -432,16 +439,16 @@ class Dashboard extends Component
     private function takePointsForRange(string $range): int
     {
         return match ($range) {
-            "1m"  => 120,
-            "5m"  => 240,
-            "30m" => 300,
-            "1h"  => 600,
-            "12h" => 1200,
-            "24h" => 1800,
-            "1w"  => 2500,
-            "1mo" => 4000,
-            "1y"  => 6000,
-            default => 300,
+            "1m"  => 60,
+            "5m"  => 100,
+            "30m" => 120,
+            "1h"  => 120,
+            "12h" => 180,
+            "24h" => 240,
+            "1w"  => 300,
+            "1mo" => 300,
+            "1y"  => 300,
+            default => 120,
         };
     }
 
@@ -469,7 +476,7 @@ class Dashboard extends Component
 
         if ($records->count() === 0) {
             $records = $base->latest("timestamp")
-                ->take(300)
+                ->take(120)
                 ->get(["timestamp", $metric]);
         }
 
@@ -596,7 +603,7 @@ class Dashboard extends Component
 
         if ($rows->count() === 0) {
             $rows = $base->latest("timestamp")
-                ->take(300)
+                ->take(120)
                 ->get(["timestamp", $metric]);
         }
 
