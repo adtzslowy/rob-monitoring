@@ -34,7 +34,7 @@
 </head>
 
 <body x-data="{ sidebarOpen: false, accountOpen: false, alatOpen: false }"
-    class="bg-gray-50 dark:bg-zinc-900 text-zinc-900 dark:text-white font-ui transition-colors duration-300">
+    class="bg-zinc-100 dark:bg-zinc-950 text-zinc-900 dark:text-zinc-100 font-ui transition-colors duration-300">
     <div class="flex h-screen">
         <div x-show="sidebarOpen" @click="sidebarOpen = false" class="fixed inset-0 bg-black/50 z-40 lg:hidden"
             style="display: none;" x-transition.opacity>

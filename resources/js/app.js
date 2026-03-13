@@ -2,6 +2,39 @@ import { Chart } from "chart.js/auto";
 import L from "leaflet";
 
 window.Chart = Chart;
+
+const SENSOR_COLORS = {
+    suhu: {
+        border: "#fb923c",
+        bg: "rgba(251,146,60,0.18)",
+    },
+
+    kelembapan: {
+        border: "#22d3ee",
+        bg: "rgba(43,211,238,0.18)",
+    },
+
+    tekanan_udara: {
+        border: "#34d399",
+        bg: "rgba(52,211,153,0.18)",
+    },
+
+    ecepatan_angin: {
+        border: "#fbbf24",
+        bg: "rgba(251,191,36,0.18)",
+    },
+
+    arah_angin: {
+        border: "#a78bfa",
+        bg: "rgba(167,139,250,0.18)",
+    },
+
+    ketinggian_air: {
+        border: "#38bdf8",
+        bg: "rgba(56,189,248,0.18)",
+    },
+};
+
 const leafletFromNpm = L;
 
 function loadScriptOnce(src) {
@@ -72,6 +105,9 @@ function applyChartPayload(payload) {
     const values = p.values ?? [];
     const title = p.title ?? "Water Level";
 
+    const metric = p.metric || "ketinggian_air";
+    const color = SENSOR_COLORS[metric] || SENSOR_COLORS.ketinggian_air;
+
     chart.data.labels = labels;
 
     if (!chart.data.datasets.length) {
@@ -81,12 +117,18 @@ function applyChartPayload(payload) {
                 data: [],
                 tension: 0.4,
                 fill: true,
+                borderWidth: 2,
+                borderColor: color.border,
+                backgroundColor: color.bg,
+                pointRadius: 3,
             },
         ];
     }
 
     chart.data.datasets[0].label = title;
     chart.data.datasets[0].data = values;
+    chart.data.datasets[0].borderColor = color.border;
+    chart.data.datasets[0].backgroundColor = color.bg;
     chart.update();
 }
 
@@ -105,6 +147,8 @@ function renderMetricChart(payload) {
 
     const labels = p.labels ?? [];
     const values = p.values ?? [];
+    const metric = p.metric || "ketinggian_air";
+    const color = SENSOR_COLORS[metric] || SENSOR_COLORS.ketinggian_air;
 
     const existingCanvas = window.__robMetricCanvas;
 
@@ -124,6 +168,10 @@ function renderMetricChart(payload) {
                         data: values,
                         tension: 0.4,
                         fill: true,
+                        borderWidth: 2,
+                        borderColor: color.border,
+                        backgroundColor: color.bg,
+                        pointRadius: 3,
                     },
                 ],
             },
@@ -209,7 +257,7 @@ document.addEventListener("alpine:init", () => {
                             labels: [],
                             datasets: [
                                 {
-                                    label: "Water Level",
+                                    label: "Grafik Sensor",
                                     data: [],
                                     tension: 0.4,
                                     fill: true,

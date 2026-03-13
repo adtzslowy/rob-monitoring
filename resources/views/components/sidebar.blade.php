@@ -1,8 +1,8 @@
 <aside id="sidebar" :class="{ 'translate-x-0': sidebarOpen }"
-    class="fixed inset-y-0 left-0 z-50 w-64 bg-gray-50 dark:bg-zinc-900 border-r border-zinc-800/20 dark:border-zinc-800 p-6
+    class="fixed inset-y-0 left-0 z-50 w-64 bg-zinc-100 dark:bg-zinc-950 border-r border-zinc-400/50 dark:border-zinc-800 p-6
            transform -translate-x-full transition-transform duration-300 ease-in-out
            lg:static lg:translate-x-0 lg:flex lg:flex-col lg:h-screen">
-    <div class="flex items-center gap-3 mb-8 pb-6 border-b border-zinc-600/20">
+    <div class="flex items-center gap-3 mb-8 pb-6 border-b border-zinc-600/30">
         <div class="w-9 h-9 bg-blue-500 rounded-xl flex items-center justify-center">
             <x-heroicon-o-bell-alert class="w-5 h-5 text-white" />
         </div>
