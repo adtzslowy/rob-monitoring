@@ -133,6 +133,11 @@ function applyChartPayload(payload) {
     chart.data.datasets[0].data = values;
     chart.data.datasets[0].borderColor = color.border;
     chart.data.datasets[0].backgroundColor = color.bg;
+
+    chart.data.datasets[0].pointBackgroundColor = color.border;
+    chart.data.datasets[0].pointBorderColor = color.border;
+    chart.data.datasets[0].pointHoverBackgroundColor = color.border;
+    chart.data.datasets[0].pointHoverBorderColor = "#fff";
     chart.update("none");
 }
 
