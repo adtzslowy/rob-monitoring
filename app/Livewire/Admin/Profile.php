@@ -7,7 +7,10 @@ use BaconQrCode\Renderer\Image\SvgImageBackEnd;
 use BaconQrCode\Renderer\RendererStyle\RendererStyle;
 use BaconQrCode\Writer;
 use Illuminate\Support\Facades\Hash;
+use Illuminate\Support\Facades\Storage;
 use Illuminate\Validation\Rule;
+use Illuminate\Validation\Rules\Password;
+use Illuminate\View\View;
 use Livewire\Component;
 use Livewire\WithFileUploads;
 
@@ -71,7 +74,7 @@ class Profile extends Component
                 'max:255',
                 Rule::unique('users', 'email')->ignore($user->id),
             ],
-            'foto_profil' => ['nullable', 'image', 'max:1024'],
+            'foto_profil' => ['nullable', 'image', 'mimes:jpg,jpeg,png', 'max:1024'],
         ]);
 
         $data = [
@@ -80,12 +83,8 @@ class Profile extends Component
         ];
 
         if ($this->foto_profil) {
-            if (!empty($user->foto_profil)) {
-                $oldPath = storage_path('app/public/' . $user->foto_profil);
-
-                if (file_exists($oldPath)) {
-                    @unlink($oldPath);
-                }
+            if ($user->foto_profil && Storage::disk('public')->exists($user->foto_profil)) {
+                Storage::disk('public')->delete($user->foto_profil);
             }
 
             $data['foto_profil'] = $this->foto_profil->store('foto-profil', 'public');
@@ -112,14 +111,9 @@ class Profile extends Component
         $user = auth()->user();
 
         $this->validate([
-            'current_password' => ['required'],
-            'new_password' => ['required', 'string', 'min:6', 'confirmed'],
+            'current_password' => ['required', 'current_password'],
+            'new_password' => ['required', 'confirmed', Password::defaults()],
         ]);
-
-        if (!Hash::check($this->current_password, $user->password)) {
-            $this->addError('current_password', 'Password saat ini salah.');
-            return;
-        }
 
         $user->update([
             'password' => Hash::make($this->new_password),
@@ -134,7 +128,7 @@ class Profile extends Component
         session()->flash('success_password', 'Password berhasil diperbarui.');
     }
 
-    public function render()
+    public function render(): View
     {
         return view('livewire.admin.profile');
     }
