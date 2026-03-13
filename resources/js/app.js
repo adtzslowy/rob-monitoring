@@ -104,7 +104,6 @@ function applyChartPayload(payload) {
     const labels = p.labels ?? [];
     const values = p.values ?? [];
     const title = p.title ?? "Water Level";
-
     const metric = p.metric || "ketinggian_air";
     const color = SENSOR_COLORS[metric] || SENSOR_COLORS.ketinggian_air;
 
@@ -121,23 +120,27 @@ function applyChartPayload(payload) {
                 borderColor: color.border,
                 backgroundColor: color.bg,
                 pointRadius: 3,
+                pointHoverRadius: 4,
                 pointBackgroundColor: color.border,
                 pointBorderColor: color.border,
                 pointHoverBackgroundColor: color.border,
-                pointHoverBorderColor: "#fff",
+                pointHoverBorderColor: "#ffffff",
             },
         ];
     }
 
-    chart.data.datasets[0].label = title;
-    chart.data.datasets[0].data = values;
-    chart.data.datasets[0].borderColor = color.border;
-    chart.data.datasets[0].backgroundColor = color.bg;
+    const ds = chart.data.datasets[0];
+    ds.label = title;
+    ds.data = values;
+    ds.borderColor = color.border;
+    ds.backgroundColor = color.bg;
+    ds.pointRadius = 3;
+    ds.pointHoverRadius = 4;
+    ds.pointBackgroundColor = color.border;
+    ds.pointBorderColor = color.border;
+    ds.pointHoverBackgroundColor = color.border;
+    ds.pointHoverBorderColor = "#ffffff";
 
-    chart.data.datasets[0].pointBackgroundColor = color.border;
-    chart.data.datasets[0].pointBorderColor = color.border;
-    chart.data.datasets[0].pointHoverBackgroundColor = color.border;
-    chart.data.datasets[0].pointHoverBorderColor = "#fff";
     chart.update("none");
 }
 
@@ -145,71 +148,7 @@ window.addEventListener("refreshChart", (e) =>
     applyChartPayload(e.detail || {}),
 );
 
-function renderMetricChart(payload) {
-    const p = normalizePayload(payload);
-    const canvas = document.getElementById("metricChart");
 
-    if (!canvas) {
-        window.__robMetricPending = p;
-        return;
-    }
-
-    const labels = p.labels ?? [];
-    const values = p.values ?? [];
-    const metric = p.metric || "ketinggian_air";
-    const color = SENSOR_COLORS[metric] || SENSOR_COLORS.ketinggian_air;
-
-    const existingCanvas = window.__robMetricCanvas;
-
-    if (window.__robMetricChart && existingCanvas !== canvas) {
-        window.__robMetricChart.destroy();
-        window.__robMetricChart = null;
-    }
-
-    if (!window.__robMetricChart) {
-        window.__robMetricChart = new Chart(canvas.getContext("2d"), {
-            type: "line",
-            data: {
-                labels,
-                datasets: [
-                    {
-                        label: p.title ?? "Trend",
-                        data: values,
-                        tension: 0.4,
-                        fill: true,
-                        borderWidth: 2,
-                        borderColor: color.border,
-                        backgroundColor: color.bg,
-                        pointRadius: 3,
-                    },
-                ],
-            },
-            options: {
-                responsive: true,
-                maintainAspectRatio: false,
-                animation: false,
-            },
-        });
-
-        window.__robMetricCanvas = canvas;
-
-        requestAnimationFrame(() => {
-            window.__robMetricChart?.resize();
-        });
-
-        return;
-    }
-
-    window.__robMetricChart.data.labels = labels;
-    window.__robMetricChart.data.datasets[0].label = p.title ?? "Trend";
-    window.__robMetricChart.data.datasets[0].data = values;
-    window.__robMetricChart.update("none");
-    window.__robMetricCanvas = canvas;
-
-    requestAnimationFrame(() => {
-        window.__robMetricChart?.resize();
-    });
-}
 
 function flushMetricChartPending() {
     if (!window.__robMetricPending) return;
@@ -270,6 +209,20 @@ document.addEventListener("alpine:init", () => {
                                     data: [],
                                     tension: 0.4,
                                     fill: true,
+                                    borderWidth: 2,
+                                    pointRadius: 3,
+                                    pointHoverRadius: 4,
+                                    borderColor:
+                                        SENSOR_COLORS.ketinggian_air.border,
+                                    backgroundColor:
+                                        SENSOR_COLORS.ketinggian_air.bg,
+                                    pointBackgroundColor:
+                                        SENSOR_COLORS.ketinggian_air.border,
+                                    pointBorderColor:
+                                        SENSOR_COLORS.ketinggian_air.border,
+                                    pointHoverBackgroundColor:
+                                        SENSOR_COLORS.ketinggian_air.border,
+                                    pointHoverBorderColor: "#ffffff",
                                 },
                             ],
                         },
