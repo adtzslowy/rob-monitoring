@@ -124,7 +124,7 @@ function applyChartPayload(payload) {
                 pointBackgroundColor: color.border,
                 pointBorderColor: color.border,
                 pointHoverBackgroundColor: color.border,
-                pointHoverBorderColor: "#ffffff",
+                pointHoverBorderColor: color.border,
             },
         ];
     }
@@ -139,7 +139,7 @@ function applyChartPayload(payload) {
     ds.pointBackgroundColor = color.border;
     ds.pointBorderColor = color.border;
     ds.pointHoverBackgroundColor = color.border;
-    ds.pointHoverBorderColor = "#ffffff";
+    ds.pointHoverBorderColor = color.border;
 
     chart.update("none");
 }
@@ -147,8 +147,6 @@ function applyChartPayload(payload) {
 window.addEventListener("refreshChart", (e) =>
     applyChartPayload(e.detail || {}),
 );
-
-
 
 function flushMetricChartPending() {
     if (!window.__robMetricPending) return;
