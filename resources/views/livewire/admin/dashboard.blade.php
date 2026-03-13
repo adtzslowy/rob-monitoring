@@ -1,6 +1,6 @@
 <div wire:key="dashboard-root">
     @if (!$modalOpen)
-        <div wire:poll.3s="fetchData"></div>
+        <div wire:poll.2s="fetchData"></div>
     @endif
 
     @php
