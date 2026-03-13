@@ -1,6 +1,8 @@
 <div wire:key="dashboard-root">
     @if (!$modalOpen)
         <div wire:poll.2s="fetchData"></div>
+        <div wire:poll.2s="refreshMainChart"></div>
+        <div wire:poll.3s="refreshStatusesOnly"></div>
     @endif
 
     @php
