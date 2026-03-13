@@ -121,6 +121,10 @@ function applyChartPayload(payload) {
                 borderColor: color.border,
                 backgroundColor: color.bg,
                 pointRadius: 3,
+                pointBackgroundColor: color.border,
+                pointBorderColor: color.border,
+                pointHoverBackgroundColor: color.border,
+                pointHoverBorderColor: "#fff",
             },
         ];
     }
