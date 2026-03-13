@@ -53,8 +53,7 @@ class Profile extends Component
 
         $writer = new Writer($renderer);
 
-        $payload = "ID: {$user->id}\n"
-            . "Nama: {$user->name}\n"
+        $payload = "Nama: {$user->name}\n"
             . "Email: {$user->email}\n"
             . "Role: {$this->roleName}";
 
