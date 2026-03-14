@@ -3,6 +3,7 @@
 use App\Http\Controllers\Auth\AuthController;
 use App\Livewire\Admin\Dashboard;
 use App\Livewire\Admin\DeviceManage;
+use App\Livewire\Admin\Pengaturan;
 use App\Livewire\Admin\PetaMonitoring;
 use App\Livewire\Admin\Profile;
 use App\Livewire\Admin\SensorList;
@@ -28,12 +29,9 @@ Route::prefix('dashboard')->middleware(['auth', 'permission:view dashboard'])->g
     Route::get('/peta-monitoring', PetaMonitoring::class)->middleware('permission:view dashboard')->name('peta_monitoring');
     Route::get('/daftar-alat', DeviceManage::class)->name('manajemen_alat');
 
-    Route::get('/settings', function () {
-        return view('admin.settings');
-    })->middleware('permission:manage settings')->name('pengaturan');
-
     Route::middleware(['auth', 'permission:manage users'])->get('/users', UserManagement::class)->name('admin.akun');
     Route::get('/sensor-list', SensorList::class)->middleware('auth')->name('sensor.list');
 
     Route::get('/profil', Profile::class)->middleware('auth')->name('profil');
+    Route::get('/pengaturan', Pengaturan::class)->middleware('auth')->name('pengaturan');
 });

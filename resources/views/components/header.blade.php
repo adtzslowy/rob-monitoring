@@ -81,7 +81,7 @@
                         </a>
 
                         <a
-                            href="#"
+                            href="{{ route('pengaturan') }}"
                             class="flex items-center gap-3 rounded-xl px-3 py-2.5 text-sm text-zinc-700 transition hover:bg-zinc-100 dark:text-zinc-200 dark:hover:bg-zinc-800"
                         >
                             <x-heroicon-o-cog-6-tooth class="h-5 w-5" />
