@@ -4,9 +4,10 @@ namespace App\Livewire\Admin;
 
 use App\Models\DashSetting;
 use App\Models\Device;
+use App\Models\Notification;
 use App\Models\SensorReading;
 use App\Services\FuzzyRiskServices;
-use App\Services\TelegramService;
+use App\Services\TelegramServices;
 use Illuminate\Support\Carbon;
 use Illuminate\Support\Facades\Cache;
 use Livewire\Attributes\Title;
@@ -436,7 +437,7 @@ class Dashboard extends Component
         }
 
         // Ambil semua setting notifikasi user yang punya device ini
-        $settings = \App\Models\NotifikasiSetting::query()
+        $settings = Notification::query()
             ->where('notifikasi_aktif', true)
             ->where('telegram_chat_id', '!=', null)
             ->when($currentRisk === 'WASPADA', fn($q) => $q->where('notifikasi_waspada', true))
@@ -451,7 +452,7 @@ class Dashboard extends Component
         $deviceName = collect($this->devices)
             ->firstWhere('id', $deviceId)['label'] ?? "Device #{$deviceId}";
 
-        $telegram = app(TelegramService::class);
+        $telegram = app(TelegramServices::class);
 
         foreach ($settings as $setting) {
             $telegram->sendStatusAlert(
