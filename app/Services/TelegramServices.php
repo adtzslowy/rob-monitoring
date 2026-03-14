@@ -90,7 +90,7 @@ class TelegramServices
         return $this->send($chatId, $message);
      }
 
-     public function sendToast(string $chatId)
+     public function sendTest(string $chatId)
      {
         $waktu = now()->setTimezone('Asia/Jakarta')->format('d M Y, H:i') . ' WIB';
 
