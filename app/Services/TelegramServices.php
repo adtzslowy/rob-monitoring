@@ -15,7 +15,7 @@ class TelegramServices
     public function __construct()
     {
         $this->token = config('services.telegram.token');
-        $this->baseUrl = 'https://api.telegram.org/bot{$this->token}';
+        $this->baseUrl = "https://api.telegram.org/bot{$this->token}";
     }
 
      /**
