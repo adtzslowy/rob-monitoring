@@ -6,7 +6,9 @@ use App\Models\DashSetting;
 use App\Models\Device;
 use App\Models\SensorReading;
 use App\Services\FuzzyRiskServices;
+use App\Services\TelegramService;
 use Illuminate\Support\Carbon;
+use Illuminate\Support\Facades\Cache;
 use Livewire\Attributes\Title;
 use Livewire\Component;
 
@@ -388,7 +390,12 @@ class Dashboard extends Component
             "arah_angin_label" => $this->getWindDirectionLabel($latest->arah_angin),
         ];
 
+        $previousRisk = $this->risk;
+
         $this->calculateRisk();
+
+        // Kirim notifikasi Telegram jika status berubah ke SIAGA atau BAHAYA
+        $this->handleTelegramNotification($previousRisk, $this->risk);
 
         $this->dispatch(
             "dashboard-updated",
@@ -401,6 +408,69 @@ class Dashboard extends Component
         if ($this->modalOpen) {
             $this->dispatchMetricChart();
         }
+    }
+
+    /**
+     * Kirim notifikasi Telegram jika status berubah ke SIAGA/BAHAYA.
+     * Pakai cache untuk hindari spam notifikasi.
+     */
+    private function handleTelegramNotification(string $previousRisk, string $currentRisk): void
+    {
+        // Hanya kirim jika status berubah
+        if ($previousRisk === $currentRisk) {
+            return;
+        }
+
+        // Hanya kirim jika status baru adalah WASPADA, SIAGA, atau BAHAYA
+        $alertStatuses = ['WASPADA', 'SIAGA', 'BAHAYA'];
+        if (!in_array($currentRisk, $alertStatuses, true)) {
+            return;
+        }
+
+        $deviceId   = $this->selectedDeviceId;
+        $cacheKey   = "telegram_notif_{$deviceId}_{$currentRisk}";
+
+        // Cooldown 10 menit per device per status — hindari spam
+        if (Cache::has($cacheKey)) {
+            return;
+        }
+
+        // Ambil semua setting notifikasi user yang punya device ini
+        $settings = \App\Models\NotifikasiSetting::query()
+            ->where('notifikasi_aktif', true)
+            ->where('telegram_chat_id', '!=', null)
+            ->when($currentRisk === 'WASPADA', fn($q) => $q->where('notifikasi_waspada', true))
+            ->when($currentRisk === 'SIAGA',   fn($q) => $q->where('notifikasi_siaga', true))
+            ->when($currentRisk === 'BAHAYA',  fn($q) => $q->where('notifikasi_bahaya', true))
+            ->get();
+
+        if ($settings->isEmpty()) {
+            return;
+        }
+
+        $deviceName = collect($this->devices)
+            ->firstWhere('id', $deviceId)['label'] ?? "Device #{$deviceId}";
+
+        $telegram = app(TelegramService::class);
+
+        foreach ($settings as $setting) {
+            $telegram->sendStatusAlert(
+                chatId: $setting->telegram_chat_id,
+                status: $currentRisk,
+                deviceName: $deviceName,
+                sensorData: [
+                    'ketinggian_air'  => $this->data['ketinggian_air'] ?? null,
+                    'suhu'            => $this->data['suhu'] ?? null,
+                    'kelembapan'      => $this->data['kelembapan'] ?? null,
+                    'tekanan_udara'   => $this->data['tekanan_udara'] ?? null,
+                    'kecepatan_angin' => $this->data['kecepatan_angin'] ?? null,
+                    'arah_angin'      => $this->data['arah_angin'] ?? null,
+                ],
+            );
+        }
+
+        // Set cooldown 10 menit
+        Cache::put($cacheKey, true, now()->addMinutes(10));
     }
 
     public function refreshMainChart(): void
@@ -536,7 +606,7 @@ class Dashboard extends Component
                 "border" => "border-emerald-500/30",
                 "text" => "text-emerald-600",
             ],
-        };
+        ];
     }
 
     private function getWindDirectionLabel($degree): string
