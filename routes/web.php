@@ -21,6 +21,12 @@ Route::middleware('guest')->group(function () {
 
 Route::post('/logout', [AuthController::class, 'logout'])->middleware('auth')->name('logout');
 
+Route::post('/telegram/webhook', function (Request $request) {
+   $update = $request->json()->all() ;
+   app(TelegramServices::class)->handleCommand($update);
+   return response()->json(['ok' => true]);
+})->withoutMiddleware([]);
+
 /**
  * Dashboard routing
  */
