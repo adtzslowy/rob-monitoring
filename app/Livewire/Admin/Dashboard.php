@@ -606,7 +606,7 @@ class Dashboard extends Component
                 "border" => "border-emerald-500/30",
                 "text" => "text-emerald-600",
             ],
-        ];
+        };
     }
 
     private function getWindDirectionLabel($degree): string
