@@ -131,7 +131,7 @@
 
                         <div class="mt-5 flex justify-end">
                             <button type="submit"
-                                class="inline-flex h-11 items-center justify-center gap-2 rounded-2xl bg-gradient-to-r from-orange-500 to-rose-500 px-6 text-sm font-semibold text-white shadow-[0_8px_20px_rgba(249,115,22,0.25)] transition hover:scale-[1.01] hover:from-orange-600 hover:to-rose-600">
+                                class="inline-flex h-11 items-center justify-center gap-2 rounded-2xl bg-gradient-to-r from-orange-500 to-rose-500 px-6 text-sm font-semibold text-white shadow-[0_8px_20px_rgba(249,115,22,0.25)] transition  hover:from-orange-600 hover:to-rose-600">
                                 <svg class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor">
                                     <path stroke-linecap="round" stroke-linejoin="round" d="M4.5 12.75l6 6 9-13.5" />
                                 </svg>
@@ -266,7 +266,7 @@
 
                     <div class="mt-5 flex justify-end">
                         <button type="submit"
-                            class="inline-flex h-11 items-center justify-center gap-2 rounded-2xl bg-gradient-to-r from-blue-600 to-indigo-600 px-6 text-sm font-semibold text-white shadow-[0_8px_20px_rgba(37,99,235,0.25)] transition hover:scale-[1.01] hover:from-blue-700 hover:to-indigo-700">
+                            class="inline-flex h-11 items-center justify-center gap-2 rounded-2xl bg-gradient-to-r from-blue-600 to-indigo-600 px-6 text-sm font-semibold text-white shadow-[0_8px_20px_rgba(37,99,235,0.25)] transition  hover:from-blue-700 hover:to-indigo-700">
                             <svg class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor">
                                 <path stroke-linecap="round" stroke-linejoin="round" d="M4.5 12.75l6 6 9-13.5" />
                             </svg>
