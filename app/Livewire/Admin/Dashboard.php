@@ -455,7 +455,7 @@ class Dashboard extends Component
         $telegram = app(TelegramServices::class);
 
         foreach ($settings as $setting) {
-            $telegram->sendStatusAlert(
+            $telegram->statusAlert(
                 chatId: $setting->telegram_chat_id,
                 status: $currentRisk,
                 deviceName: $deviceName,
