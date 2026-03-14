@@ -15,7 +15,7 @@
             <!-- Sidebar / Profile Card -->
             <div class="lg:col-span-1">
                 <div class="overflow-hidden rounded-3xl bg-white shadow-sm ring-1 ring-slate-200 transition-colors duration-300 dark:bg-slate-900 dark:ring-slate-800">
-                    <!-- Header -->
+                    <!-- Header Banner -->
                     <div class="relative h-28 overflow-hidden bg-gradient-to-br from-blue-600 via-indigo-500 to-cyan-400 sm:h-32 lg:h-36">
                         <div class="absolute inset-0 bg-[radial-gradient(circle_at_top_right,rgba(255,255,255,0.25),transparent_35%)]"></div>
                         <div class="absolute -right-8 -top-8 h-24 w-24 rounded-full bg-white/10 sm:h-28 sm:w-28"></div>
@@ -49,7 +49,6 @@
                             <h2 class="text-xl font-bold text-slate-800 dark:text-slate-100 sm:text-2xl">
                                 {{ $name }}
                             </h2>
-
                             <p class="mt-1 break-all text-sm text-slate-500 dark:text-slate-400">
                                 {{ $email }}
                             </p>
@@ -108,18 +107,19 @@
 
             <!-- Main Content -->
             <div class="lg:col-span-2">
-                <div class="overflow-hidden rounded-3xl bg-slate-900 shadow-[0_20px_60px_rgba(0,0,0,0.25)] ring-1 ring-white/10 transition-colors duration-300">
+                <div class="overflow-hidden rounded-3xl bg-white shadow-sm ring-1 ring-slate-200 transition-colors duration-300 dark:bg-slate-900 dark:shadow-[0_20px_60px_rgba(0,0,0,0.25)] dark:ring-white/10">
                     <div class="relative p-4 sm:p-6 lg:p-8">
-                        <div class="absolute inset-x-0 top-0 h-px bg-gradient-to-r from-transparent via-blue-400/30 to-transparent"></div>
+                        <!-- Top accent line -->
+                        <div class="absolute inset-x-0 top-0 h-px bg-gradient-to-r from-transparent via-blue-500/20 to-transparent dark:via-blue-400/30"></div>
 
                         @if (session()->has('success'))
-                            <div class="mb-5 rounded-2xl border border-emerald-500/20 bg-emerald-500/10 px-4 py-3 text-sm font-medium text-emerald-300">
+                            <div class="mb-5 rounded-2xl border border-emerald-500/20 bg-emerald-50 px-4 py-3 text-sm font-medium text-emerald-700 dark:bg-emerald-500/10 dark:text-emerald-300">
                                 {{ session('success') }}
                             </div>
                         @endif
 
                         @if (session()->has('success_password'))
-                            <div class="mb-5 rounded-2xl border border-emerald-500/20 bg-emerald-500/10 px-4 py-3 text-sm font-medium text-emerald-300">
+                            <div class="mb-5 rounded-2xl border border-emerald-500/20 bg-emerald-50 px-4 py-3 text-sm font-medium text-emerald-700 dark:bg-emerald-500/10 dark:text-emerald-300">
                                 {{ session('success_password') }}
                             </div>
                         @endif
@@ -127,67 +127,85 @@
                         <!-- Informasi Profil -->
                         <section>
                             <div class="mb-6">
-                                <h3 class="text-xl font-bold text-white sm:text-2xl">
+                                <h3 class="text-xl font-bold text-slate-800 dark:text-white sm:text-2xl">
                                     Informasi Profil
                                 </h3>
-                                <p class="mt-1 text-sm leading-6 text-slate-400">
+                                <p class="mt-1 text-sm leading-6 text-slate-500 dark:text-slate-400">
                                     Perbarui data pribadi dan foto profil Anda.
                                 </p>
                             </div>
 
                             <form wire:submit.prevent="updateProfile" class="space-y-5 sm:space-y-6">
                                 <div class="grid grid-cols-1 gap-4 md:grid-cols-2 md:gap-5">
+                                    <!-- Nama -->
                                     <div>
-                                        <label class="mb-2 block text-sm font-semibold text-slate-200">
+                                        <label class="mb-2 block text-sm font-semibold text-slate-700 dark:text-slate-200">
                                             Nama Lengkap
                                         </label>
                                         <input type="text" wire:model.defer="name"
-                                            class="h-12 w-full rounded-2xl border border-white/10 bg-slate-800/80 px-4 text-sm text-white outline-none transition placeholder:text-slate-500 focus:border-blue-500/60 focus:bg-slate-800 focus:ring-4 focus:ring-blue-500/10"
+                                            class="h-12 w-full rounded-2xl border border-slate-200 bg-slate-50 px-4 text-sm text-slate-900 outline-none transition placeholder:text-slate-400
+                                                   focus:border-blue-500 focus:bg-white focus:ring-4 focus:ring-blue-500/10
+                                                   dark:border-white/10 dark:bg-slate-800/80 dark:text-white dark:placeholder:text-slate-500
+                                                   dark:focus:border-blue-500/60 dark:focus:bg-slate-800 dark:focus:ring-blue-500/10"
                                             placeholder="Masukkan nama lengkap">
                                         @error('name')
-                                            <p class="mt-2 text-sm text-rose-400">{{ $message }}</p>
+                                            <p class="mt-2 text-sm text-rose-500 dark:text-rose-400">{{ $message }}</p>
                                         @enderror
                                     </div>
 
+                                    <!-- Email -->
                                     <div>
-                                        <label class="mb-2 block text-sm font-semibold text-slate-200">
+                                        <label class="mb-2 block text-sm font-semibold text-slate-700 dark:text-slate-200">
                                             Email
                                         </label>
                                         <input type="email" wire:model.defer="email"
-                                            class="h-12 w-full rounded-2xl border border-white/10 bg-slate-800/80 px-4 text-sm text-white outline-none transition placeholder:text-slate-500 focus:border-blue-500/60 focus:bg-slate-800 focus:ring-4 focus:ring-blue-500/10"
+                                            class="h-12 w-full rounded-2xl border border-slate-200 bg-slate-50 px-4 text-sm text-slate-900 outline-none transition placeholder:text-slate-400
+                                                   focus:border-blue-500 focus:bg-white focus:ring-4 focus:ring-blue-500/10
+                                                   dark:border-white/10 dark:bg-slate-800/80 dark:text-white dark:placeholder:text-slate-500
+                                                   dark:focus:border-blue-500/60 dark:focus:bg-slate-800 dark:focus:ring-blue-500/10"
                                             placeholder="Masukkan email">
                                         @error('email')
-                                            <p class="mt-2 text-sm text-rose-400">{{ $message }}</p>
+                                            <p class="mt-2 text-sm text-rose-500 dark:text-rose-400">{{ $message }}</p>
                                         @enderror
                                     </div>
                                 </div>
 
+                                <!-- Foto Profil -->
                                 <div>
-                                    <label class="mb-2 block text-sm font-semibold text-slate-200">
+                                    <label class="mb-2 block text-sm font-semibold text-slate-700 dark:text-slate-200">
                                         Foto Profil
                                     </label>
 
-                                    <div class="rounded-[24px] border border-dashed border-blue-400/20 bg-slate-800/50 p-4 ring-1 ring-white/5 transition hover:border-blue-400/30 hover:bg-slate-800/70 sm:rounded-[28px] sm:p-5">
+                                    <div class="rounded-[24px] border border-dashed border-blue-300 bg-blue-50/50 p-4 ring-1 ring-blue-100 transition
+                                                hover:border-blue-400 hover:bg-blue-50
+                                                dark:border-blue-400/20 dark:bg-slate-800/50 dark:ring-white/5
+                                                dark:hover:border-blue-400/30 dark:hover:bg-slate-800/70
+                                                sm:rounded-[28px] sm:p-5">
                                         <input type="file" wire:model="foto_profil"
-                                            class="block w-full text-sm text-slate-300 file:mr-3 file:mb-3 file:rounded-xl file:border-0 file:bg-gradient-to-r file:from-blue-600 file:to-indigo-600 file:px-4 file:py-2.5 file:text-sm file:font-semibold file:text-white hover:file:from-blue-700 hover:file:to-indigo-700 sm:file:mr-4 sm:file:mb-0">
+                                            class="block w-full text-sm text-slate-600 dark:text-slate-300
+                                                   file:mr-3 file:mb-3 file:rounded-xl file:border-0
+                                                   file:bg-gradient-to-r file:from-blue-600 file:to-indigo-600
+                                                   file:px-4 file:py-2.5 file:text-sm file:font-semibold file:text-white
+                                                   hover:file:from-blue-700 hover:file:to-indigo-700
+                                                   sm:file:mr-4 sm:file:mb-0">
 
-                                        <div wire:loading wire:target="foto_profil" class="mt-3 text-sm text-blue-400">
+                                        <div wire:loading wire:target="foto_profil" class="mt-3 text-sm text-blue-500 dark:text-blue-400">
                                             Mengunggah foto...
                                         </div>
 
-                                        <p class="mt-3 text-xs leading-5 text-slate-400">
+                                        <p class="mt-3 text-xs leading-5 text-slate-400 dark:text-slate-400">
                                             Format gambar: JPG, PNG, JPEG. Maksimal 1MB.
                                         </p>
                                     </div>
 
                                     @error('foto_profil')
-                                        <p class="mt-2 text-sm text-rose-400">{{ $message }}</p>
+                                        <p class="mt-2 text-sm text-rose-500 dark:text-rose-400">{{ $message }}</p>
                                     @enderror
                                 </div>
 
                                 <div class="flex flex-col gap-3 sm:flex-row sm:justify-end">
                                     <button type="submit"
-                                        class="inline-flex h-12 items-center justify-center rounded-2xl bg-gradient-to-r from-blue-600 to-indigo-600 px-6 text-sm font-semibold text-white shadow-[0_12px_30px_rgba(59,130,246,0.25)] transition hover:scale-[1.01] hover:from-blue-700 hover:to-indigo-700">
+                                        class="inline-flex h-12 items-center justify-center rounded-2xl bg-gradient-to-r from-blue-600 to-indigo-600 px-6 text-sm font-semibold text-white shadow-[0_12px_30px_rgba(59,130,246,0.20)] transition hover:scale-[1.01] hover:from-blue-700 hover:to-indigo-700 dark:shadow-[0_12px_30px_rgba(59,130,246,0.25)]">
                                         Simpan Perubahan
                                     </button>
                                 </div>
@@ -195,58 +213,72 @@
                         </section>
 
                         <!-- Divider -->
-                        <div class="my-8 h-px bg-gradient-to-r from-transparent via-white/10 to-transparent sm:my-10"></div>
+                        <div class="my-8 h-px bg-gradient-to-r from-transparent via-slate-200 to-transparent dark:via-white/10 sm:my-10"></div>
 
                         <!-- Ubah Password -->
                         <section>
                             <div class="mb-6">
-                                <h3 class="text-xl font-bold text-white sm:text-2xl">
+                                <h3 class="text-xl font-bold text-slate-800 dark:text-white sm:text-2xl">
                                     Ubah Password
                                 </h3>
-                                <p class="mt-1 text-sm leading-6 text-slate-400">
+                                <p class="mt-1 text-sm leading-6 text-slate-500 dark:text-slate-400">
                                     Gunakan password yang kuat untuk menjaga keamanan akun Anda.
                                 </p>
                             </div>
 
                             <form wire:submit.prevent="updatePassword" class="space-y-5 sm:space-y-6">
+                                <!-- Password Saat Ini -->
                                 <div>
-                                    <label class="mb-2 block text-sm font-semibold text-slate-200">
+                                    <label class="mb-2 block text-sm font-semibold text-slate-700 dark:text-slate-200">
                                         Password Saat Ini
                                     </label>
                                     <input type="password" wire:model.defer="current_password"
-                                        class="h-12 w-full rounded-2xl border border-white/10 bg-slate-800/80 px-4 text-sm text-white outline-none transition placeholder:text-slate-500 focus:border-blue-500/60 focus:bg-slate-800 focus:ring-4 focus:ring-blue-500/10"
+                                        class="h-12 w-full rounded-2xl border border-slate-200 bg-slate-50 px-4 text-sm text-slate-900 outline-none transition placeholder:text-slate-400
+                                               focus:border-blue-500 focus:bg-white focus:ring-4 focus:ring-blue-500/10
+                                               dark:border-white/10 dark:bg-slate-800/80 dark:text-white dark:placeholder:text-slate-500
+                                               dark:focus:border-blue-500/60 dark:focus:bg-slate-800 dark:focus:ring-blue-500/10"
                                         placeholder="Masukkan password saat ini">
                                     @error('current_password')
-                                        <p class="mt-2 text-sm text-rose-400">{{ $message }}</p>
+                                        <p class="mt-2 text-sm text-rose-500 dark:text-rose-400">{{ $message }}</p>
                                     @enderror
                                 </div>
 
                                 <div class="grid grid-cols-1 gap-4 md:grid-cols-2 md:gap-5">
+                                    <!-- Password Baru -->
                                     <div>
-                                        <label class="mb-2 block text-sm font-semibold text-slate-200">
+                                        <label class="mb-2 block text-sm font-semibold text-slate-700 dark:text-slate-200">
                                             Password Baru
                                         </label>
                                         <input type="password" wire:model.defer="new_password"
-                                            class="h-12 w-full rounded-2xl border border-white/10 bg-slate-800/80 px-4 text-sm text-white outline-none transition placeholder:text-slate-500 focus:border-blue-500/60 focus:bg-slate-800 focus:ring-4 focus:ring-blue-500/10"
+                                            class="h-12 w-full rounded-2xl border border-slate-200 bg-slate-50 px-4 text-sm text-slate-900 outline-none transition placeholder:text-slate-400
+                                                   focus:border-blue-500 focus:bg-white focus:ring-4 focus:ring-blue-500/10
+                                                   dark:border-white/10 dark:bg-slate-800/80 dark:text-white dark:placeholder:text-slate-500
+                                                   dark:focus:border-blue-500/60 dark:focus:bg-slate-800 dark:focus:ring-blue-500/10"
                                             placeholder="Masukkan password baru">
                                         @error('new_password')
-                                            <p class="mt-2 text-sm text-rose-400">{{ $message }}</p>
+                                            <p class="mt-2 text-sm text-rose-500 dark:text-rose-400">{{ $message }}</p>
                                         @enderror
                                     </div>
 
+                                    <!-- Konfirmasi Password -->
                                     <div>
-                                        <label class="mb-2 block text-sm font-semibold text-slate-200">
+                                        <label class="mb-2 block text-sm font-semibold text-slate-700 dark:text-slate-200">
                                             Konfirmasi Password Baru
                                         </label>
                                         <input type="password" wire:model.defer="new_password_confirmation"
-                                            class="h-12 w-full rounded-2xl border border-white/10 bg-slate-800/80 px-4 text-sm text-white outline-none transition placeholder:text-slate-500 focus:border-blue-500/60 focus:bg-slate-800 focus:ring-4 focus:ring-blue-500/10"
+                                            class="h-12 w-full rounded-2xl border border-slate-200 bg-slate-50 px-4 text-sm text-slate-900 outline-none transition placeholder:text-slate-400
+                                                   focus:border-blue-500 focus:bg-white focus:ring-4 focus:ring-blue-500/10
+                                                   dark:border-white/10 dark:bg-slate-800/80 dark:text-white dark:placeholder:text-slate-500
+                                                   dark:focus:border-blue-500/60 dark:focus:bg-slate-800 dark:focus:ring-blue-500/10"
                                             placeholder="Ulangi password baru">
                                     </div>
                                 </div>
 
                                 <div class="flex flex-col gap-3 sm:flex-row sm:justify-end">
                                     <button type="submit"
-                                        class="inline-flex h-12 items-center justify-center rounded-2xl border border-white/10 bg-white px-6 text-sm font-semibold text-slate-900 shadow-[0_10px_25px_rgba(255,255,255,0.12)] transition hover:bg-slate-100">
+                                        class="inline-flex h-12 items-center justify-center rounded-2xl px-6 text-sm font-semibold transition hover:scale-[1.01]
+                                               border border-slate-200 bg-slate-800 text-white shadow-sm hover:bg-slate-700
+                                               dark:border-white/10 dark:bg-white dark:text-slate-900 dark:shadow-[0_10px_25px_rgba(255,255,255,0.12)] dark:hover:bg-slate-100">
                                         Update Password
                                     </button>
                                 </div>
