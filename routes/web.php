@@ -9,7 +9,7 @@ use App\Livewire\Admin\Profile;
 use App\Livewire\Admin\SensorList;
 use App\Livewire\Admin\UserManagement;
 use App\Services\TelegramServices;
-use Illuminate\Support\Facades\Request;
+use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Route;
 
 Route::get('/', function () {
