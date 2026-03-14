@@ -20,9 +20,7 @@ return Application::configure(basePath: dirname(__DIR__))
             'role_or_permission' => RoleOrPermissionMiddleware::class,
         ]);
 
-        $middleware->validateCsrfTokens([
-            'telegram/webhook',
-        ]);
+        $middleware->validateCsrfTokens(except: ['telegram/webhook']);
     })
     ->withExceptions(function (Exceptions $exceptions): void {
         //
