@@ -28,8 +28,6 @@ Route::post('/telegram/webhook', function (Request $request) {
     app(TelegramServices::class)->handleCommand($update);
     return response()->json(['ok' => true]);
 });
-
-
 /**
  * Dashboard routing
  */
