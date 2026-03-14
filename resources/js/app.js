@@ -162,6 +162,70 @@ function flushMetricChartPending() {
     });
 }
 
+function renderMetricChart(payload) {
+    const canvas = document.getElementById("metricChart");
+
+    if (!canvas) {
+        window.__robMetricPending = payload;
+        return;
+    }
+
+    const p = normalizePayload(payload);
+    const labels = p.labels ?? [];
+    const values = p.values ?? [];
+    const title = p.title ?? "Metric";
+    const metric = p.metric || "ketinggian_air";
+    const color = SENSOR_COLORS[metric] || SENSOR_COLORS.ketinggian_air;
+
+    // Destroy dulu kalau sudah ada
+    if (window.__robMetricChart) {
+        window.__robMetricChart.destroy();
+        window.__robMetricChart = null;
+    }
+
+    window.__robMetricChart = new Chart(canvas.getContext("2d"), {
+        type: "line",
+        data: {
+            labels,
+            datasets: [{
+                label: title,
+                data: values,
+                tension: 0.4,
+                fill: true,
+                borderWidth: 2,
+                borderColor: color.border,
+                backgroundColor: color.bg,
+                pointRadius: 3,
+                pointHoverRadius: 4,
+                pointBackgroundColor: color.border,
+                pointBorderColor: color.border,
+                pointHoverBackgroundColor: color.border,
+                pointHoverBorderColor: "#ffffff",
+            }],
+        },
+        options: {
+            responsive: true,
+            maintainAspectRatio: false,
+            animation: false,
+            plugins: {
+                legend: { display: false },
+            },
+            scales: {
+                x: {
+                    ticks: { maxTicksLimit: 8, font: { size: 11 } },
+                    grid: { color: "rgba(255,255,255,0.05)" },
+                },
+                y: {
+                    ticks: { font: { size: 11 } },
+                    grid: { color: "rgba(255,255,255,0.05)" },
+                },
+            },
+        },
+    });
+
+    window.__robMetricCanvas = canvas;
+}
+
 window.flushMetricChartPending = flushMetricChartPending;
 window.addEventListener("modalChart", (e) => renderMetricChart(e.detail || {}));
 window.addEventListener("destroyModalChart", () => {
