@@ -8,6 +8,8 @@ use App\Livewire\Admin\PetaMonitoring;
 use App\Livewire\Admin\Profile;
 use App\Livewire\Admin\SensorList;
 use App\Livewire\Admin\UserManagement;
+use App\Services\TelegramServices;
+use Illuminate\Support\Facades\Request;
 use Illuminate\Support\Facades\Route;
 
 Route::get('/', function () {
@@ -22,11 +24,10 @@ Route::middleware('guest')->group(function () {
 Route::post('/logout', [AuthController::class, 'logout'])->middleware('auth')->name('logout');
 
 Route::post('/telegram/webhook', function (Request $request) {
-   $update = $request->json()->all() ;
-   app(TelegramServices::class)->handleCommand($update);
-   return response()->json(['ok' => true]);
-})->withoutMiddleware([]);
-
+    $update = $request->all();
+    app(TelegramServices::class)->handleCommand($update);
+    return response()->json(['ok' => true]);
+});
 /**
  * Dashboard routing
  */
