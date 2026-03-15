@@ -1,5 +1,6 @@
 <?php
 
+use App\Jobs\CheckSensorStatus;
 use Illuminate\Foundation\Inspiring;
 use Illuminate\Support\Facades\Artisan;
 use Illuminate\Support\Facades\Schedule;
@@ -11,5 +12,5 @@ Artisan::command('inspire', function () {
 Schedule::command('app:sync-iot')->everyTwoSeconds();
 
 Schedule::call(function () {
-    (new \App\Jobs\CheckSensorStatus)->handle();
+    (new CheckSensorStatus)->handle();
 })->everyMinute();
