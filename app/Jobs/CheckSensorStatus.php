@@ -23,7 +23,7 @@ class CheckSensorStatus implements ShouldQueue
     {
         $devices = Device::all();
 
-        if (!$devices->isEmpty()) return;
+        if ($devices->isEmpty()) return;
 
 
         $fuzzy = app(FuzzyRiskServices::class);
