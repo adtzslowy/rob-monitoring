@@ -1,4 +1,4 @@
-<div class="min-h-screen bg-slate-50 p-4 transition-colors duration-300 dark:bg-slate-950 sm:p-6 lg:p-8">
+<div class="min-h-screen bg-zinc-50 p-4 transition-colors duration-300 dark:bg-zinc-950 sm:p-6 lg:p-8">
     <div class="mx-auto max-w-4xl">
 
         {{-- Header --}}
@@ -39,7 +39,7 @@
 
             {{-- ===== THRESHOLD SENSOR (Admin only) ===== --}}
             @if ($isAdmin)
-                <div class="overflow-hidden rounded-3xl bg-white shadow-sm ring-1 ring-slate-200 transition-colors duration-300 dark:bg-slate-900 dark:ring-slate-800">
+                <div class="overflow-hidden rounded-3xl bg-white shadow-sm ring-1 ring-slate-200 transition-colors duration-300 dark:bg-zinc-900 dark:ring-slate-800">
 
                     <div class="relative border-b border-slate-100 px-5 py-4 dark:border-slate-800 sm:px-6 sm:py-5">
                         <div class="absolute inset-x-0 top-0 h-px bg-gradient-to-r from-transparent via-orange-400/50 to-transparent"></div>
@@ -71,7 +71,7 @@
                             @endphp
 
                             @foreach ($sensors as $key => $sensor)
-                                <div class="rounded-2xl border border-slate-100 bg-slate-50/60 p-4 dark:border-slate-800 dark:bg-slate-800/40 sm:p-5">
+                                <div class="rounded-2xl border border-slate-100 bg-zinc-50/60 p-4 dark:border-slate-800 dark:bg-zinc-800/40 sm:p-5">
                                     <div class="mb-4 flex items-center gap-2">
                                         <span class="inline-flex h-2.5 w-2.5 rounded-full {{ $sensor['dot'] }}"></span>
                                         <h3 class="text-sm font-semibold text-slate-700 dark:text-slate-200">
@@ -85,7 +85,7 @@
                                                 wire:model.defer="threshold.{{ $key }}.waspada"
                                                 class="h-10 w-full rounded-xl border border-slate-200 bg-white px-3 text-sm text-slate-900 outline-none transition
                                                        focus:border-amber-400 focus:ring-2 focus:ring-amber-400/20
-                                                       dark:border-slate-700 dark:bg-slate-900 dark:text-white dark:focus:border-amber-500"
+                                                       dark:border-slate-700 dark:bg-zinc-900 dark:text-white dark:focus:border-amber-500"
                                                 placeholder="Nilai waspada">
                                             @error("threshold.{$key}.waspada")
                                                 <p class="mt-1 text-xs text-rose-500">{{ $message }}</p>
@@ -97,7 +97,7 @@
                                                 wire:model.defer="threshold.{{ $key }}.bahaya"
                                                 class="h-10 w-full rounded-xl border border-slate-200 bg-white px-3 text-sm text-slate-900 outline-none transition
                                                        focus:border-rose-400 focus:ring-2 focus:ring-rose-400/20
-                                                       dark:border-slate-700 dark:bg-slate-900 dark:text-white dark:focus:border-rose-500"
+                                                       dark:border-slate-700 dark:bg-zinc-900 dark:text-white dark:focus:border-rose-500"
                                                 placeholder="Nilai bahaya">
                                             @error("threshold.{$key}.bahaya")
                                                 <p class="mt-1 text-xs text-rose-500">{{ $message }}</p>
@@ -143,7 +143,7 @@
             @endif
 
             {{-- ===== NOTIFIKASI TELEGRAM ===== --}}
-            <div class="overflow-hidden rounded-3xl bg-white shadow-sm ring-1 ring-slate-200 transition-colors duration-300 dark:bg-slate-900 dark:ring-slate-800">
+            <div class="overflow-hidden rounded-3xl bg-white shadow-sm ring-1 ring-slate-200 transition-colors duration-300 dark:bg-zinc-900 dark:ring-slate-800">
 
                 <div class="relative border-b border-slate-100 px-5 py-4 dark:border-slate-800 sm:px-6 sm:py-5">
                     <div class="absolute inset-x-0 top-0 h-px bg-gradient-to-r from-transparent via-blue-400/50 to-transparent"></div>
@@ -164,14 +164,14 @@
                     <div class="space-y-5">
 
                         {{-- Toggle aktif --}}
-                        <div class="flex items-center justify-between rounded-2xl border border-slate-100 bg-slate-50/60 px-4 py-3.5 dark:border-slate-800 dark:bg-slate-800/40">
+                        <div class="flex items-center justify-between rounded-2xl border border-slate-100 bg-zinc-50/60 px-4 py-3.5 dark:border-slate-800 dark:bg-zinc-800/40">
                             <div>
                                 <p class="text-sm font-medium text-slate-700 dark:text-slate-200">Aktifkan Notifikasi</p>
                                 <p class="text-xs text-slate-500 dark:text-slate-400">Kirim pesan Telegram saat status berubah</p>
                             </div>
                             <button type="button" wire:click="toggleNotifikasi"
                                 class="relative inline-flex h-6 w-11 flex-shrink-0 cursor-pointer rounded-full border-2 border-transparent transition-colors duration-200 ease-in-out focus:outline-none
-                                       {{ $notifikasi_aktif ? 'bg-blue-500' : 'bg-slate-300 dark:bg-slate-600' }}">
+                                       {{ $notifikasi_aktif ? 'bg-blue-500' : 'bg-zinc-300 dark:bg-zinc-600' }}">
                                 <span class="inline-block h-5 w-5 transform rounded-full bg-white shadow ring-0 transition duration-200 ease-in-out
                                              {{ $notifikasi_aktif ? 'translate-x-5' : 'translate-x-0' }}"></span>
                             </button>
@@ -184,12 +184,12 @@
                             </label>
                             <p class="mb-2 text-xs text-slate-500 dark:text-slate-400">
                                 Chat bot kamu lalu buka:
-                                <code class="rounded bg-slate-100 px-1 py-0.5 text-xs dark:bg-slate-800">api.telegram.org/bot&lt;TOKEN&gt;/getUpdates</code>
+                                <code class="rounded bg-zinc-100 px-1 py-0.5 text-xs dark:bg-zinc-800">api.telegram.org/bot&lt;TOKEN&gt;/getUpdates</code>
                             </p>
                             <input type="text" wire:model.defer="telegram_chat_id"
                                 class="h-11 w-full rounded-xl border border-slate-200 bg-white px-4 text-sm text-slate-900 outline-none transition
                                        placeholder:text-slate-400 focus:border-blue-500 focus:ring-2 focus:ring-blue-500/20
-                                       dark:border-slate-700 dark:bg-slate-800/80 dark:text-white dark:placeholder:text-slate-500
+                                       dark:border-slate-700 dark:bg-zinc-800/80 dark:text-white dark:placeholder:text-slate-500
                                        dark:focus:border-blue-500"
                                 placeholder="Contoh: 123456789">
                             @error('telegram_chat_id')
@@ -204,7 +204,7 @@
                             </label>
                             <div class="grid grid-cols-1 gap-2 sm:grid-cols-3">
 
-                                <label class="flex cursor-pointer items-center gap-3 rounded-xl border border-slate-200 bg-slate-50 px-4 py-3 transition hover:bg-slate-100 dark:border-slate-700 dark:bg-slate-800/40 dark:hover:bg-slate-800">
+                                <label class="flex cursor-pointer items-center gap-3 rounded-xl border border-slate-200 bg-zinc-50 px-4 py-3 transition hover:bg-zinc-100 dark:border-slate-700 dark:bg-zinc-800/40 dark:hover:bg-zinc-800">
                                     <input type="checkbox" wire:model="notifikasi_waspada"
                                         class="h-4 w-4 rounded border-slate-300 text-amber-500 focus:ring-amber-400 dark:border-slate-600">
                                     <div class="flex items-center gap-2">
@@ -213,7 +213,7 @@
                                     </div>
                                 </label>
 
-                                <label class="flex cursor-pointer items-center gap-3 rounded-xl border border-slate-200 bg-slate-50 px-4 py-3 transition hover:bg-slate-100 dark:border-slate-700 dark:bg-slate-800/40 dark:hover:bg-slate-800">
+                                <label class="flex cursor-pointer items-center gap-3 rounded-xl border border-slate-200 bg-zinc-50 px-4 py-3 transition hover:bg-zinc-100 dark:border-slate-700 dark:bg-zinc-800/40 dark:hover:bg-zinc-800">
                                     <input type="checkbox" wire:model="notifikasi_siaga"
                                         class="h-4 w-4 rounded border-slate-300 text-orange-500 focus:ring-orange-400 dark:border-slate-600">
                                     <div class="flex items-center gap-2">
@@ -222,7 +222,7 @@
                                     </div>
                                 </label>
 
-                                <label class="flex cursor-pointer items-center gap-3 rounded-xl border border-slate-200 bg-slate-50 px-4 py-3 transition hover:bg-slate-100 dark:border-slate-700 dark:bg-slate-800/40 dark:hover:bg-slate-800">
+                                <label class="flex cursor-pointer items-center gap-3 rounded-xl border border-slate-200 bg-zinc-50 px-4 py-3 transition hover:bg-zinc-100 dark:border-slate-700 dark:bg-zinc-800/40 dark:hover:bg-zinc-800">
                                     <input type="checkbox" wire:model="notifikasi_bahaya"
                                         class="h-4 w-4 rounded border-slate-300 text-rose-500 focus:ring-rose-400 dark:border-slate-600">
                                     <div class="flex items-center gap-2">
