@@ -13,4 +13,4 @@ Schedule::command('app:sync-iot')->everyTwoSeconds();
 
 Schedule::call(function () {
     (new CheckSensorStatus)->handle();
-})->everyMinute();
+})->everyTenMinutes();
