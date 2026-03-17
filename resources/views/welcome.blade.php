@@ -179,7 +179,7 @@
                     </h1>
 
                     <p class="mt-6 text-lg text-slate-600 dark:text-slate-400 leading-relaxed max-w-lg opacity-0 animate-fade-up delay-2">
-                        Pemantauan kondisi air laut dan cuaca secara real-time berbasis IoT dan kecerdasan buatan fuzzy logic untuk wilayah pesisir Kabupaten Ketapang.
+                        Pemantauan kondisi air laut dan cuaca secara real-time berbasis IoT dan fuzzy logic untuk wilayah pesisir Kabupaten Ketapang.
                     </p>
 
                     <div class="mt-8 flex flex-col sm:flex-row gap-3 opacity-0 animate-fade-up delay-3">
@@ -542,7 +542,7 @@
                             <p class="text-xs text-slate-400">Early Warning System</p>
                         </div>
                     </div>
-                    <p class="text-sm text-slate-400 leading-relaxed">Sistem peringatan dini banjir rob berbasis IoT dan kecerdasan buatan untuk wilayah pesisir Ketapang, Kalimantan Barat.</p>
+                    <p class="text-sm text-slate-400 leading-relaxed">Sistem peringatan dini banjir rob berbasis IoT dan untuk wilayah pesisir Ketapang, Kalimantan Barat.</p>
                 </div>
 
                 <div>
