@@ -79,7 +79,7 @@
                 {{-- Logo --}}
                 <a href="/" class="flex items-center gap-3 group">
                     <div class="flex h-9 w-9 items-center justify-center rounded-xl bg-blue-600 group-hover:bg-blue-700 transition">
-                        <x-heroicon-o-bell-alert class="w-5 h-5"/>
+                        <x-heroicon-o-bell-alert class="w-5 h-5 text-white"/>
                     </div>
                     <div class="hidden sm:block">
                         <p class="text-sm font-bold text-slate-900 dark:text-white leading-none">ROB Monitoring</p>
