@@ -1,6 +1,7 @@
 <?php
 
 use App\Http\Controllers\Auth\AuthController;
+use App\Http\Controllers\FrontEndController;
 use App\Livewire\Admin\Dashboard;
 use App\Livewire\Admin\DeviceManage;
 use App\Livewire\Admin\Pengaturan;
@@ -12,9 +13,17 @@ use App\Services\TelegramServices;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Route;
 
-Route::get('/', function () {
-    return view('welcome');
-})->name('home');
+// Route::get('/', function () {
+//     return view('welcome');
+// })->name('home');
+
+Route::prefix('/')->group(function () {
+    Route::get('/', [FrontEndController::class, 'beranda'])->name('home');
+    Route::get('/tentang', [FrontEndController::class, 'about'])->name('about');
+    Route::get('/', [FrontEndController::class, 'beranda'])->name('home');
+    Route::get('/', [FrontEndController::class, 'beranda'])->name('home');
+    Route::get('/', [FrontEndController::class, 'beranda'])->name('home');
+});
 
 Route::middleware('guest')->group(function () {
     Route::get('/login', [AuthController::class, 'index'])->name('login');
