@@ -20,7 +20,7 @@ use Illuminate\Support\Facades\Route;
 Route::prefix('/')->group(function () {
     Route::get('/', [FrontEndController::class, 'beranda'])->name('home');
     Route::get('/tentang', [FrontEndController::class, 'about'])->name('about');
-    Route::get('/', [FrontEndController::class, 'beranda'])->name('home');
+    Route::get('/peta-alat', [FrontEndController::class, 'peta'])->name('peta');
     Route::get('/', [FrontEndController::class, 'beranda'])->name('home');
     Route::get('/', [FrontEndController::class, 'beranda'])->name('home');
 });
