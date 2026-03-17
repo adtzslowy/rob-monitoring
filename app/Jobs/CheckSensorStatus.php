@@ -25,8 +25,6 @@ class CheckSensorStatus implements ShouldQueue
         $fuzzy    = app(FuzzyRiskServices::class);
         $telegram = app(TelegramServices::class);
 
-        // Kumpulkan semua alert per user — digest
-        // Format: ['chat_id' => [['device' => ..., 'status' => ..., 'data' => ...], ...]]
         $digestPerUser = [];
 
         foreach ($devices as $device) {
@@ -37,7 +35,7 @@ class CheckSensorStatus implements ShouldQueue
 
             if (!$latest) continue;
 
-            // Evaluasi fuzzy
+
             $result = $fuzzy->evaluate([
                 'ketinggian_air'  => (float) ($latest->ketinggian_air  ?? 0),
                 'tekanan_udara'   => (float) ($latest->tekanan_udara   ?? 0),
@@ -49,17 +47,13 @@ class CheckSensorStatus implements ShouldQueue
             $cacheKeyPrev = "sensor_risk_prev_{$device->id}";
             $previousRisk = Cache::get($cacheKeyPrev, 'AMAN');
 
-            // Simpan status terkini
             Cache::put($cacheKeyPrev, $currentRisk, now()->addHours(2));
 
-            // Skip jika status tidak berubah
             if ($previousRisk === $currentRisk) continue;
 
-            // Skip jika status baru bukan alert
             $alertStatuses = ['WASPADA', 'SIAGA', 'BAHAYA'];
             if (!in_array($currentRisk, $alertStatuses, true)) continue;
 
-            // Cooldown per device per status — 30 menit
             $cacheKey = "telegram_notif_{$device->id}_{$currentRisk}";
             if (Cache::has($cacheKey)) continue;
 
@@ -152,6 +146,7 @@ class CheckSensorStatus implements ShouldQueue
 
             if ($data['ketinggian_air'] !== null)  $message .= "   💧 Ketinggian Air: <b>{$data['ketinggian_air']} cm</b>\n";
             if ($data['suhu'] !== null)             $message .= "   🌡️ Suhu: <b>{$data['suhu']} °C</b>\n";
+            if ($data['kelembapan'] !== null)             $message .= "   💧 Kelembapan: <b>{$data['kelembapan']} °C</b>\n";
             if ($data['kecepatan_angin'] !== null)  $message .= "   💨 Kec. Angin: <b>{$data['kecepatan_angin']} m/s</b>\n";
             if ($data['tekanan_udara'] !== null)    $message .= "   🌀 Tekanan: <b>{$data['tekanan_udara']} hPa</b>\n";
 
