@@ -8,7 +8,7 @@ class FrontEndController extends Controller
 {
     public function beranda()
     {
-        return view('landing.hero');
+        return view('landing.home');
     }
 
     public function about()
