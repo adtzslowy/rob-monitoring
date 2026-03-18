@@ -40,9 +40,12 @@
 
     <x-landing.navbar/>
 
-    {{ $slot }}
-
-    <x-landing.footer/>
+    <main class="flex-1 flex flex-col overflow-y-auto">
+        <div class="flex-1">
+            {{ $slot }}
+        </div>
+        <x-landing.footer/>
+    </main>
     
     @livewireScripts()
 </body>
