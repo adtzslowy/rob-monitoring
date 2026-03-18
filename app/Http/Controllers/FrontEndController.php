@@ -13,6 +13,6 @@ class FrontEndController extends Controller
 
     public function about()
     {
-        return view('about');
+        return view('landing.tentang');
     }
 }
