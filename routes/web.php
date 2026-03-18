@@ -17,8 +17,14 @@ use Illuminate\Support\Facades\Route;
 //     return view('welcome');
 // })->name('home');
 
-Route::prefix('/')->group(function() {
+Route::prefix('/')->middleware('guest')->group(function() {
     Route::get('beranda', [FrontEndController::class, 'beranda'])->name('home');
+    Route::get('tentang', [FrontEndController::class, 'about'])->name('tentang');
+    Route::get('fitur', [FrontEndController::class, 'features'])->name('fitur');
+    Route::get('peta-monitoring', [FrontEndController::class, 'maps'])->name('peta');
+    Route::get('alur-kerja', [FrontEndController::class, 'workflows'])->name('alur_kerja');
+    Route::get('status', [FrontEndController::class, 'stats'])->name('status');
+    Route::get('kontak', [FrontEndController::class, 'contact'])->name('kontak');
 });
 
 Route::middleware('guest')->group(function () {
