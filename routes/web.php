@@ -18,7 +18,7 @@ use Illuminate\Support\Facades\Route;
 // })->name('home');
 
 Route::prefix('/')->middleware('guest')->group(function() {
-    Route::get('beranda', [FrontEndController::class, 'beranda'])->name('home');
+    Route::get('/', [FrontEndController::class, 'beranda'])->name('home');
     Route::get('tentang', [FrontEndController::class, 'about'])->name('tentang');
     Route::get('fitur', [FrontEndController::class, 'features'])->name('fitur');
     Route::get('peta-monitoring', [FrontEndController::class, 'maps'])->name('peta');
@@ -29,7 +29,7 @@ Route::prefix('/')->middleware('guest')->group(function() {
 
 Route::middleware('guest')->group(function () {
     Route::get('/login', [AuthController::class, 'index'])->name('login');
-    Route::post('/login', [AuthController::class, 'login'])->name('login.auth');
+    Route::post('/login/proses', [AuthController::class, 'login'])->name('login.auth');
 });
 
 Route::post('/logout', [AuthController::class, 'logout'])->middleware('auth')->name('logout');
