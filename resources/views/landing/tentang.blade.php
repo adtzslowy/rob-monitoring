@@ -1,4 +1,4 @@
-<x-layout::landing title="Tentang">
+<x-layouts::landing title="Tentang">
     <x-landing.hero/>
     <x-landing.tentang/>
-</x-layout::landing>
+</x-layouts::landing>
