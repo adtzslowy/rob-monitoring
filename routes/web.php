@@ -18,7 +18,7 @@ use Illuminate\Support\Facades\Route;
 // })->name('home');
 
 Route::prefix('/')->group(function() {
-    Route::get('beranda', FrontEndController::class, 'beranda')->name('home');
+    Route::get('beranda', [FrontEndController::class, 'beranda'])->name('home');
 });
 
 Route::middleware('guest')->group(function () {
