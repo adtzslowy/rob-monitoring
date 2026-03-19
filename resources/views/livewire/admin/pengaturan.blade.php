@@ -1,5 +1,5 @@
 <div class="min-h-screen bg-zinc-50 p-4 transition-colors duration-300 dark:bg-zinc-950 sm:p-6 lg:p-8">
-    <div class="mx-auto max-w-4xl">
+    <div class="mx-auto max-w-7xl">
 
         {{-- Header --}}
         <div class="mb-6 sm:mb-8">
