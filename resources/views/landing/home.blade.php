@@ -4,4 +4,5 @@
     <x-landing.fitur/>
     <x-landing.cara-kerja/>
     <x-landing.status/>
+    <x-landing.cta/>
 </x-layouts::landing>
