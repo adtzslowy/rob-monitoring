@@ -17,6 +17,7 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <meta http-equiv="X-UA-Compatible" content="ie=edge">
+    <meta name="theme-color" content="oklch(54.6% 0.245 262.881)">
     <title>{{ $title ?? 'ROB Monitoring' }} - Early Warning System</title>
     <meta name="description" content="Sistem peringatan dini banjir rob berbasis IoT untuk wilayah pesisir Kabupaten Ketapang, Kalimantan Barat.">
     <link rel="preconnect" href="https://fonts.googleapis.com">
