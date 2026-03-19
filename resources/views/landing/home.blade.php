@@ -2,4 +2,5 @@
     <x-landing.hero/>
     <x-landing.tentang/>
     <x-landing.fitur/>
+    <x-landing.cara-kerja/>
 </x-layouts::landing>
