@@ -599,44 +599,137 @@ document.addEventListener("alpine:init", () => {
 
                 bounds.push([lat, lng]);
 
-                const status = (d.status || "offline").toLowerCase();
-                const isOnline = status === "online";
+                const isOnline =
+                    (d.status || "offline").toLowerCase() === "online";
+                const risiko = d.status_risiko ?? "UNKNOWN";
 
+                const risikoColor =
+                    {
+                        AMAN: "#22c55e",
+                        WASPADA: "#f59e0b",
+                        SIAGA: "#f97316",
+                        BAHAYA: "#ef4444",
+                        UNKNOWN: "#94a3b8",
+                    }[risiko] ?? "#94a3b8";
+
+                const risikoBg =
+                    {
+                        AMAN: "#f0fdf4",
+                        WASPADA: "#fefce8",
+                        SIAGA: "#fff7ed",
+                        BAHAYA: "#fef2f2",
+                        UNKNOWN: "#f8fafc",
+                    }[risiko] ?? "#f8fafc";
+
+                // Icon marker warna ikut status risiko
                 const icon = LLeaflet.divIcon({
                     className: "",
                     html: `
                 <div style="
-                    width:36px;height:36px;
-                    background:${isOnline ? "#22c55e" : "#ef4444"};
-                    border:3px solid white;border-radius:50%;
-                    box-shadow:0 2px 8px rgba(0,0,0,0.3);
+                    width:38px;height:38px;
+                    background:${risikoColor};
+                    border:3px solid white;
+                    border-radius:50%;
+                    box-shadow:0 2px 12px rgba(0,0,0,0.25);
                     display:flex;align-items:center;justify-content:center;">
                     <svg width="16" height="16" fill="white" viewBox="0 0 24 24">
                         <path d="M12 2C8.13 2 5 5.13 5 9c0 5.25 7 13 7 13s7-7.75 7-13c0-3.87-3.13-7-7-7zm0 9.5c-1.38 0-2.5-1.12-2.5-2.5s1.12-2.5 2.5-2.5 2.5 1.12 2.5 2.5-1.12 2.5-2.5 2.5z"/>
                     </svg>
                 </div>`,
-                    iconSize: [36, 36],
-                    iconAnchor: [18, 36],
-                    popupAnchor: [0, -36],
+                    iconSize: [38, 38],
+                    iconAnchor: [19, 38],
+                    popupAnchor: [0, -42],
                 });
 
                 const marker = LLeaflet.marker([lat, lng], { icon }).addTo(
                     this.markersLayer,
                 );
-                const last = d.last_seen
-                    ? `<br/><small style="color:#888">Last: ${d.last_seen}</small>`
-                    : "";
 
-                marker.bindPopup(`
-            <div style="font-family:sans-serif;min-width:140px">
-                <div style="font-weight:600;font-size:14px">${d.alias || d.name || "Device"}</div>
-                <div style="font-size:12px;color:#888;margin-top:2px">${lat}, ${lng}</div>
-                <div style="margin-top:6px;font-size:12px">
-                    Status: <span style="color:${isOnline ? "#22c55e" : "#ef4444"};font-weight:600">${status}</span>
+                // Sensor grid HTML
+                const s = d.sensor;
+                const sensorHtml = s
+                    ? `
+            <div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:6px;margin-top:10px;">
+                <div style="background:#f0f9ff;border-radius:10px;padding:8px;text-align:center;">
+                    <div style="font-size:9px;color:#0284c7;font-weight:600;text-transform:uppercase;letter-spacing:0.05em;">Ketinggian</div>
+                    <div style="font-size:16px;font-weight:800;color:#0f172a;margin-top:2px;">${s.ketinggian_air ?? "-"}</div>
+                    <div style="font-size:9px;color:#94a3b8;">cm</div>
                 </div>
-                ${last}
+                <div style="background:#fff7ed;border-radius:10px;padding:8px;text-align:center;">
+                    <div style="font-size:9px;color:#ea580c;font-weight:600;text-transform:uppercase;letter-spacing:0.05em;">Suhu</div>
+                    <div style="font-size:16px;font-weight:800;color:#0f172a;margin-top:2px;">${s.suhu ?? "-"}</div>
+                    <div style="font-size:9px;color:#94a3b8;">°C</div>
+                </div>
+                <div style="background:#ecfeff;border-radius:10px;padding:8px;text-align:center;">
+                    <div style="font-size:9px;color:#0891b2;font-weight:600;text-transform:uppercase;letter-spacing:0.05em;">Kelembapan</div>
+                    <div style="font-size:16px;font-weight:800;color:#0f172a;margin-top:2px;">${s.kelembapan ?? "-"}</div>
+                    <div style="font-size:9px;color:#94a3b8;">%</div>
+                </div>
+                <div style="background:#f0fdf4;border-radius:10px;padding:8px;text-align:center;">
+                    <div style="font-size:9px;color:#16a34a;font-weight:600;text-transform:uppercase;letter-spacing:0.05em;">Tekanan</div>
+                    <div style="font-size:16px;font-weight:800;color:#0f172a;margin-top:2px;">${s.tekanan_udara ?? "-"}</div>
+                    <div style="font-size:9px;color:#94a3b8;">hPa</div>
+                </div>
+                <div style="background:#fffbeb;border-radius:10px;padding:8px;text-align:center;">
+                    <div style="font-size:9px;color:#d97706;font-weight:600;text-transform:uppercase;letter-spacing:0.05em;">Angin</div>
+                    <div style="font-size:16px;font-weight:800;color:#0f172a;margin-top:2px;">${s.kecepatan_angin ?? "-"}</div>
+                    <div style="font-size:9px;color:#94a3b8;">m/s</div>
+                </div>
+                <div style="background:#faf5ff;border-radius:10px;padding:8px;text-align:center;">
+                    <div style="font-size:9px;color:#9333ea;font-weight:600;text-transform:uppercase;letter-spacing:0.05em;">Arah Angin</div>
+                    <div style="font-size:16px;font-weight:800;color:#0f172a;margin-top:2px;">${s.arah_angin ?? "-"}</div>
+                    <div style="font-size:9px;color:#94a3b8;">°</div>
+                </div>
             </div>
-        `);
+            <div style="margin-top:8px;padding-top:8px;border-top:1px solid #f1f5f9;display:flex;align-items:center;justify-content:space-between;">
+                <span style="font-size:10px;color:#94a3b8;">${s.timestamp ?? "-"}</span>
+                <span style="font-size:10px;color:${isOnline ? "#22c55e" : "#ef4444"};font-weight:600;">● ${isOnline ? "Online" : "Offline"}</span>
+            </div>
+        `
+                    : `
+            <div style="text-align:center;padding:16px 0;color:#94a3b8;font-size:12px;">
+                Tidak ada data sensor
+            </div>
+        `;
+
+                marker.bindPopup(
+                    `
+            <div style="font-family:'Bricolage Grotesque',ui-sans-serif,sans-serif;min-width:240px;max-width:280px;">
+
+                <div style="display:flex;align-items:flex-start;justify-content:space-between;margin-bottom:8px;">
+                    <div>
+                        <div style="font-size:11px;color:#94a3b8;font-weight:500;">${d.name}</div>
+                        <div style="font-size:15px;font-weight:700;color:#0f172a;line-height:1.2;margin-top:1px;">${d.alias ?? d.name}</div>
+                    </div>
+                    <span style="
+                        background:${risikoBg};
+                        color:${risikoColor};
+                        font-size:10px;
+                        font-weight:700;
+                        padding:3px 10px;
+                        border-radius:999px;
+                        border:1px solid ${risikoColor}30;
+                        white-space:nowrap;
+                        margin-left:8px;
+                        flex-shrink:0;
+                    ">${risiko}</span>
+                </div>
+
+                <div style="margin-bottom:10px;">
+                    <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:4px;">
+                        <span style="font-size:10px;color:#94a3b8;">Skor Risiko Fuzzy</span>
+                        <span style="font-size:10px;font-weight:700;color:${risikoColor};">${d.score ?? 0}</span>
+                    </div>
+                    <div style="background:#f1f5f9;border-radius:999px;height:5px;overflow:hidden;">
+                        <div style="background:${risikoColor};height:100%;width:${Math.min(d.score ?? 0, 100)}%;border-radius:999px;"></div>
+                    </div>
+                </div>
+
+                ${sensorHtml}
+            </div>
+        `,
+                    { maxWidth: 300, className: "rob-popup" },
+                );
             });
 
             if (bounds.length > 0) {
