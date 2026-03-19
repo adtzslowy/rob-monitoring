@@ -1,4 +1,4 @@
 <x-layouts::landing title="Peta Monitoring">
-    <x-layouts.hero/>
+    <x-landing.hero/>
     @livewire('live-peta')
 </x-layouts::landing>
