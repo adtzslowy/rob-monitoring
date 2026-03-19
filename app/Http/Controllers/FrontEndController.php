@@ -15,4 +15,9 @@ class FrontEndController extends Controller
     {
         return view('landing.tentang');
     }
+
+    public function maps()
+    {
+        return view('landing.peta-alat');
+    }
 }
