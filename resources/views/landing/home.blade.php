@@ -3,4 +3,5 @@
     <x-landing.tentang/>
     <x-landing.fitur/>
     <x-landing.cara-kerja/>
+    <x-landing.status/>
 </x-layouts::landing>
