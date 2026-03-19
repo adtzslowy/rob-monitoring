@@ -6,20 +6,23 @@ use App\Http\Controllers\Controller;
 use App\Models\User;
 use App\Notifications\ResetPasswordOtp;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Hash;
 
 class ForgotPasswordController extends Controller
 {
+    // Step 1 — Form input email
     public function showRequestForm()
     {
         return view('auth.forgot-password');
     }
 
+    // Step 1 — Kirim OTP
     public function sendOtp(Request $request)
     {
         $request->validate([
             'email' => 'required|email|exists:users,email',
         ], [
-            'email.exists' => 'Email tidak terdaftar di sistem',
+            'email.exists' => 'Email tidak terdaftar di sistem.',
         ]);
 
         $user = User::where('email', $request->email)->first();
@@ -27,18 +30,20 @@ class ForgotPasswordController extends Controller
         $otp = str_pad(random_int(0, 999999), 6, '0', STR_PAD_LEFT);
 
         $user->update([
-            'otp_code' => $otp,
-            'otp_expires_at' => now()->addMinutes(10)
+            'otp_code'       => $otp,
+            'otp_expires_at' => now()->addMinutes(10),
         ]);
 
         $user->notify(new ResetPasswordOtp($otp));
 
-        session(['reset_email', $request->email]);
+        session(['reset_email' => $request->email]);
 
-        return redirect()->route('password.otp')->with('success', 'Kode OTP telah dikirim ke email kamu.');
+        return redirect()->route('password.otp')
+            ->with('success', 'Kode OTP telah dikirim ke email kamu.');
     }
 
-    public function showForm()
+    // Step 2 — Form input OTP
+    public function showOtpForm()
     {
         if (!session('reset_email')) {
             return redirect()->route('password.request');
@@ -47,6 +52,7 @@ class ForgotPasswordController extends Controller
         return view('auth.otp-verify');
     }
 
+    // Step 2 — Verify OTP
     public function verifyOtp(Request $request)
     {
         $request->validate([
@@ -54,11 +60,15 @@ class ForgotPasswordController extends Controller
         ]);
 
         $email = session('reset_email');
-        $user = User::where('email', $email)->first();
+        $user  = User::where('email', $email)->first();
 
-        if (!$user || $user->otp_code !== $request->otp || now()->ifAfter($user->otp_expires_at)) {
+        if (
+            !$user ||
+            $user->otp_code !== $request->otp ||
+            now()->isAfter($user->otp_expires_at)
+        ) {
             return back()->withErrors([
-                'otp' => 'Kode OTP tidak valid atau sudah kadaluarsa',
+                'otp' => 'Kode OTP tidak valid atau sudah kedaluwarsa.',
             ]);
         }
 
@@ -67,6 +77,7 @@ class ForgotPasswordController extends Controller
         return redirect()->route('password.reset.form');
     }
 
+    // Step 2 — Resend OTP
     public function resendOtp()
     {
         $email = session('reset_email');
@@ -95,6 +106,7 @@ class ForgotPasswordController extends Controller
         return back()->with('success', 'Kode OTP baru telah dikirim.');
     }
 
+    // Step 3 — Form reset password
     public function showResetForm()
     {
         if (!session('reset_email') || !session('reset_verified')) {
@@ -104,6 +116,7 @@ class ForgotPasswordController extends Controller
         return view('auth.reset-password');
     }
 
+    // Step 3 — Simpan password baru
     public function resetPassword(Request $request)
     {
         $request->validate([
