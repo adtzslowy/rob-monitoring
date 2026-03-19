@@ -94,7 +94,7 @@
                                 <label for="password" class="block text-sm font-medium text-slate-200">
                                     Password
                                 </label>
-                                <a href="{{ route('password.request') }} class="text-sm text-cyan-400 hover:text-cyan-300">
+                                <a href="{{ route('password.request') }}" class="text-sm text-cyan-400 hover:text-cyan-300">
                                     Lupa password?
                                 </a>
                             </div>
