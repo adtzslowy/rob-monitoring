@@ -3,6 +3,8 @@
 namespace App\Livewire\Admin;
 
 use App\Models\Device;
+use App\Models\SensorReading;
+use App\Services\FuzzyRiskServices;
 use Illuminate\Support\Carbon;
 use Livewire\Attributes\Title;
 use Livewire\Component;
@@ -23,7 +25,6 @@ class PetaMonitoring extends Component
             ($user?->hasRole('admin') ?? false)
         );
 
-        // ✅ WINDY API KEY (bukan url)
         $this->windyKey = (string) config('services.windy.key', env('WINDY_API_KEY', ''));
 
         $this->loadDevices();
@@ -31,11 +32,12 @@ class PetaMonitoring extends Component
 
     public function loadDevices(): void
     {
-        $user = auth()->user();
+        $user  = auth()->user();
+        $fuzzy = app(FuzzyRiskServices::class);
 
         $q = $this->canManageDevices
             ? Device::query()
-            : $user->devices(); // belongsToMany pivot device_user
+            : $user->devices();
 
         $rows = $q->select([
                 'devices.id',
@@ -51,20 +53,46 @@ class PetaMonitoring extends Component
             ->orderBy('devices.id')
             ->get();
 
-        // ✅ kirim lat/lng supaya cocok dengan JS
-        $this->devices = $rows->map(fn ($d) => [
-            'id' => (int) $d->id,
-            'name' => $d->name ?? ('ROB ' . $d->id),
-            'alias' => $d->alias,
-            'lat' => (float) $d->latitude,
-            'lng' => (float) $d->longitude,
-            'status' => strtolower((string) ($d->status ?? 'offline')),
-            'last_seen' => $d->last_seen
-                ? Carbon::parse($d->last_seen)->setTimezone('Asia/Jakarta')->format('d M H:i')
-                : '-',
-        ])->toArray();
+        $this->devices = $rows->map(function ($d) use ($fuzzy) {
+            $reading = SensorReading::where('device_id', $d->id)
+                ->latest('timestamp')
+                ->first();
 
-        // ✅ event name harus sama dengan listener Blade: render-markers
+            $risk = $reading
+                ? $fuzzy->evaluate([
+                    'ketinggian_air'  => $reading->ketinggian_air,
+                    'tekanan_udara'   => $reading->tekanan_udara,
+                    'kecepatan_angin' => $reading->kecepatan_angin,
+                    'arah_angin'      => $reading->arah_angin,
+                ])
+                : ['score' => 0, 'label' => 'UNKNOWN'];
+
+            return [
+                'id'            => (int) $d->id,
+                'name'          => $d->name ?? ('ROB ' . $d->id),
+                'alias'         => $d->alias,
+                'lat'           => (float) $d->latitude,
+                'lng'           => (float) $d->longitude,
+                'status'        => strtolower((string) ($d->status ?? 'offline')),
+                'last_seen'     => $d->last_seen
+                    ? Carbon::parse($d->last_seen)->setTimezone('Asia/Jakarta')->format('d M H:i')
+                    : '-',
+                'status_risiko' => $risk['label'],
+                'score'         => $risk['score'],
+                'sensor'        => $reading ? [
+                    'ketinggian_air'  => $reading->ketinggian_air,
+                    'suhu'            => $reading->suhu,
+                    'kelembapan'      => $reading->kelembapan,
+                    'tekanan_udara'   => $reading->tekanan_udara,
+                    'kecepatan_angin' => $reading->kecepatan_angin,
+                    'arah_angin'      => $reading->arah_angin,
+                    'timestamp'       => $reading->timestamp
+                        ? Carbon::parse($reading->timestamp)->setTimezone('Asia/Jakarta')->format('d M H:i:s')
+                        : '-',
+                ] : null,
+            ];
+        })->toArray();
+
         $this->dispatch('render-markers', devices: $this->devices);
     }
 
