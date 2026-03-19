@@ -31,7 +31,7 @@ html.dark {
     scrollbar-color: #3f3f46 #09090b;
 }
 
-.dark ::--webkit-scrollbar {
+.dark ::-webkit-scrollbar {
     width: 10px;
 }
 
