@@ -74,6 +74,22 @@ document.addEventListener("DOMContentLoaded", () => {
             );
         });
     }
+
+    const password2 = document.getElementById("password_confirmation");
+    const toggle2   = document.getElementById("togglePassword2");
+    const eyeOpen2  = document.getElementById("eyeOpen2");
+    const eyeClose2 = document.getElementById("eyeSlash2");
+
+    if (password2 && toggle2) {
+        toggle2.addEventListener("click", () => {
+            const isHidden = password2.type === "password";
+            password2.type = isHidden ? "text" : "password";
+            if (eyeOpen2 && eyeClose2) {
+                eyeOpen2.classList.toggle("hidden", isHidden);
+                eyeClose2.classList.toggle("hidden", !isHidden);
+            }
+        });
+    }
 });
 
 // =========================
@@ -878,6 +894,109 @@ document.addEventListener("alpine:init", () => {
             this.value = val;
             this.isOpen = false;
             this.query = "";
+        },
+    }));
+});
+
+// =========================
+// Analisis Chart
+// =========================
+document.addEventListener("alpine:init", () => {
+    Alpine.data("analisisChart", () => ({
+        charts: {},
+
+        init() {
+            this.$nextTick(() => this.renderCharts());
+
+            window.addEventListener("livewire:navigated", () => {
+                this.$nextTick(() => this.renderCharts());
+            });
+
+            document.addEventListener("livewire:update", () => {
+                this.$nextTick(() => this.renderCharts());
+            });
+        },
+
+        destroyAll() {
+            Object.values(this.charts).forEach((c) => {
+                try { c.destroy(); } catch (_) {}
+            });
+            this.charts = {};
+        },
+
+        renderCharts() {
+            this.destroyAll();
+
+            const sensorEl = document.getElementById("analisisSensorData");
+            const bmkgEl   = document.getElementById("analisisBmkgData");
+
+            if (!sensorEl || !bmkgEl) return;
+
+            const sensorData = JSON.parse(sensorEl.textContent || "[]");
+            const bmkgData   = JSON.parse(bmkgEl.textContent   || "[]");
+
+            const isDark    = document.documentElement.classList.contains("dark");
+            const gridColor = isDark ? "rgba(255,255,255,0.05)" : "rgba(0,0,0,0.05)";
+            const tickColor = isDark ? "#71717a" : "#a1a1aa";
+
+            const baseOptions = {
+                responsive: true,
+                maintainAspectRatio: false,
+                animation: false,
+                plugins: {
+                    legend: {
+                        labels: { color: tickColor, font: { size: 11 }, boxWidth: 12 },
+                    },
+                },
+                scales: {
+                    x: {
+                        ticks: { color: tickColor, maxTicksLimit: 6, font: { size: 10 } },
+                        grid:  { color: gridColor },
+                    },
+                    y: {
+                        ticks: { color: tickColor, font: { size: 10 } },
+                        grid:  { color: gridColor },
+                    },
+                },
+            };
+
+            const sensorLabels = sensorData.map((d) => d.local_datetime.substring(11, 16));
+            const bmkgLabels   = bmkgData.map((d) => d.local_datetime.substring(11, 16));
+            const labels       = sensorLabels.length ? sensorLabels : bmkgLabels;
+
+            const makeDataset = (label, data, color, dashed = false) => ({
+                label,
+                data,
+                borderColor: color,
+                backgroundColor: color + "22",
+                tension: 0.4,
+                fill: true,
+                borderWidth: 2,
+                borderDash: dashed ? [5, 5] : [],
+                pointRadius: 3,
+                pointHoverRadius: 5,
+            });
+
+            [
+                { id: "chartSuhu",       key: "suhu",            color: "#fb923c" },
+                { id: "chartKelembapan", key: "kelembapan",      color: "#22d3ee" },
+                { id: "chartAngin",      key: "kecepatan_angin", color: "#fbbf24" },
+            ].forEach(({ id, key, color }) => {
+                const canvas = document.getElementById(id);
+                if (!canvas || !window.Chart) return;
+
+                this.charts[id] = new Chart(canvas.getContext("2d"), {
+                    type: "line",
+                    data: {
+                        labels,
+                        datasets: [
+                            makeDataset("Sensor", sensorData.map((d) => d[key]), color),
+                            makeDataset("BMKG",   bmkgData.map((d) => d[key]),   "#94a3b8", true),
+                        ],
+                    },
+                    options: baseOptions,
+                });
+            });
         },
     }));
 });
