@@ -53,15 +53,16 @@
                     @csrf
 
                     <div>
-                        <label class="mb-2 block text-sm font-medium text-slate-200">Password Baru</label>
+                        <label for="password" class="mb-2 block text-sm font-medium text-slate-200">Password
+                            Baru</label>
                         <div class="relative">
-                            <input x-show="!showPass" type="password" name="password" placeholder="Minimal 8 karakter"
-                                class="w-full rounded-xl border border-white/10 bg-white/5 px-4 py-3 pr-12 text-white placeholder-slate-500 outline-none transition focus:border-cyan-400 focus:ring-2 focus:ring-cyan-400/30">
-                            <input x-show="showPass" x-cloak type="text" name="password"
+                            <input type="password" :type="showPass ? 'text' : 'password'" name="password" id="password"
                                 placeholder="Minimal 8 karakter"
-                                class="w-full rounded-xl border border-white/10 bg-white/5 px-4 py-3 pr-12 text-white placeholder-slate-500 outline-none transition focus:border-cyan-400 focus:ring-2 focus:ring-cyan-400/30">
+                                class="w-full rounded-xl border border-white/10 bg-white/5 px-4 py-3 pr-12 text-white placeholder-slate-500 outline-none transition focus:border-cyan-400 focus:ring-2 focus:ring-cyan-400/30"
+                                required>
                             <button type="button" @click="showPass = !showPass"
                                 class="absolute inset-y-0 right-3 my-auto flex items-center text-slate-400 hover:text-cyan-400 transition">
+                                {{-- Eye open --}}
                                 <svg x-show="!showPass" class="h-5 w-5" fill="none" viewBox="0 0 24 24"
                                     stroke-width="1.5" stroke="currentColor">
                                     <path stroke-linecap="round" stroke-linejoin="round"
@@ -69,6 +70,7 @@
                                     <path stroke-linecap="round" stroke-linejoin="round"
                                         d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" />
                                 </svg>
+                                {{-- Eye slash --}}
                                 <svg x-show="showPass" x-cloak class="h-5 w-5" fill="none" viewBox="0 0 24 24"
                                     stroke-width="1.5" stroke="currentColor">
                                     <path stroke-linecap="round" stroke-linejoin="round"
@@ -79,14 +81,14 @@
                     </div>
 
                     <div>
-                        <label class="mb-2 block text-sm font-medium text-slate-200">Konfirmasi Password</label>
+                        <label for="password_confirmation"
+                            class="mb-2 block text-sm font-medium text-slate-200">Konfirmasi Password</label>
                         <div class="relative">
-                            <input x-show="!showConfirm" type="password" name="password_confirmation"
+                            <input type="password" :type="showConfirm ? 'text' : 'password'"
+                                name="password_confirmation" id="password_confirmation"
                                 placeholder="Ulangi password baru"
-                                class="w-full rounded-xl border border-white/10 bg-white/5 px-4 py-3 pr-12 text-white placeholder-slate-500 outline-none transition focus:border-cyan-400 focus:ring-2 focus:ring-cyan-400/30">
-                            <input x-show="showConfirm" x-cloak type="text" name="password_confirmation"
-                                placeholder="Ulangi password baru"
-                                class="w-full rounded-xl border border-white/10 bg-white/5 px-4 py-3 pr-12 text-white placeholder-slate-500 outline-none transition focus:border-cyan-400 focus:ring-2 focus:ring-cyan-400/30">
+                                class="w-full rounded-xl border border-white/10 bg-white/5 px-4 py-3 pr-12 text-white placeholder-slate-500 outline-none transition focus:border-cyan-400 focus:ring-2 focus:ring-cyan-400/30"
+                                required>
                             <button type="button" @click="showConfirm = !showConfirm"
                                 class="absolute inset-y-0 right-3 my-auto flex items-center text-slate-400 hover:text-cyan-400 transition">
                                 <svg x-show="!showConfirm" class="h-5 w-5" fill="none" viewBox="0 0 24 24"
