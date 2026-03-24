@@ -79,6 +79,7 @@ class Analisis extends Component
         }
 
         $this->comparison = $this->buildComparison();
+        $this->dispatch('chartDataUpdated');
     }
 
     private function buildComparison(): array
