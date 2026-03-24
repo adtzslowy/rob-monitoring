@@ -6,36 +6,41 @@ use App\Models\Device;
 use App\Models\SensorReading;
 use App\Services\BmkgServices;
 use Illuminate\Support\Carbon;
+use Livewire\Attributes\Title;
 use Livewire\Component;
 
+#[Title('Analisis Cuaca')]
 class Analisis extends Component
 {
-
     public string $selectedWilayah = 'delta_pawan';
-    public string $selectedDevice = '';
+    public string $selectedDevice  = '';
 
-    public array $bmkgData = [];
+    public array $bmkgData   = [];
     public array $sensorData = [];
-    public array $devices = [];
+    public array $devices    = [];
     public array $comparison = [];
-    public bool $loading = false;
 
-    public function mount()
+    public function mount(): void
     {
         $this->devices = Device::whereNotNull('latitude')
-                ->whereNotNull('longitude')
-                ->get()
-                ->map(fn($d) => [
-                    'id' => $d->id,
-                    'label' => $d->alias ?? $d->name,
-                ])
-                ->toArray();
-            
+            ->whereNotNull('longitude')
+            ->get()
+            ->map(fn($d) => [
+                'id'    => $d->id,
+                'label' => $d->alias ?? $d->name,
+            ])
+            ->toArray();
+
         if (!empty($this->devices)) {
             $this->selectedDevice = (string) $this->devices[0]['id'];
         }
 
         $this->loadData();
+    }
+
+    public function getWilayahLabelProperty(): string
+    {
+        return BmkgServices::WILAYAH[$this->selectedWilayah]['label'] ?? '';
     }
 
     public function updatedSelectedWilayah(): void
@@ -48,16 +53,15 @@ class Analisis extends Component
         $this->loadData();
     }
 
-    public function loadData()
+    public function loadData(): void
     {
         $bmkg = app(BmkgServices::class);
 
-        $wilayah = $bmkg->getByWilayah($this->selectedWilayah);
+        $wilayah        = $bmkg->getByWilayah($this->selectedWilayah);
         $this->bmkgData = $wilayah['prakiraan'] ?? [];
 
-
         if ($this->selectedDevice) {
-            $readings = SensorReading::where('device_id', $this->selectedDevice)
+            $this->sensorData = SensorReading::where('device_id', $this->selectedDevice)
                 ->where('timestamp', '>=', now()->subHours(24))
                 ->orderBy('timestamp')
                 ->get()
@@ -72,8 +76,6 @@ class Analisis extends Component
                     'tekanan_udara'   => $r->tekanan_udara,
                 ])
                 ->toArray();
-
-            $this->sensorData = $readings;
         }
 
         $this->comparison = $this->buildComparison();
@@ -94,7 +96,6 @@ class Analisis extends Component
             }
         }
 
-        // Rata-rata sensor 1 jam terakhir
         $recent = SensorReading::where('device_id', $this->selectedDevice)
             ->where('timestamp', '>=', now()->subHour())
             ->get();
@@ -107,9 +108,9 @@ class Analisis extends Component
         ] : null;
 
         return [
-            'bmkg'       => $closest,
-            'sensor'     => $sensorAvg,
-            'selisih'    => $sensorAvg && $closest ? [
+            'bmkg'    => $closest,
+            'sensor'  => $sensorAvg,
+            'selisih' => $sensorAvg && $closest ? [
                 'suhu'            => round(abs($sensorAvg['suhu'] - $closest['suhu']), 1),
                 'kelembapan'      => round(abs($sensorAvg['kelembapan'] - $closest['kelembapan']), 1),
                 'kecepatan_angin' => round(abs($sensorAvg['kecepatan_angin'] - $closest['kecepatan_angin']), 1),
@@ -117,11 +118,10 @@ class Analisis extends Component
         ];
     }
 
-    public function refreshBmkg()
+    public function refreshBmkg(): void
     {
         app(BmkgServices::class)->clearCache();
         $this->loadData();
-        $this->dispatch('notify', message: 'Data BMKG diperbarui!');
     }
 
     public function render()

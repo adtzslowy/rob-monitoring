@@ -170,7 +170,7 @@
 
         {{-- Prakiraan BMKG Table --}}
         <div class="rounded-2xl border border-zinc-200 dark:border-zinc-800 bg-white dark:bg-zinc-900 p-5">
-            <h3 class="text-sm font-semibold text-zinc-700 dark:text-zinc-300 mb-4">Prakiraan BMKG — {{ collect(BmkgService::WILAYAH)[$selectedWilayah]['label'] ?? '' }}</h3>
+            <h3 class="text-sm font-semibold text-zinc-700 dark:text-zinc-300 mb-4">Prakiraan BMKG — {{ collect(BmkgServices::WILAYAH)[$selectedWilayah]['label'] ?? '' }}</h3>
             <div class="overflow-auto max-h-48">
                 <table class="w-full text-xs">
                     <thead>
