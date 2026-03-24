@@ -77,6 +77,21 @@
             @endcan
         </div>
 
+        <div class="space-y-2">
+            <p class="px-3 text-xs font-semibold text-zinc-500 uppercase tracking-wider mb-2">
+                ANALISIS DATA
+            </p>
+
+            <a href="{{ route('analisis') }}"
+                class="flex items-center gap-3 px-3 py-2 rounded-lg transition
+                {{ request()->routeIs('analisis')
+                    ? 'bg-blue-500 text-white'
+                    : 'text-zinc-900 dark:text-zinc-400 hover:bg-blue-100 hover:text-zinc-900' }}">
+                <x-heroicon-o-presentation-chart-line class="w-5 h-5" />
+                Analisis Cuaca
+            </a>
+        </div>
+
     </nav>
 
 </aside>

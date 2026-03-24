@@ -3,6 +3,7 @@
 use App\Http\Controllers\Auth\AuthController;
 use App\Http\Controllers\Auth\ForgotPasswordController;
 use App\Http\Controllers\FrontEndController;
+use App\Livewire\Admin\Analisis;
 use App\Livewire\Admin\Dashboard;
 use App\Livewire\Admin\DeviceManage;
 use App\Livewire\Admin\Pengaturan;
@@ -61,4 +62,5 @@ Route::prefix('dashboard')->middleware(['auth', 'permission:view dashboard'])->g
 
     Route::get('/profil', Profile::class)->middleware('auth')->name('profil');
     Route::get('/pengaturan', Pengaturan::class)->middleware('auth')->name('pengaturan');
+    Route::get('/analisis', Analisis::class)->middleware('auth')->name('analisis');
 });

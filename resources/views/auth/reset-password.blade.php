@@ -51,6 +51,7 @@
                                 :type="showPass ? 'text' : 'password'"
                                 name="password"
                                 id="password"
+                                type="password"
                                 placeholder="Minimal 8 karakter"
                                 class="w-full rounded-xl border border-white/10 bg-white/5 px-4 py-3 pr-12 text-white placeholder-slate-500 outline-none transition focus:border-cyan-400 focus:ring-2 focus:ring-cyan-400/30"
                                 required
@@ -72,6 +73,7 @@
                             <input
                                 :type="showConfirm ? 'text' : 'password'"
                                 name="password_confirmation"
+                                type="password"
                                 id="password_confirmation"
                                 placeholder="Ulangi password baru"
                                 class="w-full rounded-xl border border-white/10 bg-white/5 px-4 py-3 pr-12 text-white placeholder-slate-500 outline-none transition focus:border-cyan-400 focus:ring-2 focus:ring-cyan-400/30"
