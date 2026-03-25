@@ -93,7 +93,7 @@
                     <tbody class="divide-y divide-zinc-100 dark:divide-zinc-800/60">
                         @forelse($devices as $d)
                             @php
-                                $lastUpdate = $d['timestamp']
+                                $lastUpdate = $d['last_seen']
                                     ? \Illuminate\Support\Carbon::parse($d['timestamp'], 'UTC')
                                         ->setTimezone('Asia/Jakarta')
                                         ->format('d M H:i')
