@@ -23,7 +23,7 @@
                     </svg>
                 </div>
                 <div>
-                    <div class="text-sm font-semibold text-slate-900 dark:text-slate-100">Peta Monitoring ROB</div>
+                    <div class="text-sm font-semibold text-slate-900 dark:text-slate-100">Peta Monitoring</div>
                     <div class="flex items-center gap-1.5">
                         <div class="text-xs text-slate-500 dark:text-slate-400" x-text="`${devices.length} alat terdeteksi`"></div>
                         <span class="text-slate-300 dark:text-slate-600">·</span>
