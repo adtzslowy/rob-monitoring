@@ -1,5 +1,5 @@
 <section class="p-3 sm:p-4 md:p-6">
-    <div class="mx-auto max-w-7xl space-y-4 sm:space-y-5">
+    <div class="mx-auto space-y-4 sm:space-y-5">
 
         {{-- Header --}}
         <div class="flex items-start justify-between gap-4">
