@@ -49,7 +49,7 @@
 
                 <div wire:ignore>
                     <div id="windy"
-                        class="w-full h-full rounded-xl overflow-hidden border border-zinc-200 dark:border-zinc-800"></div>
+                        class="w-full rounded-xl overflow-hidden border border-zinc-200 dark:border-zinc-800"></div>
                 </div>
 
                 <div x-show="error"
