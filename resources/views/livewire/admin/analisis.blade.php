@@ -74,7 +74,7 @@
             {{-- Table --}}
             <div wire:poll.visible.2s class="overflow-x-auto">
                 <table class="min-w-[1400px] w-full text-sm table-fixed">
-                    <thead>
+                    <thead>ext
                         <tr class="border-b border-zinc-100 dark:border-zinc-800 bg-zinc-50/50 dark:bg-zinc-900/30">
                             <th class="w-[60px] px-4 py-3 text-center text-[11px] font-semibold uppercase tracking-wider text-zinc-400">#</th>
                             <th class="w-[190px] px-4 py-3 text-left text-[11px] font-semibold uppercase tracking-wider text-zinc-400">Device</th>
@@ -105,7 +105,7 @@
                                 {{-- No --}}
                                 <td class="px-4 py-3.5 text-center">
                                     <span class="text-xs text-zinc-400">
-                                        {{ ($devices->firstItem() ?? 1) + $loop->index }}
+                                        {{ $loop->iteration }}
                                     </span>
                                 </td>
 
