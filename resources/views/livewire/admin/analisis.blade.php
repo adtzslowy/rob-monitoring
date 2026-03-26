@@ -284,9 +284,6 @@
                     <span class="font-semibold text-zinc-700 dark:text-zinc-300">{{ count($devices) }}</span>
                     device
                 </span>
-                <div class="overflow-x-auto">
-                    {{ $devices->onEachSide(1)->links('components.pagination') }}
-                </div>
             </div>
         </div>
 
