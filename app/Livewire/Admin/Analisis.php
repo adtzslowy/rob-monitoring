@@ -8,21 +8,23 @@ use App\Services\BmkgServices;
 use Illuminate\Support\Carbon;
 use Livewire\Attributes\Title;
 use Livewire\Component;
+use Livewire\WithPagination;
 
 #[Title('Analisis Cuaca')]
 class Analisis extends Component
 {
+    use WithPagination;
+
     public string $selectedWilayah = 'delta_pawan';
     public string $selectedDevice  = '';
+    public int    $perPage         = 25;
 
     public array $bmkgData   = [];
-    public array $sensorData = [];
     public array $devices    = [];
     public array $comparison = [];
 
     public function mount(): void
     {
-        // Hanya ambil id dan label — tidak perlu query SensorReading di sini
         $this->devices = Device::whereNotNull('latitude')
             ->whereNotNull('longitude')
             ->orderBy('id')
@@ -37,7 +39,8 @@ class Analisis extends Component
             $this->selectedDevice = (string) $this->devices[0]['id'];
         }
 
-        $this->loadData();
+        $this->loadBmkg();
+        $this->buildComparison();
     }
 
     public function getWilayahLabelProperty(): string
@@ -52,49 +55,31 @@ class Analisis extends Component
 
     public function updatedSelectedWilayah(): void
     {
-        $this->loadData();
+        $this->resetPage('sensorPage');
+        $this->loadBmkg();
+        $this->buildComparison();
     }
 
     public function updatedSelectedDevice(): void
     {
-        $this->loadData();
-    }
-
-    public function loadData(): void
-    {
-        $bmkg = app(BmkgServices::class);
-
-        $wilayah        = $bmkg->getByWilayah($this->selectedWilayah);
-        $this->bmkgData = $wilayah['prakiraan'] ?? [];
-
-        if ($this->selectedDevice) {
-            $this->sensorData = SensorReading::where('device_id', $this->selectedDevice)
-                ->where('timestamp', '>=', now()->subHours(24))
-                ->orderByDesc('timestamp')
-                ->limit(200)
-                ->get()
-                ->map(fn($r) => [
-                    'local_datetime'   => Carbon::parse($r->timestamp)
-                        ->setTimezone('Asia/Pontianak')
-                        ->format('Y-m-d H:i:s'),
-                    'suhu'             => $r->suhu,
-                    'kelembapan'       => $r->kelembapan,
-                    'tekanan_udara'    => $r->tekanan_udara,
-                    'kecepatan_angin'  => $r->kecepatan_angin,
-                    'arah_angin_deg'   => $r->arah_angin,
-                    'arah_angin_label' => $r->arah_angin !== null
-                        ? $this->degreesToCompass((float) $r->arah_angin)
-                        : null,
-                    'ketinggian_air'   => $r->ketinggian_air,
-                ])
-                ->toArray();
-        }
-
-        $this->comparison = $this->buildComparison();
+        $this->resetPage('sensorPage');
+        $this->buildComparison();
         $this->dispatch('chartDataUpdated');
     }
 
-    private function buildComparison(): array
+    public function updatedPerPage(): void
+    {
+        $this->resetPage('sensorPage');
+    }
+
+    public function loadBmkg(): void
+    {
+        $bmkg           = app(BmkgServices::class);
+        $wilayah        = $bmkg->getByWilayah($this->selectedWilayah);
+        $this->bmkgData = $wilayah['prakiraan'] ?? [];
+    }
+
+    public function buildComparison(): void
     {
         $now     = Carbon::now('Asia/Pontianak');
         $closest = null;
@@ -110,21 +95,29 @@ class Analisis extends Component
         }
 
         if (!$this->selectedDevice) {
-            return ['bmkg' => $closest, 'sensor' => null, 'selisih' => null];
+            $this->comparison = ['bmkg' => $closest, 'sensor' => null, 'selisih' => null];
+            return;
         }
 
+        // Pakai selectRaw AVG agar tidak load semua baris ke PHP
         $recent = SensorReading::where('device_id', $this->selectedDevice)
             ->where('timestamp', '>=', now()->subHour())
-            ->get();
+            ->selectRaw('
+                AVG(suhu) as suhu,
+                AVG(kelembapan) as kelembapan,
+                AVG(kecepatan_angin) as kecepatan_angin,
+                AVG(arah_angin) as arah_angin
+            ')
+            ->first();
 
-        $sensorAvg = $recent->isNotEmpty() ? [
-            'suhu'            => round($recent->avg('suhu'), 1),
-            'kelembapan'      => round($recent->avg('kelembapan'), 1),
-            'kecepatan_angin' => round($recent->avg('kecepatan_angin'), 1),
-            'arah_angin_deg'  => round($recent->avg('arah_angin'), 1),
+        $sensorAvg = $recent && $recent->suhu !== null ? [
+            'suhu'            => round($recent->suhu, 1),
+            'kelembapan'      => round($recent->kelembapan, 1),
+            'kecepatan_angin' => round($recent->kecepatan_angin, 1),
+            'arah_angin_deg'  => round($recent->arah_angin, 1),
         ] : null;
 
-        return [
+        $this->comparison = [
             'bmkg'    => $closest,
             'sensor'  => $sensorAvg,
             'selisih' => $sensorAvg && $closest ? [
@@ -138,18 +131,44 @@ class Analisis extends Component
     private function degreesToCompass(float $deg): string
     {
         $directions = ['U', 'TL', 'T', 'TG', 'S', 'BD', 'B', 'BL'];
-        $index = (int) round($deg / 45) % 8;
+        $index      = (int) round($deg / 45) % 8;
         return $directions[$index];
     }
 
     public function refreshBmkg(): void
     {
         app(BmkgServices::class)->clearCache();
-        $this->loadData();
+        $this->loadBmkg();
+        $this->buildComparison();
     }
 
     public function render()
     {
-        return view('livewire.admin.analisis');
+        $sensorData = null;
+
+        if ($this->selectedDevice) {
+            $sensorData = SensorReading::where('device_id', $this->selectedDevice)
+                ->where('timestamp', '>=', now()->subHours(24))
+                ->orderByDesc('timestamp')
+                ->paginate($this->perPage, ['*'], 'sensorPage')
+                ->through(fn($r) => [
+                    'local_datetime'   => Carbon::parse($r->timestamp)
+                        ->setTimezone('Asia/Pontianak')
+                        ->format('Y-m-d H:i:s'),
+                    'suhu'             => $r->suhu,
+                    'kelembapan'       => $r->kelembapan,
+                    'tekanan_udara'    => $r->tekanan_udara,
+                    'kecepatan_angin'  => $r->kecepatan_angin,
+                    'arah_angin_deg'   => $r->arah_angin,
+                    'arah_angin_label' => $r->arah_angin !== null
+                        ? $this->degreesToCompass((float) $r->arah_angin)
+                        : null,
+                    'ketinggian_air'   => $r->ketinggian_air,
+                ]);
+        }
+
+        return view('livewire.admin.analisis', [
+            'sensorData' => $sensorData,
+        ]);
     }
 }
