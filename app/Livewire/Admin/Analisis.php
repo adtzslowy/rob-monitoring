@@ -22,13 +22,35 @@ class Analisis extends Component
 
     public function mount(): void
     {
-        $this->devices = Device::whereNotNull('latitude')
+        $this->devices = Device::with(['latestReading']) // kalau ada relasi
+            ->whereNotNull('latitude')
             ->whereNotNull('longitude')
             ->get()
-            ->map(fn($d) => [
-                'id'    => $d->id,
-                'label' => $d->alias ?? $d->name,
-            ])
+            ->map(function ($d) {
+
+                $latest = SensorReading::where('device_id', $d->id)
+                    ->latest('timestamp')
+                    ->first();
+
+                return [
+                    'id'               => $d->id,
+                    'label'            => $d->alias ?? $d->name,
+                    'name'             => $d->name,
+                    'alias'            => $d->alias,
+
+                    'suhu'             => $latest?->suhu,
+                    'kelembapan'       => $latest?->kelembapan,
+                    'tekanan_udara'    => $latest?->tekanan_udara,
+                    'kecepatan_angin'  => $latest?->kecepatan_angin,
+                    'arah_angin'       => $latest?->arah_angin,
+                    'ketinggian_air'   => $latest?->ketinggian_air,
+
+                    'timestamp'        => $latest?->timestamp,
+                    'last_seen'        => $latest?->timestamp,
+
+                    'online'           => $latest && $latest->timestamp >= now()->subMinutes(5),
+                ];
+            })
             ->toArray();
 
         if (!empty($this->devices)) {
