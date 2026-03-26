@@ -22,19 +22,15 @@ class Analisis extends Component
 
     public function mount(): void
     {
+        // Hanya ambil id dan label — tidak perlu query SensorReading di sini
         $this->devices = Device::whereNotNull('latitude')
             ->whereNotNull('longitude')
-            ->get()
-            ->map(function ($d) {
-                $latest = SensorReading::where('device_id', $d->id)
-                    ->latest('timestamp')
-                    ->first();
-
-                return [
-                    'id'    => $d->id,
-                    'label' => $d->alias ?? $d->name,
-                ];
-            })
+            ->orderBy('id')
+            ->get(['id', 'name', 'alias'])
+            ->map(fn($d) => [
+                'id'    => $d->id,
+                'label' => $d->alias ?? $d->name ?? ('Device ' . $d->id),
+            ])
             ->toArray();
 
         if (!empty($this->devices)) {
@@ -74,7 +70,8 @@ class Analisis extends Component
         if ($this->selectedDevice) {
             $this->sensorData = SensorReading::where('device_id', $this->selectedDevice)
                 ->where('timestamp', '>=', now()->subHours(24))
-                ->orderBy('timestamp')
+                ->orderByDesc('timestamp')
+                ->limit(200)
                 ->get()
                 ->map(fn($r) => [
                     'local_datetime'   => Carbon::parse($r->timestamp)
