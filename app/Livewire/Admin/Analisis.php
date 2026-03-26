@@ -22,33 +22,17 @@ class Analisis extends Component
 
     public function mount(): void
     {
-        $this->devices = Device::with(['latestReading']) // kalau ada relasi
-            ->whereNotNull('latitude')
+        $this->devices = Device::whereNotNull('latitude')
             ->whereNotNull('longitude')
             ->get()
             ->map(function ($d) {
-
                 $latest = SensorReading::where('device_id', $d->id)
                     ->latest('timestamp')
                     ->first();
 
                 return [
-                    'id'               => $d->id,
-                    'label'            => $d->alias ?? $d->name,
-                    'name'             => $d->name,
-                    'alias'            => $d->alias,
-
-                    'suhu'             => $latest?->suhu,
-                    'kelembapan'       => $latest?->kelembapan,
-                    'tekanan_udara'    => $latest?->tekanan_udara,
-                    'kecepatan_angin'  => $latest?->kecepatan_angin,
-                    'arah_angin'       => $latest?->arah_angin,
-                    'ketinggian_air'   => $latest?->ketinggian_air,
-
-                    'timestamp'        => $latest?->timestamp,
-                    'last_seen'        => $latest?->timestamp,
-
-                    'online'           => $latest && $latest->timestamp >= now()->subMinutes(5),
+                    'id'    => $d->id,
+                    'label' => $d->alias ?? $d->name,
                 ];
             })
             ->toArray();
@@ -63,6 +47,11 @@ class Analisis extends Component
     public function getWilayahLabelProperty(): string
     {
         return BmkgServices::WILAYAH[$this->selectedWilayah]['label'] ?? '';
+    }
+
+    public function getWilayahListProperty(): array
+    {
+        return BmkgServices::WILAYAH ?? [];
     }
 
     public function updatedSelectedWilayah(): void
@@ -88,14 +77,18 @@ class Analisis extends Component
                 ->orderBy('timestamp')
                 ->get()
                 ->map(fn($r) => [
-                    'timestamp'       => Carbon::parse($r->timestamp)->setTimezone('Asia/Pontianak')->format('d M Y H:i'),
-                    'suhu'            => $r->suhu,
-                    'kelembapan'      => $r->kelembapan,
-                    'tekanan_udara'   => $r->tekanan_udara,
-                    'kecepatan_angin' => $r->kecepatan_angin,
-                    'arah_angin'      => $r->arah_angin,
-                    'arah_angin_label' => $r->arah_angin !== null ? $this->degreesToCompass((float) $r->arah_angin) : null, // ← tambahkan ini
-                    'ketinggian_air'  => $r->ketinggian_air,
+                    'local_datetime'   => Carbon::parse($r->timestamp)
+                        ->setTimezone('Asia/Pontianak')
+                        ->format('Y-m-d H:i:s'),
+                    'suhu'             => $r->suhu,
+                    'kelembapan'       => $r->kelembapan,
+                    'tekanan_udara'    => $r->tekanan_udara,
+                    'kecepatan_angin'  => $r->kecepatan_angin,
+                    'arah_angin_deg'   => $r->arah_angin,
+                    'arah_angin_label' => $r->arah_angin !== null
+                        ? $this->degreesToCompass((float) $r->arah_angin)
+                        : null,
+                    'ketinggian_air'   => $r->ketinggian_air,
                 ])
                 ->toArray();
         }
@@ -119,6 +112,10 @@ class Analisis extends Component
             }
         }
 
+        if (!$this->selectedDevice) {
+            return ['bmkg' => $closest, 'sensor' => null, 'selisih' => null];
+        }
+
         $recent = SensorReading::where('device_id', $this->selectedDevice)
             ->where('timestamp', '>=', now()->subHour())
             ->get();
@@ -134,14 +131,14 @@ class Analisis extends Component
             'bmkg'    => $closest,
             'sensor'  => $sensorAvg,
             'selisih' => $sensorAvg && $closest ? [
-                'suhu'            => round(abs($sensorAvg['suhu'] - $closest['suhu']), 1),
-                'kelembapan'      => round(abs($sensorAvg['kelembapan'] - $closest['kelembapan']), 1),
-                'kecepatan_angin' => round(abs($sensorAvg['kecepatan_angin'] - $closest['kecepatan_angin']), 1),
+                'suhu'            => round(abs(($sensorAvg['suhu'] ?? 0) - ($closest['suhu'] ?? 0)), 1),
+                'kelembapan'      => round(abs(($sensorAvg['kelembapan'] ?? 0) - ($closest['kelembapan'] ?? 0)), 1),
+                'kecepatan_angin' => round(abs(($sensorAvg['kecepatan_angin'] ?? 0) - ($closest['kecepatan_angin'] ?? 0)), 1),
             ] : null,
         ];
     }
 
-    private function degreesToCompass(float $deg)
+    private function degreesToCompass(float $deg): string
     {
         $directions = ['U', 'TL', 'T', 'TG', 'S', 'BD', 'B', 'BL'];
         $index = (int) round($deg / 45) % 8;
