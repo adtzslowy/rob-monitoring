@@ -184,7 +184,7 @@
                                 <td class="px-4 py-3.5 text-center">
                                     @if ($d['arah_angin'] !== null)
                                         <span class="font-semibold text-violet-500 dark:text-violet-400">{{ $d['arah_angin'] }}°</span>
-                                        <span class="text-xs text-zinc-400"> ({{ $d['arah_angin_label'] }})</span>
+                                        <span class="text-xs text-zinc-400"> ({{ $d['arah_angin_deg'] }})</span>
                                     @else
                                         <span class="text-zinc-300 dark:text-zinc-600">—</span>
                                     @endif
