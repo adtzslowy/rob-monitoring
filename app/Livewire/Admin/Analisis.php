@@ -5,6 +5,7 @@ namespace App\Livewire\Admin;
 use App\Models\Device;
 use App\Models\SensorReading;
 use App\Services\BmkgServices;
+use Illuminate\Pagination\LengthAwarePaginator;
 use Illuminate\Support\Carbon;
 use Livewire\Attributes\Title;
 use Livewire\Component;
@@ -18,6 +19,7 @@ class Analisis extends Component
     public string $selectedWilayah = 'delta_pawan';
     public string $selectedDevice  = '';
     public int    $perPage         = 5;
+    public int    $bmkgPerPage      = 5;
 
     public array $bmkgData   = [];
     public array $devices    = [];
@@ -70,6 +72,11 @@ class Analisis extends Component
     public function updatedPerPage(): void
     {
         $this->resetPage('sensorPage');
+    }
+
+    public function updatedBmkgPerPage(): void
+    {
+        $this->resetPage('bmkgPage');
     }
 
     public function loadBmkg(): void
@@ -167,8 +174,20 @@ class Analisis extends Component
                 ]);
         }
 
+        // Paginate bmkgData (array) secara manual
+        $bmkgPage    = request()->query('bmkgPage', 1);
+        $bmkgSliced  = array_slice($this->bmkgData, ($bmkgPage - 1) * $this->bmkgPerPage, $this->bmkgPerPage);
+        $bmkgPaginated = new LengthAwarePaginator(
+            $bmkgSliced,
+            count($this->bmkgData),
+            $this->bmkgPerPage,
+            $bmkgPage,
+            ['pageName' => 'bmkgPage']
+        );
+
         return view('livewire.admin.analisis', [
-            'sensorData' => $sensorData,
+            'sensorData'     => $sensorData,
+            'bmkgPaginated'  => $bmkgPaginated,
         ]);
     }
 }
