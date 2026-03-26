@@ -273,11 +273,26 @@
         </div>
 
         {{-- Prakiraan BMKG --}}
-        @if (!empty($bmkgData))
+        @if ($bmkgPaginated->isNotEmpty())
             <div class="rounded-2xl border border-zinc-200 dark:border-zinc-800 bg-white dark:bg-zinc-950 shadow-sm overflow-hidden">
-                <div class="px-4 py-3 border-b border-zinc-100 dark:border-zinc-800 bg-zinc-50/80 dark:bg-zinc-900/60">
-                    <h2 class="text-sm font-bold text-zinc-700 dark:text-zinc-300">Prakiraan BMKG</h2>
-                    <p class="text-xs text-zinc-400 mt-0.5">{{ $this->wilayahLabel }}</p>
+                <div class="px-4 py-3 border-b border-zinc-100 dark:border-zinc-800 bg-zinc-50/80 dark:bg-zinc-900/60 flex items-center justify-between">
+                    <div>
+                        <h2 class="text-sm font-bold text-zinc-700 dark:text-zinc-300">Prakiraan BMKG</h2>
+                        <p class="text-xs text-zinc-400 mt-0.5">{{ $this->wilayahLabel }} · {{ $bmkgPaginated->total() }} data</p>
+                    </div>
+                    <div class="relative">
+                        <select wire:model.live="bmkgPerPage"
+                            class="appearance-none rounded-xl border border-zinc-200 dark:border-zinc-700
+                                   bg-white dark:bg-zinc-900 text-zinc-900 dark:text-zinc-100
+                                   px-3 py-2 pr-8 text-xs focus:outline-none focus:ring-2 focus:ring-blue-500/30 transition cursor-pointer">
+                            <option value="10">10 / hal</option>
+                            <option value="25">25 / hal</option>
+                            <option value="50">50 / hal</option>
+                        </select>
+                        <div class="pointer-events-none absolute inset-y-0 right-0 flex items-center pr-2 text-zinc-400">
+                            <x-heroicon-o-chevron-down class="w-3 h-3" />
+                        </div>
+                    </div>
                 </div>
 
                 <div class="overflow-x-auto">
@@ -292,7 +307,7 @@
                             </tr>
                         </thead>
                         <tbody class="divide-y divide-zinc-100 dark:divide-zinc-800/60">
-                            @foreach ($bmkgData as $item)
+                            @foreach ($bmkgPaginated as $item)
                                 <tr class="hover:bg-zinc-50/80 dark:hover:bg-zinc-900/40 transition-colors">
                                     <td class="px-4 py-3 whitespace-nowrap text-xs text-zinc-500 dark:text-zinc-400 font-mono">
                                         {{ $item['local_datetime'] ?? '-' }}
@@ -328,6 +343,25 @@
                             @endforeach
                         </tbody>
                     </table>
+                </div>
+
+                {{-- Footer --}}
+                <div class="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3 px-4 py-3
+                            border-t border-zinc-100 dark:border-zinc-800 bg-zinc-50/80 dark:bg-zinc-900/60">
+                    <span class="text-xs text-zinc-400">
+                        Menampilkan
+                        <span class="font-semibold text-zinc-600 dark:text-zinc-300">
+                            {{ $bmkgPaginated->firstItem() }}–{{ $bmkgPaginated->lastItem() }}
+                        </span>
+                        dari
+                        <span class="font-semibold text-zinc-600 dark:text-zinc-300">
+                            {{ $bmkgPaginated->total() }}
+                        </span>
+                        prakiraan
+                    </span>
+                    <div class="overflow-x-auto">
+                        {{ $bmkgPaginated->onEachSide(1)->links('components.pagination') }}
+                    </div>
                 </div>
             </div>
         @endif
