@@ -88,14 +88,14 @@ class Analisis extends Component
                 ->orderBy('timestamp')
                 ->get()
                 ->map(fn($r) => [
-                    'local_datetime'  => Carbon::parse($r->timestamp)
-                        ->setTimezone('Asia/Pontianak')
-                        ->format('Y-m-d H:i:s'),
+                    'timestamp'       => Carbon::parse($r->timestamp)->setTimezone('Asia/Pontianak')->format('d M Y H:i'),
                     'suhu'            => $r->suhu,
                     'kelembapan'      => $r->kelembapan,
-                    'kecepatan_angin' => $r->kecepatan_angin,
-                    'arah_angin_deg'  => $r->arah_angin,
                     'tekanan_udara'   => $r->tekanan_udara,
+                    'kecepatan_angin' => $r->kecepatan_angin,
+                    'arah_angin'      => $r->arah_angin,
+                    'arah_angin_label' => $r->arah_angin !== null ? $this->degreesToCompass((float) $r->arah_angin) : null, // ← tambahkan ini
+                    'ketinggian_air'  => $r->ketinggian_air,
                 ])
                 ->toArray();
         }
@@ -139,6 +139,13 @@ class Analisis extends Component
                 'kecepatan_angin' => round(abs($sensorAvg['kecepatan_angin'] - $closest['kecepatan_angin']), 1),
             ] : null,
         ];
+    }
+
+    private function degreesToCompass(float $deg)
+    {
+        $directions = ['U', 'TL', 'T', 'TG', 'S', 'BD', 'B', 'BL'];
+        $index = (int) round($deg / 45) % 8;
+        return $directions[$index];
     }
 
     public function refreshBmkg(): void
