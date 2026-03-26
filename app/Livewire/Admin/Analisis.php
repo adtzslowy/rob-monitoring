@@ -17,7 +17,7 @@ class Analisis extends Component
 
     public string $selectedWilayah = 'delta_pawan';
     public string $selectedDevice  = '';
-    public int    $perPage         = 25;
+    public int    $perPage         = 5;
 
     public array $bmkgData   = [];
     public array $devices    = [];
