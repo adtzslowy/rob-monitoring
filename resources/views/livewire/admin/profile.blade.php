@@ -131,123 +131,121 @@
                                     Pengaturan Profil
                                 </h3>
                                 <p class="mt-1 text-sm leading-6 text-slate-500 dark:text-slate-400">
-                                    Kelola informasi pribadi, foto profil, dan keamanan akun Anda.
+                                    Kelola informasi akun, foto profil, dan password Anda.
                                 </p>
                             </div>
 
-                            <!-- Informasi Akun -->
-                            <div class="mb-8">
-                                <h4 class="text-lg font-semibold text-slate-800 dark:text-white mb-4">
-                                    Informasi Akun
-                                </h4>
-                                <form wire:submit.prevent="updateProfile" class="space-y-5 sm:space-y-6">
-                                    <div class="grid grid-cols-1 gap-4 md:grid-cols-2 md:gap-5">
-                                        <!-- Nama -->
-                                        <div>
-                                            <label for="name" class="mb-2 block text-sm font-semibold text-slate-700 dark:text-slate-200">
-                                                <svg class="mr-2 inline h-4 w-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z"></path>
-                                                </svg>
-                                                Nama Lengkap
-                                            </label>
-                                            <input id="name" type="text" wire:model.defer="name"
-                                                class="h-12 w-full rounded-2xl border border-slate-200 bg-slate-50 px-4 text-sm text-slate-900 outline-none transition placeholder:text-slate-400
-                                                       focus:border-blue-500 focus:bg-white focus:ring-4 focus:ring-blue-500/10
-                                                       dark:border-white/10 dark:bg-slate-800/80 dark:text-white dark:placeholder:text-slate-500
-                                                       dark:focus:border-blue-500/60 dark:focus:bg-slate-800 dark:focus:ring-blue-500/10"
-                                                placeholder="Masukkan nama lengkap"
-                                                aria-describedby="name-error">
-                                            @error('name')
-                                                <p id="name-error" class="mt-2 text-sm text-rose-500 dark:text-rose-400" role="alert">{{ $message }}</p>
-                                            @enderror
-                                        </div>
-
-                                        <!-- Email -->
-                                        <div>
-                                            <label for="email" class="mb-2 block text-sm font-semibold text-slate-700 dark:text-slate-200">
-                                                <svg class="mr-2 inline h-4 w-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 8l7.89 4.26a2 2 0 002.22 0L21 8M5 19h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z"></path>
-                                                </svg>
-                                                Email
-                                            </label>
-                                            <input id="email" type="email" wire:model.defer="email"
-                                                class="h-12 w-full rounded-2xl border border-slate-200 bg-slate-50 px-4 text-sm text-slate-900 outline-none transition placeholder:text-slate-400
-                                                       focus:border-blue-500 focus:bg-white focus:ring-4 focus:ring-blue-500/10
-                                                       dark:border-white/10 dark:bg-slate-800/80 dark:text-white dark:placeholder:text-slate-500
-                                                       dark:focus:border-blue-500/60 dark:focus:bg-slate-800 dark:focus:ring-blue-500/10"
-                                                placeholder="Masukkan email"
-                                                aria-describedby="email-error">
-                                            @error('email')
-                                                <p id="email-error" class="mt-2 text-sm text-rose-500 dark:text-rose-400" role="alert">{{ $message }}</p>
-                                            @enderror
-                                        </div>
-                                    </div>
-
-                                    <!-- Foto Profil -->
+                            <form wire:submit.prevent="updateProfile" class="space-y-5 sm:space-y-6">
+                                <div class="grid grid-cols-1 gap-4 md:grid-cols-2 md:gap-5">
+                                    <!-- Nama -->
                                     <div>
-                                        <label for="foto_profil" class="mb-2 block text-sm font-semibold text-slate-700 dark:text-slate-200">
+                                        <label for="name" class="mb-2 block text-sm font-semibold text-slate-700 dark:text-slate-200">
                                             <svg class="mr-2 inline h-4 w-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z"></path>
+                                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z"></path>
                                             </svg>
-                                            Foto Profil
+                                            Nama Lengkap
                                         </label>
-
-                                        <div class="rounded-[24px] border border-dashed border-blue-300 bg-blue-50/50 p-4 ring-1 ring-blue-100 transition
-                                                    hover:border-blue-400 hover:bg-blue-50
-                                                    dark:border-blue-400/20 dark:bg-slate-800/50 dark:ring-white/5
-                                                    dark:hover:border-blue-400/30 dark:hover:bg-slate-800/70
-                                                    sm:rounded-[28px] sm:p-5">
-                                            <input id="foto_profil" type="file" wire:model="foto_profil"
-                                                class="block w-full text-sm text-slate-600 dark:text-slate-300
-                                                       file:mr-3 file:mb-3 file:rounded-xl file:border-0
-                                                       file:bg-gradient-to-r file:from-blue-600 file:to-indigo-600
-                                                       file:px-4 file:py-2.5 file:text-sm file:font-semibold file:text-white
-                                                       hover:file:from-blue-700 hover:file:to-indigo-700
-                                                       sm:file:mr-4 sm:file:mb-0"
-                                                aria-describedby="foto-error">
-
-                                            <div wire:loading wire:target="foto_profil" class="mt-3 text-sm text-blue-500 dark:text-blue-400">
-                                                <svg class="mr-2 inline h-4 w-4 animate-spin" fill="none" viewBox="0 0 24 24">
-                                                    <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
-                                                    <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
-                                                </svg>
-                                                Mengunggah foto...
-                                            </div>
-
-                                            <p class="mt-3 text-xs leading-5 text-slate-400 dark:text-slate-400">
-                                                Format gambar: JPG, PNG, JPEG. Maksimal 1MB.
-                                            </p>
-                                        </div>
-
-                                        @error('foto_profil')
-                                            <p id="foto-error" class="mt-2 text-sm text-rose-500 dark:text-rose-400" role="alert">{{ $message }}</p>
+                                        <input id="name" type="text" wire:model.defer="name"
+                                            class="h-12 w-full rounded-2xl border border-slate-200 bg-slate-50 px-4 text-sm text-slate-900 outline-none transition placeholder:text-slate-400
+                                                   focus:border-blue-500 focus:bg-white focus:ring-4 focus:ring-blue-500/10
+                                                   dark:border-white/10 dark:bg-slate-800/80 dark:text-white dark:placeholder:text-slate-500
+                                                   dark:focus:border-blue-500/60 dark:focus:bg-slate-800 dark:focus:ring-blue-500/10"
+                                            placeholder="Masukkan nama lengkap"
+                                            aria-describedby="name-error">
+                                        @error('name')
+                                            <p id="name-error" class="mt-2 text-sm text-rose-500 dark:text-rose-400" role="alert">{{ $message }}</p>
                                         @enderror
                                     </div>
 
-                                    <div class="flex flex-col gap-3 sm:flex-row sm:justify-end">
-                                        <button type="submit"
-                                            class="inline-flex h-12 items-center justify-center rounded-2xl bg-gradient-to-r from-blue-600 to-indigo-600 px-6 text-sm font-semibold text-white shadow-[0_12px_30px_rgba(59,130,246,0.20)] transition hover:scale-[1.01] hover:from-blue-700 hover:to-indigo-700 disabled:opacity-50 disabled:cursor-not-allowed dark:shadow-[0_12px_30px_rgba(59,130,246,0.25)]"
-                                            wire:loading.attr="disabled"
-                                            wire:target="updateProfile">
-                                            <svg wire:loading.remove wire:target="updateProfile" class="mr-2 h-4 w-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"></path>
+                                    <!-- Email -->
+                                    <div>
+                                        <label for="email" class="mb-2 block text-sm font-semibold text-slate-700 dark:text-slate-200">
+                                            <svg class="mr-2 inline h-4 w-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 8l7.89 4.26a2 2 0 002.22 0L21 8M5 19h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z"></path>
                                             </svg>
-                                            <svg wire:loading wire:target="updateProfile" class="mr-2 h-4 w-4 animate-spin" fill="none" viewBox="0 0 24 24">
+                                            Email
+                                        </label>
+                                        <input id="email" type="email" wire:model.defer="email"
+                                            class="h-12 w-full rounded-2xl border border-slate-200 bg-slate-50 px-4 text-sm text-slate-900 outline-none transition placeholder:text-slate-400
+                                                   focus:border-blue-500 focus:bg-white focus:ring-4 focus:ring-blue-500/10
+                                                   dark:border-white/10 dark:bg-slate-800/80 dark:text-white dark:placeholder:text-slate-500
+                                                   dark:focus:border-blue-500/60 dark:focus:bg-slate-800 dark:focus:ring-blue-500/10"
+                                            placeholder="Masukkan email"
+                                            aria-describedby="email-error">
+                                        @error('email')
+                                            <p id="email-error" class="mt-2 text-sm text-rose-500 dark:text-rose-400" role="alert">{{ $message }}</p>
+                                        @enderror
+                                    </div>
+                                </div>
+
+                                <!-- Foto Profil -->
+                                <div>
+                                    <label for="foto_profil" class="mb-2 block text-sm font-semibold text-slate-700 dark:text-slate-200">
+                                        <svg class="mr-2 inline h-4 w-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z"></path>
+                                        </svg>
+                                        Foto Profil
+                                    </label>
+
+                                    <div class="rounded-[24px] border border-dashed border-blue-300 bg-blue-50/50 p-4 ring-1 ring-blue-100 transition
+                                                hover:border-blue-400 hover:bg-blue-50
+                                                dark:border-blue-400/20 dark:bg-slate-800/50 dark:ring-white/5
+                                                dark:hover:border-blue-400/30 dark:hover:bg-slate-800/70
+                                                sm:rounded-[28px] sm:p-5">
+                                        <input id="foto_profil" type="file" wire:model="foto_profil"
+                                            class="block w-full text-sm text-slate-600 dark:text-slate-300
+                                                   file:mr-3 file:mb-3 file:rounded-xl file:border-0
+                                                   file:bg-gradient-to-r file:from-blue-600 file:to-indigo-600
+                                                   file:px-4 file:py-2.5 file:text-sm file:font-semibold file:text-white
+                                                   hover:file:from-blue-700 hover:file:to-indigo-700
+                                                   sm:file:mr-4 sm:file:mb-0"
+                                            aria-describedby="foto-error">
+
+                                        <div wire:loading wire:target="foto_profil" class="mt-3 text-sm text-blue-500 dark:text-blue-400">
+                                            <svg class="mr-2 inline h-4 w-4 animate-spin" fill="none" viewBox="0 0 24 24">
                                                 <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
                                                 <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
                                             </svg>
-                                            <span wire:loading.remove wire:target="updateProfile">Simpan Perubahan</span>
-                                            <span wire:loading wire:target="updateProfile">Menyimpan...</span>
-                                        </button>
-                                    </div>
-                                </form>
-                            </div>
+                                            Mengunggah foto...
+                                        </div>
 
-                            <!-- Keamanan Akun -->
-                            <div>
+                                        <p class="mt-3 text-xs leading-5 text-slate-400 dark:text-slate-400">
+                                            Format gambar: JPG, PNG, JPEG. Maksimal 1MB.
+                                        </p>
+                                    </div>
+
+                                    @error('foto_profil')
+                                        <p id="foto-error" class="mt-2 text-sm text-rose-500 dark:text-rose-400" role="alert">{{ $message }}</p>
+                                    @enderror
+                                </div>
+
+                                <div class="flex flex-col gap-3 sm:flex-row sm:justify-end">
+                                    <button type="submit"
+                                        class="inline-flex h-12 items-center justify-center rounded-2xl bg-gradient-to-r from-blue-600 to-indigo-600 px-6 text-sm font-semibold text-white shadow-[0_12px_30px_rgba(59,130,246,0.20)] transition hover:scale-[1.01] hover:from-blue-700 hover:to-indigo-700 disabled:opacity-50 disabled:cursor-not-allowed dark:shadow-[0_12px_30px_rgba(59,130,246,0.25)]"
+                                        wire:loading.attr="disabled"
+                                        wire:target="updateProfile">
+                                        <svg wire:loading.remove wire:target="updateProfile" class="mr-2 h-4 w-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"></path>
+                                        </svg>
+                                        <svg wire:loading wire:target="updateProfile" class="mr-2 h-4 w-4 animate-spin" fill="none" viewBox="0 0 24 24">
+                                            <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
+                                            <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+                                        </svg>
+                                        <span wire:loading.remove wire:target="updateProfile">Simpan Perubahan</span>
+                                        <span wire:loading wire:target="updateProfile">Menyimpan...</span>
+                                    </button>
+                                </div>
+                            </form>
+
+                            <!-- Sub-section untuk Password -->
+                            <div class="mt-10">
                                 <h4 class="text-lg font-semibold text-slate-800 dark:text-white mb-4">
-                                    Keamanan Akun
+                                    Ubah Password
                                 </h4>
+                                <p class="mt-1 text-sm leading-6 text-slate-500 dark:text-slate-400 mb-6">
+                                    Gunakan password yang kuat untuk menjaga keamanan akun Anda.
+                                </p>
+
                                 <form wire:submit.prevent="updatePassword" class="space-y-5 sm:space-y-6">
                                     <!-- Password Saat Ini -->
                                     <div>
