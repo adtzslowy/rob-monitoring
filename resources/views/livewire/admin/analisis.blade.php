@@ -101,9 +101,9 @@
                         <tbody class="divide-y divide-zinc-100 dark:divide-zinc-800/60">
                             @php
                                 $rows = [
-                                    ['label' => 'Suhu', 'key' => 'suhu', 'unit' => '°C', 'color' => 'orange'],
-                                    ['label' => 'Kelembapan', 'key' => 'kelembapan', 'unit' => '%', 'color' => 'cyan'],
-                                    ['label' => 'Kecepatan Angin', 'key' => 'kecepatan_angin', 'unit' => 'm/s', 'color' => 'amber'],
+                                    ['label' => 'Suhu',             'key' => 'suhu',            'unit' => '°C',  'color' => 'orange'],
+                                    ['label' => 'Kelembapan',       'key' => 'kelembapan',       'unit' => '%',   'color' => 'cyan'],
+                                    ['label' => 'Kecepatan Angin',  'key' => 'kecepatan_angin',  'unit' => 'm/s', 'color' => 'amber'],
                                 ];
                             @endphp
                             @foreach ($rows as $row)
@@ -130,7 +130,9 @@
                                     <td class="px-4 py-3 text-center">
                                         @if (!empty($comparison['selisih'][$row['key']]))
                                             <span class="inline-flex items-center rounded-full px-2 py-0.5 text-xs font-semibold
-                                                {{ $comparison['selisih'][$row['key']] > 5 ? 'bg-red-100 text-red-600 dark:bg-red-500/10 dark:text-red-400' : 'bg-emerald-100 text-emerald-600 dark:bg-emerald-500/10 dark:text-emerald-400' }}">
+                                                {{ $comparison['selisih'][$row['key']] > 5
+                                                    ? 'bg-red-100 text-red-600 dark:bg-red-500/10 dark:text-red-400'
+                                                    : 'bg-emerald-100 text-emerald-600 dark:bg-emerald-500/10 dark:text-emerald-400' }}">
                                                 ±{{ $comparison['selisih'][$row['key']] }} {{ $row['unit'] }}
                                             </span>
                                         @else
@@ -147,9 +149,10 @@
 
         {{-- Tabel Data Sensor 24 Jam --}}
         <div class="rounded-2xl border border-zinc-200 dark:border-zinc-800 bg-white dark:bg-zinc-950 shadow-sm overflow-hidden">
-            <div class="px-4 py-3 border-b border-zinc-100 dark:border-zinc-800 bg-zinc-50/80 dark:bg-zinc-900/60">
-                <h2 class="text-sm font-bold text-zinc-700 dark:text-zinc-300">Data Sensor 24 Jam Terakhir</h2>
-                <p class="text-xs text-zinc-400 mt-0.5">{{ $sensorData?->total() ?? 0 }} data tercatat</p>
+            <div class="px-4 py-3 border-b border-zinc-100 dark:border-zinc-800 bg-zinc-50/80 dark:bg-zinc-900/60 flex items-center justify-between">
+                <div>
+                    <h2 class="text-sm font-bold text-zinc-700 dark:text-zinc-300">Data Sensor 24 Jam Terakhir</h2>
+                    <p class="text-xs text-zinc-400 mt-0.5">{{ $sensorData?->total() ?? 0 }} data tercatat</p>
                 </div>
                 <div class="relative">
                     <select wire:model.live="perPage"
