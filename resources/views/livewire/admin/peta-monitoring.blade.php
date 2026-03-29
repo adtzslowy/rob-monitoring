@@ -62,7 +62,7 @@
                 <div class="relative w-full h-[calc(100vh-260px)] min-h-[500px]">
 
                     <!-- MAP -->
-                    <div wire:ignore>
+                    <div wire:ignoreg>
                         <div id="windy" class="w-full h-full"></div>
                     </div>
 

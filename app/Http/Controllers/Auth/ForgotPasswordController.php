@@ -10,13 +10,13 @@ use Illuminate\Support\Facades\Hash;
 
 class ForgotPasswordController extends Controller
 {
-    // Step 1 — Form input email
+
     public function showRequestForm()
     {
         return view('auth.forgot-password');
     }
 
-    // Step 1 — Kirim OTP
+    
     public function sendOtp(Request $request)
     {
         $request->validate([
@@ -77,7 +77,6 @@ class ForgotPasswordController extends Controller
         return redirect()->route('password.reset.form');
     }
 
-    // Step 2 — Resend OTP
     public function resendOtp()
     {
         $email = session('reset_email');
@@ -139,4 +138,5 @@ class ForgotPasswordController extends Controller
         return redirect()->route('login')
             ->with('success', 'Password berhasil direset! Silakan masuk.');
     }
+
 }
