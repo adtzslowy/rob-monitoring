@@ -1,5 +1,6 @@
 import { Chart } from "chart.js/auto";
 import L from "leaflet";
+import './preload';
 
 window.Chart = Chart;
 
