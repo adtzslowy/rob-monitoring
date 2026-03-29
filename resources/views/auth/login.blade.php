@@ -17,7 +17,6 @@
 </head>
 
 <body class="min-h-screen bg-slate-950 font-ui text-white">
-
     <x-preload theme="none" bg="dark" /> 
     <div class="relative flex min-h-screen items-center justify-center overflow-hidden">
         <div class="absolute inset-0">

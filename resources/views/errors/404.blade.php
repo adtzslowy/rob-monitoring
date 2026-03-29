@@ -1,4 +1,4 @@
-da<!DOCTYPE html>
+<!DOCTYPE html>
 <html lang="id"
     x-data="{ dark: localStorage.getItem('theme') === 'dark' || (!localStorage.getItem('theme') && true) }"
     x-init="document.documentElement.classList.toggle('dark', dark)"
