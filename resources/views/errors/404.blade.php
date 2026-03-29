@@ -20,8 +20,6 @@
 </head>
 <body class="min-h-screen bg-slate-50 dark:bg-slate-950 font-ui text-slate-900 dark:text-white overflow-hidden">
 
-    <x-preload theme="none" bg="dark"/>
-
     {{-- Background --}}
     <div class="fixed inset-0 -z-10 pointer-events-none">
         <div class="absolute top-[-150px] left-1/2 h-[500px] w-[500px] -translate-x-1/2 rounded-full bg-blue-600/10 dark:bg-blue-600/15 blur-3xl"></div>
