@@ -27,6 +27,8 @@
     @livewireStyles()
 </head>
 <body class="bg-slate-50 dark:bg-slate-950 text-slate-900 dark:text-white transition-colors duration-300 overflow-x-hidden font-ui">
+
+    <x-preload/>
     
     {{-- Background Effects --}}
     <div class="fixed inset-0 -z-10 overflow-hidden pointer-events-none">
