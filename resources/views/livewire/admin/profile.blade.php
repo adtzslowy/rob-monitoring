@@ -1,4 +1,4 @@
-<div class="min-h-screen bg-gradient-to-br from-slate-900 via-slate-800 to-slate-900 p-4 sm:p-6 lg:p-8"
+<div class="min-h-screen bg-slate-50 p-4 dark:bg-gradient-to-br dark:from-slate-900 dark:via-slate-800 dark:to-slate-900 sm:p-6 lg:p-8"
      x-data="{ showPasswordSection: false, showToast: false, toastMessage: '', toastType: 'success' }"
      x-init="@if(session()->has('success')) showToast = true; toastMessage = '{{ session('success') }}'; toastType = 'success'; setTimeout(() => showToast = false, 4000) @endif
             @if(session()->has('error')) showToast = true; toastMessage = '{{ session('error') }}'; toastType = 'error'; setTimeout(() => showToast = false, 4000) @endif">
@@ -30,16 +30,16 @@
 
         <!-- Header -->
         <div class="mb-8">
-            <h1 class="text-3xl font-extrabold tracking-tight text-white sm:text-4xl">
+            <h1 class="text-3xl font-extrabold tracking-tight text-slate-900 dark:text-white sm:text-4xl">
                 Profil Saya
             </h1>
-            <p class="mt-2 text-slate-400">
+            <p class="mt-2 text-slate-500 dark:text-slate-400">
                 Kelola informasi akun, foto profil, dan keamanan akun Anda.
             </p>
         </div>
 
         <!-- Profile Card -->
-        <div class="overflow-hidden rounded-3xl bg-white/5 shadow-2xl ring-1 ring-white/10 backdrop-blur-xl">
+        <div class="overflow-hidden rounded-3xl bg-white shadow-xl ring-1 ring-slate-200 dark:bg-white/5 dark:shadow-2xl dark:ring-white/10 dark:backdrop-blur-xl">
 
             <!-- ===== PROFILE HEADER ===== -->
             <div class="relative overflow-hidden">
@@ -49,7 +49,6 @@
                     <div class="absolute inset-0 bg-gradient-to-br from-violet-600 via-blue-500 to-cyan-400"></div>
                     <div class="absolute inset-0 bg-[radial-gradient(circle_at_30%_20%,rgba(255,255,255,0.15),transparent_50%)]"></div>
                     <div class="absolute inset-0 bg-[radial-gradient(circle_at_70%_80%,rgba(255,255,255,0.1),transparent_50%)]"></div>
-                    <!-- Floating shapes -->
                     <div class="absolute -top-10 -right-10 h-40 w-40 rounded-full bg-white/5 blur-xl"></div>
                     <div class="absolute -bottom-10 -left-10 h-32 w-32 rounded-full bg-white/5 blur-xl"></div>
                 </div>
@@ -59,12 +58,12 @@
                     <div class="group relative cursor-pointer" onclick="document.querySelector('[x-ref=avatarInput]').click()">
                         @if ($foto_profil)
                             <img src="{{ $foto_profil->temporaryUrl() }}"
-                                class="h-28 w-28 rounded-full border-4 border-slate-900 object-cover shadow-2xl ring-4 ring-violet-500/30 transition-all duration-300 group-hover:ring-violet-500/60 sm:h-32 sm:w-32">
+                                class="h-28 w-28 rounded-full border-4 border-white object-cover shadow-2xl ring-4 ring-violet-500/30 transition-all duration-300 group-hover:ring-violet-500/60 dark:border-slate-900 sm:h-32 sm:w-32">
                         @elseif ($storedFotoProfil)
                             <img src="{{ asset('storage/' . $storedFotoProfil) }}"
-                                class="h-28 w-28 rounded-full border-4 border-slate-900 object-cover shadow-2xl ring-4 ring-violet-500/30 transition-all duration-300 group-hover:ring-violet-500/60 sm:h-32 sm:w-32">
+                                class="h-28 w-28 rounded-full border-4 border-white object-cover shadow-2xl ring-4 ring-violet-500/30 transition-all duration-300 group-hover:ring-violet-500/60 dark:border-slate-900 sm:h-32 sm:w-32">
                         @else
-                            <div class="flex h-28 w-28 items-center justify-center rounded-full border-4 border-slate-900 bg-gradient-to-br from-violet-500 to-blue-500 text-4xl font-bold text-white shadow-2xl ring-4 ring-violet-500/30 transition-all duration-300 group-hover:ring-violet-500/60 sm:h-32 sm:w-32">
+                            <div class="flex h-28 w-28 items-center justify-center rounded-full border-4 border-white bg-gradient-to-br from-violet-500 to-blue-500 text-4xl font-bold text-white shadow-2xl ring-4 ring-violet-500/30 transition-all duration-300 group-hover:ring-violet-500/60 dark:border-slate-900 sm:h-32 sm:w-32">
                                 {{ strtoupper(substr($name, 0, 1)) }}
                             </div>
                         @endif
@@ -84,48 +83,48 @@
 
                 <!-- User Info -->
                 <div class="mt-4 px-6 text-center">
-                    <h2 class="text-2xl font-bold text-white">
+                    <h2 class="text-2xl font-bold text-slate-900 dark:text-white">
                         {{ $name }}
                     </h2>
-                    <p class="mt-1 text-sm text-slate-400">
+                    <p class="mt-1 text-sm text-slate-500 dark:text-slate-400">
                         {{ $email }}
                     </p>
                 </div>
 
                 <!-- Stats Row -->
                 <div class="mt-6 grid grid-cols-3 gap-4 px-6 pb-8">
-                    <div class="rounded-2xl bg-white/5 p-4 text-center backdrop-blur-sm ring-1 ring-white/10 transition-all duration-300 hover:bg-white/10 hover:ring-white/20">
-                        <div class="mx-auto mb-2 flex h-10 w-10 items-center justify-center rounded-xl bg-emerald-500/20">
-                            <svg class="h-5 w-5 text-emerald-400" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+                    <div class="rounded-2xl bg-slate-100 p-4 text-center ring-1 ring-slate-200 transition-all duration-300 hover:bg-slate-200 hover:ring-slate-300 dark:bg-white/5 dark:ring-white/10 dark:hover:bg-white/10 dark:hover:ring-white/20">
+                        <div class="mx-auto mb-2 flex h-10 w-10 items-center justify-center rounded-xl bg-emerald-100 dark:bg-emerald-500/20">
+                            <svg class="h-5 w-5 text-emerald-600 dark:text-emerald-400" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
                                 <path stroke-linecap="round" stroke-linejoin="round" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"/>
                             </svg>
                         </div>
-                        <p class="text-xs text-slate-500">Status</p>
-                        <p class="mt-0.5 text-sm font-bold text-emerald-400">Aktif</p>
+                        <p class="text-xs text-slate-400">Status</p>
+                        <p class="mt-0.5 text-sm font-bold text-emerald-600 dark:text-emerald-400">Aktif</p>
                     </div>
-                    <div class="rounded-2xl bg-white/5 p-4 text-center backdrop-blur-sm ring-1 ring-white/10 transition-all duration-300 hover:bg-white/10 hover:ring-white/20">
-                        <div class="mx-auto mb-2 flex h-10 w-10 items-center justify-center rounded-xl bg-violet-500/20">
-                            <svg class="h-5 w-5 text-violet-400" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+                    <div class="rounded-2xl bg-slate-100 p-4 text-center ring-1 ring-slate-200 transition-all duration-300 hover:bg-slate-200 hover:ring-slate-300 dark:bg-white/5 dark:ring-white/10 dark:hover:bg-white/10 dark:hover:ring-white/20">
+                        <div class="mx-auto mb-2 flex h-10 w-10 items-center justify-center rounded-xl bg-violet-100 dark:bg-violet-500/20">
+                            <svg class="h-5 w-5 text-violet-600 dark:text-violet-400" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
                                 <path stroke-linecap="round" stroke-linejoin="round" d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z"/>
                             </svg>
                         </div>
-                        <p class="text-xs text-slate-500">Role</p>
-                        <p class="mt-0.5 text-sm font-bold text-white">{{ $roleName ?? 'No Role' }}</p>
+                        <p class="text-xs text-slate-400">Role</p>
+                        <p class="mt-0.5 text-sm font-bold text-slate-700 dark:text-white">{{ $roleName ?? 'No Role' }}</p>
                     </div>
-                    <div class="rounded-2xl bg-white/5 p-4 text-center backdrop-blur-sm ring-1 ring-white/10 transition-all duration-300 hover:bg-white/10 hover:ring-white/20">
-                        <div class="mx-auto mb-2 flex h-10 w-10 items-center justify-center rounded-xl bg-blue-500/20">
-                            <svg class="h-5 w-5 text-blue-400" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+                    <div class="rounded-2xl bg-slate-100 p-4 text-center ring-1 ring-slate-200 transition-all duration-300 hover:bg-slate-200 hover:ring-slate-300 dark:bg-white/5 dark:ring-white/10 dark:hover:bg-white/10 dark:hover:ring-white/20">
+                        <div class="mx-auto mb-2 flex h-10 w-10 items-center justify-center rounded-xl bg-blue-100 dark:bg-blue-500/20">
+                            <svg class="h-5 w-5 text-blue-600 dark:text-blue-400" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
                                 <path stroke-linecap="round" stroke-linejoin="round" d="M12 4v1m6 11h2m-6 0h-2v4m0-11v3m0 0h.01M12 12h4.01M16 20h4M4 12h4m12 0h.01M5 8h2a1 1 0 001-1V5a1 1 0 00-1-1H5a1 1 0 00-1 1v2a1 1 0 001 1z"/>
                             </svg>
                         </div>
-                        <p class="text-xs text-slate-500">QR</p>
-                        <p class="mt-0.5 text-sm font-bold text-white">Tersedia</p>
+                        <p class="text-xs text-slate-400">QR</p>
+                        <p class="mt-0.5 text-sm font-bold text-slate-700 dark:text-white">Tersedia</p>
                     </div>
                 </div>
             </div>
 
             <!-- Divider -->
-            <div class="border-t border-white/10"></div>
+            <div class="border-t border-slate-200 dark:border-white/10"></div>
 
             <!-- ===== FORM SECTION ===== -->
             <div class="p-6 sm:p-8 lg:p-10">
@@ -133,14 +132,14 @@
                 <!-- FORM PROFILE -->
                 <div class="mb-10">
                     <div class="mb-6 flex items-center gap-3">
-                        <div class="flex h-10 w-10 items-center justify-center rounded-xl bg-violet-500/20">
-                            <svg class="h-5 w-5 text-violet-400" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+                        <div class="flex h-10 w-10 items-center justify-center rounded-xl bg-violet-100 dark:bg-violet-500/20">
+                            <svg class="h-5 w-5 text-violet-600 dark:text-violet-400" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
                                 <path stroke-linecap="round" stroke-linejoin="round" d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z"/>
                             </svg>
                         </div>
                         <div>
-                            <h3 class="text-lg font-bold text-white">Informasi Profil</h3>
-                            <p class="text-xs text-slate-500">Perbarui data diri Anda</p>
+                            <h3 class="text-lg font-bold text-slate-900 dark:text-white">Informasi Profil</h3>
+                            <p class="text-xs text-slate-500 dark:text-slate-500">Perbarui data diri Anda</p>
                         </div>
                     </div>
 
@@ -149,61 +148,61 @@
 
                             <!-- Nama -->
                             <div class="group relative">
-                                <label class="mb-2 block text-xs font-semibold uppercase tracking-wider text-slate-400 transition-colors group-focus-within:text-violet-400">Nama Lengkap</label>
+                                <label class="mb-2 block text-xs font-semibold uppercase tracking-wider text-slate-500 transition-colors group-focus-within:text-violet-600 dark:text-slate-400 dark:group-focus-within:text-violet-400">Nama Lengkap</label>
                                 <div class="relative">
                                     <div class="pointer-events-none absolute inset-y-0 left-0 flex items-center pl-4">
-                                        <svg class="h-5 w-5 text-slate-500 transition-colors group-focus-within:text-violet-400" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+                                        <svg class="h-5 w-5 text-slate-400 transition-colors group-focus-within:text-violet-500 dark:text-slate-500 dark:group-focus-within:text-violet-400" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
                                             <path stroke-linecap="round" stroke-linejoin="round" d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z"/>
                                         </svg>
                                     </div>
                                     <input type="text" wire:model.defer="name"
-                                        class="h-12 w-full rounded-2xl border border-white/10 bg-white/5 pl-12 pr-4 text-sm text-white placeholder-slate-500 backdrop-blur-sm transition-all duration-300 focus:border-violet-500/50 focus:bg-white/10 focus:ring-2 focus:ring-violet-500/20 focus:outline-none"
+                                        class="h-12 w-full rounded-2xl border border-slate-200 bg-slate-50 pl-12 pr-4 text-sm text-slate-900 placeholder-slate-400 transition-all duration-300 focus:border-violet-500/50 focus:bg-white focus:ring-2 focus:ring-violet-500/20 focus:outline-none dark:border-white/10 dark:bg-white/5 dark:text-white dark:placeholder-slate-500 dark:backdrop-blur-sm dark:focus:border-violet-500/50 dark:focus:bg-white/10"
                                         placeholder="Masukkan nama lengkap">
                                 </div>
                                 @error('name')
-                                    <p class="mt-2 text-xs text-red-400">{{ $message }}</p>
+                                    <p class="mt-2 text-xs text-red-500 dark:text-red-400">{{ $message }}</p>
                                 @enderror
                             </div>
 
                             <!-- Email -->
                             <div class="group relative">
-                                <label class="mb-2 block text-xs font-semibold uppercase tracking-wider text-slate-400 transition-colors group-focus-within:text-violet-400">Alamat Email</label>
+                                <label class="mb-2 block text-xs font-semibold uppercase tracking-wider text-slate-500 transition-colors group-focus-within:text-violet-600 dark:text-slate-400 dark:group-focus-within:text-violet-400">Alamat Email</label>
                                 <div class="relative">
                                     <div class="pointer-events-none absolute inset-y-0 left-0 flex items-center pl-4">
-                                        <svg class="h-5 w-5 text-slate-500 transition-colors group-focus-within:text-violet-400" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+                                        <svg class="h-5 w-5 text-slate-400 transition-colors group-focus-within:text-violet-500 dark:text-slate-500 dark:group-focus-within:text-violet-400" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
                                             <path stroke-linecap="round" stroke-linejoin="round" d="M3 8l7.89 5.26a2 2 0 002.22 0L21 8M5 19h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z"/>
                                         </svg>
                                     </div>
                                     <input type="email" wire:model.defer="email"
-                                        class="h-12 w-full rounded-2xl border border-white/10 bg-white/5 pl-12 pr-4 text-sm text-white placeholder-slate-500 backdrop-blur-sm transition-all duration-300 focus:border-violet-500/50 focus:bg-white/10 focus:ring-2 focus:ring-violet-500/20 focus:outline-none"
+                                        class="h-12 w-full rounded-2xl border border-slate-200 bg-slate-50 pl-12 pr-4 text-sm text-slate-900 placeholder-slate-400 transition-all duration-300 focus:border-violet-500/50 focus:bg-white focus:ring-2 focus:ring-violet-500/20 focus:outline-none dark:border-white/10 dark:bg-white/5 dark:text-white dark:placeholder-slate-500 dark:backdrop-blur-sm dark:focus:border-violet-500/50 dark:focus:bg-white/10"
                                         placeholder="email@contoh.com">
                                 </div>
                                 @error('email')
-                                    <p class="mt-2 text-xs text-red-400">{{ $message }}</p>
+                                    <p class="mt-2 text-xs text-red-500 dark:text-red-400">{{ $message }}</p>
                                 @enderror
                             </div>
                         </div>
 
                         <!-- File Upload -->
                         <div class="group relative">
-                            <label class="mb-2 block text-xs font-semibold uppercase tracking-wider text-slate-400">Foto Profil</label>
-                            <div class="relative overflow-hidden rounded-2xl border-2 border-dashed border-white/10 bg-white/5 p-6 text-center transition-all duration-300 hover:border-violet-500/30 hover:bg-white/10"
+                            <label class="mb-2 block text-xs font-semibold uppercase tracking-wider text-slate-500 dark:text-slate-400">Foto Profil</label>
+                            <div class="relative overflow-hidden rounded-2xl border-2 border-dashed border-slate-300 bg-slate-50 p-6 text-center transition-all duration-300 hover:border-violet-400 hover:bg-violet-50 dark:border-white/10 dark:bg-white/5 dark:hover:border-violet-500/30 dark:hover:bg-white/10"
                                  x-data="{ dragging: false }"
                                  @dragover.prevent="dragging = true"
                                  @dragleave.prevent="dragging = false"
                                  @drop.prevent="dragging = false"
-                                 :class="dragging && 'border-violet-500 bg-violet-500/10'">
+                                 :class="dragging && 'border-violet-500 bg-violet-50 dark:bg-violet-500/10'">
                                 <div class="pointer-events-none">
-                                    <svg class="mx-auto h-10 w-10 text-slate-500" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="1.5">
+                                    <svg class="mx-auto h-10 w-10 text-slate-400 dark:text-slate-500" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="1.5">
                                         <path stroke-linecap="round" stroke-linejoin="round" d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z"/>
                                     </svg>
-                                    <p class="mt-3 text-sm text-slate-400">
-                                        <span class="font-semibold text-violet-400">Klik untuk upload</span> atau drag & drop
+                                    <p class="mt-3 text-sm text-slate-500 dark:text-slate-400">
+                                        <span class="font-semibold text-violet-600 dark:text-violet-400">Klik untuk upload</span> atau drag & drop
                                     </p>
-                                    <p class="mt-1 text-xs text-slate-500">PNG, JPG, WEBP hingga 2MB</p>
+                                    <p class="mt-1 text-xs text-slate-400 dark:text-slate-500">PNG, JPG, WEBP hingga 2MB</p>
                                 </div>
                                 @if ($foto_profil)
-                                    <div class="mt-3 flex items-center justify-center gap-2 text-sm text-emerald-400">
+                                    <div class="mt-3 flex items-center justify-center gap-2 text-sm text-emerald-600 dark:text-emerald-400">
                                         <svg class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
                                             <path stroke-linecap="round" stroke-linejoin="round" d="M5 13l4 4L19 7"/>
                                         </svg>
@@ -212,7 +211,7 @@
                                 @endif
                             </div>
                             @error('foto_profil')
-                                <p class="mt-2 text-xs text-red-400">{{ $message }}</p>
+                                <p class="mt-2 text-xs text-red-500 dark:text-red-400">{{ $message }}</p>
                             @enderror
                         </div>
 
@@ -239,18 +238,18 @@
                 </div>
 
                 <!-- ===== PASSWORD SECTION ===== -->
-                <div class="border-t border-white/10 pt-10">
+                <div class="border-t border-slate-200 pt-10 dark:border-white/10">
                     <button @click="showPasswordSection = !showPasswordSection"
-                        class="group flex w-full items-center justify-between rounded-2xl bg-white/5 p-4 ring-1 ring-white/10 transition-all duration-300 hover:bg-white/10 hover:ring-white/20">
+                        class="group flex w-full items-center justify-between rounded-2xl bg-slate-100 p-4 ring-1 ring-slate-200 transition-all duration-300 hover:bg-slate-200 hover:ring-slate-300 dark:bg-white/5 dark:ring-white/10 dark:hover:bg-white/10 dark:hover:ring-white/20">
                         <div class="flex items-center gap-3">
-                            <div class="flex h-10 w-10 items-center justify-center rounded-xl bg-amber-500/20">
-                                <svg class="h-5 w-5 text-amber-400" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+                            <div class="flex h-10 w-10 items-center justify-center rounded-xl bg-amber-100 dark:bg-amber-500/20">
+                                <svg class="h-5 w-5 text-amber-600 dark:text-amber-400" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
                                     <path stroke-linecap="round" stroke-linejoin="round" d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z"/>
                                 </svg>
                             </div>
                             <div class="text-left">
-                                <h4 class="text-sm font-bold text-white">Ubah Password</h4>
-                                <p class="text-xs text-slate-500">Perbarui password untuk keamanan akun</p>
+                                <h4 class="text-sm font-bold text-slate-900 dark:text-white">Ubah Password</h4>
+                                <p class="text-xs text-slate-500 dark:text-slate-500">Perbarui password untuk keamanan akun</p>
                             </div>
                         </div>
                         <svg class="h-5 w-5 text-slate-400 transition-transform duration-300" :class="showPasswordSection && 'rotate-180'" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
@@ -270,17 +269,17 @@
 
                             <!-- Current Password -->
                             <div class="group relative" x-data="{ show: false }">
-                                <label class="mb-2 block text-xs font-semibold uppercase tracking-wider text-slate-400 transition-colors group-focus-within:text-amber-400">Password Saat Ini</label>
+                                <label class="mb-2 block text-xs font-semibold uppercase tracking-wider text-slate-500 transition-colors group-focus-within:text-amber-600 dark:text-slate-400 dark:group-focus-within:text-amber-400">Password Saat Ini</label>
                                 <div class="relative">
                                     <div class="pointer-events-none absolute inset-y-0 left-0 flex items-center pl-4">
-                                        <svg class="h-5 w-5 text-slate-500 transition-colors group-focus-within:text-amber-400" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+                                        <svg class="h-5 w-5 text-slate-400 transition-colors group-focus-within:text-amber-500 dark:text-slate-500 dark:group-focus-within:text-amber-400" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
                                             <path stroke-linecap="round" stroke-linejoin="round" d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z"/>
                                         </svg>
                                     </div>
                                     <input :type="show ? 'text' : 'password'" wire:model.defer="current_password"
-                                        class="h-12 w-full rounded-2xl border border-white/10 bg-white/5 pl-12 pr-12 text-sm text-white placeholder-slate-500 backdrop-blur-sm transition-all duration-300 focus:border-amber-500/50 focus:bg-white/10 focus:ring-2 focus:ring-amber-500/20 focus:outline-none"
+                                        class="h-12 w-full rounded-2xl border border-slate-200 bg-slate-50 pl-12 pr-12 text-sm text-slate-900 placeholder-slate-400 transition-all duration-300 focus:border-amber-500/50 focus:bg-white focus:ring-2 focus:ring-amber-500/20 focus:outline-none dark:border-white/10 dark:bg-white/5 dark:text-white dark:placeholder-slate-500 dark:backdrop-blur-sm dark:focus:border-amber-500/50 dark:focus:bg-white/10"
                                         placeholder="Masukkan password saat ini">
-                                    <button type="button" @click="show = !show" class="absolute inset-y-0 right-0 flex items-center pr-4 text-slate-500 transition-colors hover:text-white">
+                                    <button type="button" @click="show = !show" class="absolute inset-y-0 right-0 flex items-center pr-4 text-slate-400 transition-colors hover:text-slate-700 dark:text-slate-500 dark:hover:text-white">
                                         <svg x-show="!show" class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
                                             <path stroke-linecap="round" stroke-linejoin="round" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"/>
                                             <path stroke-linecap="round" stroke-linejoin="round" d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z"/>
@@ -291,7 +290,7 @@
                                     </button>
                                 </div>
                                 @error('current_password')
-                                    <p class="mt-2 text-xs text-red-400">{{ $message }}</p>
+                                    <p class="mt-2 text-xs text-red-500 dark:text-red-400">{{ $message }}</p>
                                 @enderror
                             </div>
 
@@ -299,17 +298,17 @@
 
                                 <!-- New Password -->
                                 <div class="group relative" x-data="{ show: false }">
-                                    <label class="mb-2 block text-xs font-semibold uppercase tracking-wider text-slate-400 transition-colors group-focus-within:text-amber-400">Password Baru</label>
+                                    <label class="mb-2 block text-xs font-semibold uppercase tracking-wider text-slate-500 transition-colors group-focus-within:text-amber-600 dark:text-slate-400 dark:group-focus-within:text-amber-400">Password Baru</label>
                                     <div class="relative">
                                         <div class="pointer-events-none absolute inset-y-0 left-0 flex items-center pl-4">
-                                            <svg class="h-5 w-5 text-slate-500 transition-colors group-focus-within:text-amber-400" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+                                            <svg class="h-5 w-5 text-slate-400 transition-colors group-focus-within:text-amber-500 dark:text-slate-500 dark:group-focus-within:text-amber-400" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
                                                 <path stroke-linecap="round" stroke-linejoin="round" d="M15 7a2 2 0 012 2m4 0a6 6 0 01-7.743 5.743L11 17H9v2H7v2H4a1 1 0 01-1-1v-2.586a1 1 0 01.293-.707l5.964-5.964A6 6 0 1121 9z"/>
                                             </svg>
                                         </div>
                                         <input :type="show ? 'text' : 'password'" wire:model.defer="new_password"
-                                            class="h-12 w-full rounded-2xl border border-white/10 bg-white/5 pl-12 pr-12 text-sm text-white placeholder-slate-500 backdrop-blur-sm transition-all duration-300 focus:border-amber-500/50 focus:bg-white/10 focus:ring-2 focus:ring-amber-500/20 focus:outline-none"
+                                            class="h-12 w-full rounded-2xl border border-slate-200 bg-slate-50 pl-12 pr-12 text-sm text-slate-900 placeholder-slate-400 transition-all duration-300 focus:border-amber-500/50 focus:bg-white focus:ring-2 focus:ring-amber-500/20 focus:outline-none dark:border-white/10 dark:bg-white/5 dark:text-white dark:placeholder-slate-500 dark:backdrop-blur-sm dark:focus:border-amber-500/50 dark:focus:bg-white/10"
                                             placeholder="Password baru">
-                                        <button type="button" @click="show = !show" class="absolute inset-y-0 right-0 flex items-center pr-4 text-slate-500 transition-colors hover:text-white">
+                                        <button type="button" @click="show = !show" class="absolute inset-y-0 right-0 flex items-center pr-4 text-slate-400 transition-colors hover:text-slate-700 dark:text-slate-500 dark:hover:text-white">
                                             <svg x-show="!show" class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
                                                 <path stroke-linecap="round" stroke-linejoin="round" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"/>
                                                 <path stroke-linecap="round" stroke-linejoin="round" d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z"/>
@@ -320,23 +319,23 @@
                                         </button>
                                     </div>
                                     @error('new_password')
-                                        <p class="mt-2 text-xs text-red-400">{{ $message }}</p>
+                                        <p class="mt-2 text-xs text-red-500 dark:text-red-400">{{ $message }}</p>
                                     @enderror
                                 </div>
 
                                 <!-- Confirm Password -->
                                 <div class="group relative" x-data="{ show: false }">
-                                    <label class="mb-2 block text-xs font-semibold uppercase tracking-wider text-slate-400 transition-colors group-focus-within:text-amber-400">Konfirmasi Password</label>
+                                    <label class="mb-2 block text-xs font-semibold uppercase tracking-wider text-slate-500 transition-colors group-focus-within:text-amber-600 dark:text-slate-400 dark:group-focus-within:text-amber-400">Konfirmasi Password</label>
                                     <div class="relative">
                                         <div class="pointer-events-none absolute inset-y-0 left-0 flex items-center pl-4">
-                                            <svg class="h-5 w-5 text-slate-500 transition-colors group-focus-within:text-amber-400" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+                                            <svg class="h-5 w-5 text-slate-400 transition-colors group-focus-within:text-amber-500 dark:text-slate-500 dark:group-focus-within:text-amber-400" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
                                                 <path stroke-linecap="round" stroke-linejoin="round" d="M9 12l2 2 4-4m5.618-4.016A11.955 11.955 0 0112 2.944a11.955 11.955 0 01-8.618 3.04A12.02 12.02 0 003 9c0 5.591 3.824 10.29 9 11.622 5.176-1.332 9-6.03 9-11.622 0-1.042-.133-2.052-.382-3.016z"/>
                                             </svg>
                                         </div>
                                         <input :type="show ? 'text' : 'password'" wire:model.defer="new_password_confirmation"
-                                            class="h-12 w-full rounded-2xl border border-white/10 bg-white/5 pl-12 pr-12 text-sm text-white placeholder-slate-500 backdrop-blur-sm transition-all duration-300 focus:border-amber-500/50 focus:bg-white/10 focus:ring-2 focus:ring-amber-500/20 focus:outline-none"
+                                            class="h-12 w-full rounded-2xl border border-slate-200 bg-slate-50 pl-12 pr-12 text-sm text-slate-900 placeholder-slate-400 transition-all duration-300 focus:border-amber-500/50 focus:bg-white focus:ring-2 focus:ring-amber-500/20 focus:outline-none dark:border-white/10 dark:bg-white/5 dark:text-white dark:placeholder-slate-500 dark:backdrop-blur-sm dark:focus:border-amber-500/50 dark:focus:bg-white/10"
                                             placeholder="Konfirmasi password baru">
-                                        <button type="button" @click="show = !show" class="absolute inset-y-0 right-0 flex items-center pr-4 text-slate-500 transition-colors hover:text-white">
+                                        <button type="button" @click="show = !show" class="absolute inset-y-0 right-0 flex items-center pr-4 text-slate-400 transition-colors hover:text-slate-700 dark:text-slate-500 dark:hover:text-white">
                                             <svg x-show="!show" class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
                                                 <path stroke-linecap="round" stroke-linejoin="round" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"/>
                                                 <path stroke-linecap="round" stroke-linejoin="round" d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z"/>
@@ -350,36 +349,36 @@
                             </div>
 
                             <!-- Password Requirements -->
-                            <div class="rounded-2xl bg-white/5 p-4 ring-1 ring-white/10">
-                                <p class="mb-3 text-xs font-semibold uppercase tracking-wider text-slate-400">Persyaratan Password</p>
+                            <div class="rounded-2xl bg-slate-100 p-4 ring-1 ring-slate-200 dark:bg-white/5 dark:ring-white/10">
+                                <p class="mb-3 text-xs font-semibold uppercase tracking-wider text-slate-500 dark:text-slate-400">Persyaratan Password</p>
                                 <div class="grid grid-cols-1 gap-2 sm:grid-cols-2">
-                                    <div class="flex items-center gap-2 text-xs text-slate-500">
-                                        <div class="flex h-4 w-4 items-center justify-center rounded-full bg-slate-700">
-                                            <svg class="h-2.5 w-2.5 text-slate-400" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="3">
+                                    <div class="flex items-center gap-2 text-xs text-slate-500 dark:text-slate-500">
+                                        <div class="flex h-4 w-4 items-center justify-center rounded-full bg-slate-200 dark:bg-slate-700">
+                                            <svg class="h-2.5 w-2.5 text-slate-500 dark:text-slate-400" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="3">
                                                 <path stroke-linecap="round" stroke-linejoin="round" d="M5 13l4 4L19 7"/>
                                             </svg>
                                         </div>
                                         Minimal 8 karakter
                                     </div>
-                                    <div class="flex items-center gap-2 text-xs text-slate-500">
-                                        <div class="flex h-4 w-4 items-center justify-center rounded-full bg-slate-700">
-                                            <svg class="h-2.5 w-2.5 text-slate-400" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="3">
+                                    <div class="flex items-center gap-2 text-xs text-slate-500 dark:text-slate-500">
+                                        <div class="flex h-4 w-4 items-center justify-center rounded-full bg-slate-200 dark:bg-slate-700">
+                                            <svg class="h-2.5 w-2.5 text-slate-500 dark:text-slate-400" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="3">
                                                 <path stroke-linecap="round" stroke-linejoin="round" d="M5 13l4 4L19 7"/>
                                             </svg>
                                         </div>
                                         Mengandung huruf besar
                                     </div>
-                                    <div class="flex items-center gap-2 text-xs text-slate-500">
-                                        <div class="flex h-4 w-4 items-center justify-center rounded-full bg-slate-700">
-                                            <svg class="h-2.5 w-2.5 text-slate-400" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="3">
+                                    <div class="flex items-center gap-2 text-xs text-slate-500 dark:text-slate-500">
+                                        <div class="flex h-4 w-4 items-center justify-center rounded-full bg-slate-200 dark:bg-slate-700">
+                                            <svg class="h-2.5 w-2.5 text-slate-500 dark:text-slate-400" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="3">
                                                 <path stroke-linecap="round" stroke-linejoin="round" d="M5 13l4 4L19 7"/>
                                             </svg>
                                         </div>
                                         Mengandung angka
                                     </div>
-                                    <div class="flex items-center gap-2 text-xs text-slate-500">
-                                        <div class="flex h-4 w-4 items-center justify-center rounded-full bg-slate-700">
-                                            <svg class="h-2.5 w-2.5 text-slate-400" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="3">
+                                    <div class="flex items-center gap-2 text-xs text-slate-500 dark:text-slate-500">
+                                        <div class="flex h-4 w-4 items-center justify-center rounded-full bg-slate-200 dark:bg-slate-700">
+                                            <svg class="h-2.5 w-2.5 text-slate-500 dark:text-slate-400" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="3">
                                                 <path stroke-linecap="round" stroke-linejoin="round" d="M5 13l4 4L19 7"/>
                                             </svg>
                                         </div>
@@ -412,22 +411,22 @@
                 </div>
 
                 <!-- ===== QR CODE SECTION ===== -->
-                <div class="mt-10 border-t border-white/10 pt-10">
+                <div class="mt-10 border-t border-slate-200 pt-10 dark:border-white/10">
                     <div class="mb-6 flex items-center gap-3">
-                        <div class="flex h-10 w-10 items-center justify-center rounded-xl bg-cyan-500/20">
-                            <svg class="h-5 w-5 text-cyan-400" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+                        <div class="flex h-10 w-10 items-center justify-center rounded-xl bg-cyan-100 dark:bg-cyan-500/20">
+                            <svg class="h-5 w-5 text-cyan-600 dark:text-cyan-400" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
                                 <path stroke-linecap="round" stroke-linejoin="round" d="M12 4v1m6 11h2m-6 0h-2v4m0-11v3m0 0h.01M12 12h4.01M16 20h4M4 12h4m12 0h.01M5 8h2a1 1 0 001-1V5a1 1 0 00-1-1H5a1 1 0 00-1 1v2a1 1 0 001 1z"/>
                             </svg>
                         </div>
                         <div>
-                            <h3 class="text-lg font-bold text-white">QR Identitas</h3>
-                            <p class="text-xs text-slate-500">Scan untuk verifikasi identitas</p>
+                            <h3 class="text-lg font-bold text-slate-900 dark:text-white">QR Identitas</h3>
+                            <p class="text-xs text-slate-500 dark:text-slate-500">Scan untuk verifikasi identitas</p>
                         </div>
                     </div>
                     <div class="flex justify-center">
                         <div class="group relative">
-                            <div class="absolute -inset-1 rounded-3xl bg-gradient-to-r from-cyan-500 to-blue-500 opacity-20 blur-lg transition-opacity duration-500 group-hover:opacity-40"></div>
-                            <div class="relative rounded-2xl bg-white p-5 shadow-2xl ring-1 ring-white/20 transition-transform duration-300 group-hover:scale-105">
+                            <div class="absolute -inset-1 rounded-3xl bg-gradient-to-r from-cyan-500 to-blue-500 opacity-0 blur-lg transition-opacity duration-500 group-hover:opacity-30 dark:opacity-20 dark:group-hover:opacity-40"></div>
+                            <div class="relative rounded-2xl bg-white p-5 shadow-lg ring-1 ring-slate-200 transition-transform duration-300 group-hover:scale-105 dark:shadow-2xl dark:ring-white/20">
                                 {!! $qrCode !!}
                             </div>
                         </div>
@@ -439,7 +438,7 @@
 
         <!-- Footer -->
         <div class="mt-6 text-center">
-            <p class="text-xs text-slate-600">
+            <p class="text-xs text-slate-400 dark:text-slate-600">
                 ROB Monitoring System &copy; {{ date('Y') }}
             </p>
         </div>
