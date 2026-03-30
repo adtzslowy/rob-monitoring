@@ -238,14 +238,17 @@ document.addEventListener("alpine:init", () => {
 
         _observer: null, _vw: null, _vh: null, __resizeBound: false,
 
-        // ── Nama key HARUS sesuai Windy API (case-sensitive) ──
+        // ── Semua layer valid (warning di console itu normal, tidak memblokir) ──
         layers: [
-            { key: "wind",     label: "Angin",           icon: "🌬️" },
-            { key: "rain",     label: "Hujan",           icon: "🌧️" },
-            { key: "rainAccu", label: "Akumulasi Hujan", icon: "💧" },
-            { key: "swell",    label: "Ombak",           icon: "🌊" },
-            { key: "clouds",   label: "Awan/Cuaca",      icon: "☁️" },
-            { key: "temp",     label: "Suhu",            icon: "🌡️" },
+            { key: "wind",       label: "Angin",           icon: "🌬️" },
+            { key: "rain",       label: "Hujan",           icon: "🌧️" },
+            { key: "rainAccu",   label: "Akumulasi Hujan", icon: "💧" },
+            { key: "waves",      label: "Ombak",           icon: "🌊" },
+            { key: "lclouds",    label: "Awan",            icon: "☁️" },
+            { key: "temp",       label: "Suhu",            icon: "🌡️" },
+            { key: "pressure",   label: "Tekanan",         icon: "🔵" },
+            { key: "rh",         label: "Kelembapan",      icon: "💦" },
+            { key: "visibility", label: "Visibilitas",     icon: "👁️" },
         ],
 
         async init() {
