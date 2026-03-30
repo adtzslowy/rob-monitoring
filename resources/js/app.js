@@ -38,21 +38,6 @@ const SENSOR_COLORS = {
 
 const leafletFromNpm = L;
 
-function loadScriptOnce(src) {
-    return new Promise((resolve, reject) => {
-        if ([...document.scripts].some((s) => s.src === src)) {
-            resolve();
-            return;
-        }
-        const script = document.createElement("script");
-        script.src = src;
-        script.async = true;
-        script.onload = resolve;
-        script.onerror = () => reject(new Error("Failed to load " + src));
-        document.head.appendChild(script);
-    });
-}
-
 // ─── Helper: load script sekali saja ──────────────────────────────────────────
 function loadScriptOnce(src) {
     return new Promise((resolve, reject) => {
