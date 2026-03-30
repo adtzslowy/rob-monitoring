@@ -272,6 +272,9 @@ document.addEventListener("alpine:init", () => {
             text: "text-emerald-600",
         },
 
+        // FIX: simpan referensi handler untuk cleanup
+        _dashHandler: null,
+
         init() {
             this.applyTheme(this.theme);
 
@@ -321,7 +324,8 @@ document.addEventListener("alpine:init", () => {
                 }
             });
 
-            window.addEventListener("dashboard-updated", (e) => {
+            // FIX: simpan referensi supaya bisa di-remove di destroy()
+            this._dashHandler = (e) => {
                 this.data = e.detail?.data || {};
                 this.risk = e.detail?.risk || "AMAN";
                 this.riskStyles = e.detail?.riskStyles || {
@@ -329,11 +333,21 @@ document.addEventListener("alpine:init", () => {
                     border: "border-emerald-500/30",
                     text: "text-emerald-600",
                 };
-            });
+            };
+
+            window.addEventListener("dashboard-updated", this._dashHandler);
 
             this.$watch("theme", (value) => {
                 this.applyTheme(value);
             });
+        },
+
+        // FIX: cleanup listener saat komponen destroy
+        destroy() {
+            if (this._dashHandler) {
+                window.removeEventListener("dashboard-updated", this._dashHandler);
+                this._dashHandler = null;
+            }
         },
 
         applyTheme(theme) {
@@ -371,6 +385,9 @@ document.addEventListener("alpine:init", () => {
         _vw: null,
         _vh: null,
         __resizeBound: false,
+
+        // FIX: simpan referensi resize handler
+        _resizeHandler: null,
 
         async init() {
             if (window.__windyMap) {
@@ -482,6 +499,19 @@ document.addEventListener("alpine:init", () => {
             );
         },
 
+        // FIX: cleanup semua listener dan observer saat destroy
+        destroy() {
+            if (this._observer) {
+                this._observer.disconnect();
+                this._observer = null;
+            }
+
+            if (this._resizeHandler) {
+                window.removeEventListener("resize", this._resizeHandler);
+                this._resizeHandler = null;
+            }
+        },
+
         fitToDevices(devices) {
             if (!this.map) return;
 
@@ -542,7 +572,8 @@ document.addEventListener("alpine:init", () => {
             if (this.__resizeBound) return;
             this.__resizeBound = true;
 
-            const handler = () => {
+            // FIX: simpan handler ke property supaya bisa di-remove
+            this._resizeHandler = () => {
                 const el = document.getElementById("windy");
                 if (!el) return;
 
@@ -557,8 +588,8 @@ document.addEventListener("alpine:init", () => {
                 this._invalidateSoon();
             };
 
-            window.addEventListener("resize", handler);
-            setTimeout(handler, 50);
+            window.addEventListener("resize", this._resizeHandler);
+            setTimeout(this._resizeHandler, 50);
         },
 
         _watchHidden(vw, vh) {
@@ -638,7 +669,6 @@ document.addEventListener("alpine:init", () => {
                         UNKNOWN: "#f8fafc",
                     }[risiko] ?? "#f8fafc";
 
-                // Icon marker warna ikut status risiko
                 const icon = LLeaflet.divIcon({
                     className: "",
                     html: `
@@ -662,7 +692,6 @@ document.addEventListener("alpine:init", () => {
                     this.markersLayer,
                 );
 
-                // Sensor grid HTML
                 const s = d.sensor;
                 const sensorHtml = s
                     ? `
@@ -906,16 +935,35 @@ document.addEventListener("alpine:init", () => {
     Alpine.data("analisisChart", () => ({
         charts: {},
 
+        // FIX: simpan semua handler referensi
+        _handlers: [],
+
         init() {
             this.$nextTick(() => this.renderCharts());
 
-            window.addEventListener("livewire:navigated", () => {
-                this.$nextTick(() => this.renderCharts());
+            // FIX: buat named handler supaya bisa di-remove
+            const onNavigated = () => this.$nextTick(() => this.renderCharts());
+            const onUpdate    = () => this.$nextTick(() => this.renderCharts());
+
+            window.addEventListener("livewire:navigated", onNavigated);
+            document.addEventListener("livewire:update", onUpdate);
+
+            // Simpan referensi untuk cleanup di destroy()
+            this._handlers = [
+                { target: window,   event: "livewire:navigated", fn: onNavigated },
+                { target: document, event: "livewire:update",    fn: onUpdate },
+            ];
+        },
+
+        // FIX: cleanup semua listener dan chart saat komponen destroy
+        destroy() {
+            this.destroyAll();
+
+            this._handlers.forEach(({ target, event, fn }) => {
+                target.removeEventListener(event, fn);
             });
 
-            document.addEventListener("livewire:update", () => {
-                this.$nextTick(() => this.renderCharts());
-            });
+            this._handlers = [];
         },
 
         destroyAll() {
