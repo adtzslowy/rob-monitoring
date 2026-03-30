@@ -38,17 +38,6 @@ const SENSOR_COLORS = {
 
 const leafletFromNpm = L;
 
-// ─── Helper: load script sekali saja ──────────────────────────────────────────
-function loadScriptOnce(src) {
-    return new Promise((resolve, reject) => {
-        if (document.querySelector(`script[src="${src}"]`)) return resolve();
-        const s = document.createElement("script");
-        s.src = src;
-        s.onload = resolve;
-        s.onerror = () => reject(new Error("Gagal load: " + src));
-        document.head.appendChild(s);
-    });
-}
 
 document.addEventListener("DOMContentLoaded", () => {
     const password = document.getElementById("password");
@@ -356,6 +345,18 @@ document.addEventListener("alpine:init", () => {
  * Mendukung layer: angin, cuaca, hujan, akumulasi hujan, ombak
  */
 
+// ─── Helper: load script sekali saja ──────────────────────────────────────────
+function loadScriptOnce(src) {
+    return new Promise((resolve, reject) => {
+        if (document.querySelector(`script[src="${src}"]`)) return resolve();
+        const s = document.createElement("script");
+        s.src = src;
+        s.onload = resolve;
+        s.onerror = () => reject(new Error("Gagal load: " + src));
+        document.head.appendChild(s);
+    });
+}
+
 // ─── Alpine Component: windyMapComponent ──────────────────────────────────────
 document.addEventListener("alpine:init", () => {
     Alpine.data("windyMapComponent", (cfg) => ({
@@ -379,13 +380,14 @@ document.addEventListener("alpine:init", () => {
         __resizeBound: false,
 
         // Daftar layer yang tersedia
+        // Nama key HARUS sesuai dengan Windy API resmi (case-sensitive)
         layers: [
-            { key: "wind",            label: "Angin",            icon: "🌬️" },
-            { key: "rain",            label: "Hujan",            icon: "🌧️" },
-            { key: "rainAccumulation",label: "Akumulasi Hujan",  icon: "💧" },
-            { key: "waves",           label: "Ombak",            icon: "🌊" },
-            { key: "clouds",          label: "Awan/Cuaca",       icon: "☁️" },
-            { key: "temp",            label: "Suhu",             icon: "🌡️" },
+            { key: "wind",       label: "Angin",           icon: "🌬️" },
+            { key: "rain",       label: "Hujan",           icon: "🌧️" },
+            { key: "rainAccu",   label: "Akumulasi Hujan", icon: "💧" },
+            { key: "waves",      label: "Ombak",           icon: "🌊" },
+            { key: "cloudsHigh", label: "Awan/Cuaca",      icon: "☁️" },
+            { key: "temp",       label: "Suhu",            icon: "🌡️" },
         ],
 
         async init() {
@@ -510,8 +512,19 @@ document.addEventListener("alpine:init", () => {
         changeOverlay(layer) {
             const store = this.store ?? window.__windyStore;
             if (!store) return;
-            store.set("overlay", layer);
-            this.activeOverlay = layer;
+
+            try {
+                // Cek apakah layer tersedia di API key ini
+                const available = store.get("availableOverlays") || [];
+                if (available.length && !available.includes(layer)) {
+                    console.warn(`[Windy] Layer "${layer}" tidak tersedia. Available:`, available);
+                    return;
+                }
+                store.set("overlay", layer);
+                this.activeOverlay = layer;
+            } catch (e) {
+                console.error("[Windy] Gagal ganti layer:", e);
+            }
         },
 
         // ── Fit peta ke semua device ──────────────────────────────────────────
@@ -867,7 +880,6 @@ document.addEventListener("alpine:init", () => {
         },
     }));
 });
-
 // =========================
 // Analisis Chart
 // =========================
