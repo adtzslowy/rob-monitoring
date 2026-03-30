@@ -53,6 +53,18 @@ function loadScriptOnce(src) {
     });
 }
 
+// ─── Helper: load script sekali saja ──────────────────────────────────────────
+function loadScriptOnce(src) {
+    return new Promise((resolve, reject) => {
+        if (document.querySelector(`script[src="${src}"]`)) return resolve();
+        const s = document.createElement("script");
+        s.src = src;
+        s.onload = resolve;
+        s.onerror = () => reject(new Error("Gagal load: " + src));
+        document.head.appendChild(s);
+    });
+}
+
 document.addEventListener("DOMContentLoaded", () => {
     const password = document.getElementById("password");
     const toggle = document.getElementById("togglePassword");
@@ -354,6 +366,12 @@ document.addEventListener("alpine:init", () => {
 // =========================
 // Windy Map
 // =========================
+/**
+ * Windy Map Component — Alpine.js
+ * Mendukung layer: angin, cuaca, hujan, akumulasi hujan, ombak
+ */
+
+// ─── Alpine Component: windyMapComponent ──────────────────────────────────────
 document.addEventListener("alpine:init", () => {
     Alpine.data("windyMapComponent", (cfg) => ({
         key: cfg?.key || "",
@@ -364,17 +382,32 @@ document.addEventListener("alpine:init", () => {
         devices: cfg?.devices || [],
 
         map: null,
+        store: null,
         markersLayer: null,
         loading: true,
         error: "",
+        activeOverlay: cfg?.overlay ?? "wind",
+
         _observer: null,
         _vw: null,
         _vh: null,
         __resizeBound: false,
 
+        // Daftar layer yang tersedia
+        layers: [
+            { key: "wind",            label: "Angin",            icon: "🌬️" },
+            { key: "rain",            label: "Hujan",            icon: "🌧️" },
+            { key: "rainAccumulation",label: "Akumulasi Hujan",  icon: "💧" },
+            { key: "waves",           label: "Ombak",            icon: "🌊" },
+            { key: "clouds",          label: "Awan/Cuaca",       icon: "☁️" },
+            { key: "temp",            label: "Suhu",             icon: "🌡️" },
+        ],
+
         async init() {
+            // Jika peta sudah pernah diinisialisasi, reuse saja
             if (window.__windyMap) {
-                this.map = window.__windyMap;
+                this.map          = window.__windyMap;
+                this.store        = window.__windyStore;
                 this.markersLayer = window.__windyMarkers;
                 this._watchHidden();
                 this.renderMarkers(this.devices);
@@ -391,19 +424,21 @@ document.addEventListener("alpine:init", () => {
 
             const container = document.getElementById("windy");
             if (!container) {
-                this.error = "Container #windy tidak ditemukan";
+                this.error = "Container #windy tidak ditemukan.";
                 return;
             }
 
+            // Load Windy libBoot
             try {
                 await loadScriptOnce(
                     "https://api.windy.com/assets/map-forecast/libBoot.js",
                 );
             } catch (e) {
-                this.error = "Gagal load libBoot.js. Cek koneksi internet.";
+                this.error = "Gagal load Windy API. Cek koneksi internet.";
                 return;
             }
 
+            // Tunggu windyInit tersedia
             const windyReady = await new Promise((resolve) => {
                 let tries = 0;
                 const iv = setInterval(() => {
@@ -423,52 +458,56 @@ document.addEventListener("alpine:init", () => {
                 return;
             }
 
-            const rect = container.getBoundingClientRect();
+            // Hitung ukuran container
+            const rect   = container.getBoundingClientRect();
             const parent = container.parentElement;
-            const prect = parent ? parent.getBoundingClientRect() : rect;
+            const prect  = parent ? parent.getBoundingClientRect() : rect;
 
-            const vw =
-                (rect.width > 0 ? rect.width : prect.width) ||
-                window.innerWidth;
-            const vh =
-                (rect.height > 0 ? rect.height : prect.height) ||
-                window.innerHeight - 200;
+            const vw = (rect.width  > 0 ? rect.width  : prect.width)  || window.innerWidth;
+            const vh = (rect.height > 0 ? rect.height : prect.height) || window.innerHeight - 200;
 
             this._vw = vw;
             this._vh = vh;
 
-            container.style.width = vw + "px";
-            container.style.height = vh + "px";
+            container.style.width   = vw + "px";
+            container.style.height  = vh + "px";
             container.style.display = "block";
 
             await new Promise((r) =>
                 requestAnimationFrame(() => requestAnimationFrame(r)),
             );
 
+            // Init Windy
             window.windyInit(
                 {
-                    key: this.key,
-                    lat: this.lat,
-                    lon: this.lon,
-                    zoom: this.zoom,
+                    key:     this.key,
+                    lat:     this.lat,
+                    lon:     this.lon,
+                    zoom:    this.zoom,
                     overlay: this.overlay,
                     verbose: false,
                 },
                 (windyAPI) => {
-                    this.map = windyAPI.map;
-                    window.__windyMap = this.map;
+                    this.map   = windyAPI.map;
+                    this.store = windyAPI.store;
 
+                    // Simpan global agar bisa di-reuse
+                    window.__windyMap   = this.map;
+                    window.__windyStore = this.store;
+
+                    // Pastikan container visible
                     const windyEl = document.getElementById("windy");
                     if (windyEl) {
                         windyEl.classList.remove("hidden", "free-model");
-                        windyEl.style.width = this._vw + "px";
-                        windyEl.style.height = this._vh + "px";
+                        windyEl.style.width   = this._vw + "px";
+                        windyEl.style.height  = this._vh + "px";
                         windyEl.style.display = "block";
                     }
 
                     this._watchHidden(this._vw, this._vh);
 
-                    const LLeaflet = window.L;
+                    // Tambah layer marker
+                    const LLeaflet    = window.L;
                     this.markersLayer = LLeaflet.layerGroup().addTo(this.map);
                     window.__windyMarkers = this.markersLayer;
 
@@ -482,37 +521,38 @@ document.addEventListener("alpine:init", () => {
             );
         },
 
+        // ── Ganti overlay/layer ────────────────────────────────────────────────
+        changeOverlay(layer) {
+            const store = this.store ?? window.__windyStore;
+            if (!store) return;
+            store.set("overlay", layer);
+            this.activeOverlay = layer;
+        },
+
+        // ── Fit peta ke semua device ──────────────────────────────────────────
         fitToDevices(devices) {
             if (!this.map) return;
-
             const LLeaflet = window.L;
             const pts = (devices || [])
                 .map((d) => [parseFloat(d.lat), parseFloat(d.lng)])
-                .filter(
-                    ([lat, lng]) =>
-                        Number.isFinite(lat) && Number.isFinite(lng),
-                );
+                .filter(([lat, lng]) => Number.isFinite(lat) && Number.isFinite(lng));
 
             if (!pts.length) return;
 
             const doFit = () => {
                 try {
-                    const b = LLeaflet.latLngBounds(pts);
-
                     if (pts.length === 1) {
                         this.map.setView(pts[0], 13, { animate: false });
                         return;
                     }
-
-                    this.map.fitBounds(b, {
+                    this.map.fitBounds(LLeaflet.latLngBounds(pts), {
                         padding: [50, 50],
                         animate: false,
                     });
                 } catch (e) {
                     setTimeout(() => {
                         try {
-                            const b = LLeaflet.latLngBounds(pts);
-                            this.map.fitBounds(b, {
+                            this.map.fitBounds(LLeaflet.latLngBounds(pts), {
                                 padding: [50, 50],
                                 animate: false,
                             });
@@ -521,23 +561,20 @@ document.addEventListener("alpine:init", () => {
                 }
             };
 
-            try {
-                this.map.invalidateSize(true);
-            } catch (_) {}
-
+            try { this.map.invalidateSize(true); } catch (_) {}
             requestAnimationFrame(() => requestAnimationFrame(doFit));
         },
 
+        // ── Invalidate size ───────────────────────────────────────────────────
         _invalidateSoon() {
             [0, 100, 300, 600].forEach((ms) => {
                 setTimeout(() => {
-                    try {
-                        this.map?.invalidateSize(true);
-                    } catch (_) {}
+                    try { this.map?.invalidateSize(true); } catch (_) {}
                 }, ms);
             });
         },
 
+        // ── Bind resize window ────────────────────────────────────────────────
         _bindResize() {
             if (this.__resizeBound) return;
             this.__resizeBound = true;
@@ -545,15 +582,13 @@ document.addEventListener("alpine:init", () => {
             const handler = () => {
                 const el = document.getElementById("windy");
                 if (!el) return;
-
                 const rect = el.getBoundingClientRect();
                 if (rect.width > 0 && rect.height > 0) {
                     this._vw = rect.width;
                     this._vh = rect.height;
-                    el.style.width = rect.width + "px";
+                    el.style.width  = rect.width  + "px";
                     el.style.height = rect.height + "px";
                 }
-
                 this._invalidateSoon();
             };
 
@@ -561,6 +596,7 @@ document.addEventListener("alpine:init", () => {
             setTimeout(handler, 50);
         },
 
+        // ── Watch agar Windy tidak disembunyikan oleh class/style ─────────────
         _watchHidden(vw, vh) {
             const windyEl = document.getElementById("windy");
             if (!windyEl || this._observer) return;
@@ -569,19 +605,15 @@ document.addEventListener("alpine:init", () => {
                 const el = document.getElementById("windy");
                 if (!el) return;
 
-                if (
-                    el.classList.contains("hidden") ||
-                    el.style.display === "none"
-                ) {
+                if (el.classList.contains("hidden") || el.style.display === "none") {
                     el.classList.remove("hidden", "free-model");
                     el.style.removeProperty("display");
                 }
 
                 const w = vw ?? this._vw;
                 const h = vh ?? this._vh;
-
                 if (w && h) {
-                    el.style.width = w + "px";
+                    el.style.width  = w + "px";
                     el.style.height = h + "px";
                 }
 
@@ -589,252 +621,219 @@ document.addEventListener("alpine:init", () => {
             });
 
             this._observer.observe(windyEl, {
-                attributes: true,
+                attributes:      true,
                 attributeFilter: ["class", "style"],
             });
         },
 
+        // ── Event dari luar untuk re-render marker ────────────────────────────
         onRenderMarkers(event) {
             const devices = event?.detail?.devices || [];
-            this.devices = devices;
+            this.devices  = devices;
             this.renderMarkers(devices);
             this._invalidateSoon();
             this.fitToDevices(devices);
         },
 
+        // ── Render semua marker device ────────────────────────────────────────
         renderMarkers(devices) {
             if (!this.map || !this.markersLayer) return;
 
             this.markersLayer.clearLayers();
             const LLeaflet = window.L;
-            const bounds = [];
 
             (devices || []).forEach((d) => {
                 const lat = parseFloat(d.lat);
                 const lng = parseFloat(d.lng);
                 if (!Number.isFinite(lat) || !Number.isFinite(lng)) return;
 
-                bounds.push([lat, lng]);
+                const isOnline  = (d.status || "offline").toLowerCase() === "online";
+                const risiko    = d.status_risiko ?? "UNKNOWN";
 
-                const isOnline =
-                    (d.status || "offline").toLowerCase() === "online";
-                const risiko = d.status_risiko ?? "UNKNOWN";
+                const risikoColor = {
+                    AMAN:    "#22c55e",
+                    WASPADA: "#f59e0b",
+                    SIAGA:   "#f97316",
+                    BAHAYA:  "#ef4444",
+                    UNKNOWN: "#94a3b8",
+                }[risiko] ?? "#94a3b8";
 
-                const risikoColor =
-                    {
-                        AMAN: "#22c55e",
-                        WASPADA: "#f59e0b",
-                        SIAGA: "#f97316",
-                        BAHAYA: "#ef4444",
-                        UNKNOWN: "#94a3b8",
-                    }[risiko] ?? "#94a3b8";
+                const risikoBg = {
+                    AMAN:    "#f0fdf4",
+                    WASPADA: "#fefce8",
+                    SIAGA:   "#fff7ed",
+                    BAHAYA:  "#fef2f2",
+                    UNKNOWN: "#f8fafc",
+                }[risiko] ?? "#f8fafc";
 
-                const risikoBg =
-                    {
-                        AMAN: "#f0fdf4",
-                        WASPADA: "#fefce8",
-                        SIAGA: "#fff7ed",
-                        BAHAYA: "#fef2f2",
-                        UNKNOWN: "#f8fafc",
-                    }[risiko] ?? "#f8fafc";
-
-                // Icon marker warna ikut status risiko
                 const icon = LLeaflet.divIcon({
                     className: "",
                     html: `
-                <div style="
-                    width:38px;height:38px;
-                    background:${risikoColor};
-                    border:3px solid white;
-                    border-radius:50%;
-                    box-shadow:0 2px 12px rgba(0,0,0,0.25);
-                    display:flex;align-items:center;justify-content:center;">
-                    <svg width="16" height="16" fill="white" viewBox="0 0 24 24">
-                        <path d="M12 2C8.13 2 5 5.13 5 9c0 5.25 7 13 7 13s7-7.75 7-13c0-3.87-3.13-7-7-7zm0 9.5c-1.38 0-2.5-1.12-2.5-2.5s1.12-2.5 2.5-2.5 2.5 1.12 2.5 2.5-1.12 2.5-2.5 2.5z"/>
-                    </svg>
-                </div>`,
-                    iconSize: [38, 38],
-                    iconAnchor: [19, 38],
+                        <div style="
+                            width:38px;height:38px;
+                            background:${risikoColor};
+                            border:3px solid white;
+                            border-radius:50%;
+                            box-shadow:0 2px 12px rgba(0,0,0,0.25);
+                            display:flex;align-items:center;justify-content:center;">
+                            <svg width="16" height="16" fill="white" viewBox="0 0 24 24">
+                                <path d="M12 2C8.13 2 5 5.13 5 9c0 5.25 7 13 7 13s7-7.75 7-13c0-3.87-3.13-7-7-7zm0 9.5c-1.38 0-2.5-1.12-2.5-2.5s1.12-2.5 2.5-2.5 2.5 1.12 2.5 2.5-1.12 2.5-2.5 2.5z"/>
+                            </svg>
+                        </div>`,
+                    iconSize:    [38, 38],
+                    iconAnchor:  [19, 38],
                     popupAnchor: [0, -42],
                 });
 
-                const marker = LLeaflet.marker([lat, lng], { icon }).addTo(
-                    this.markersLayer,
-                );
-
-                // Sensor grid HTML
                 const s = d.sensor;
-                const sensorHtml = s
-                    ? `
-            <div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:6px;margin-top:10px;">
-                <div style="background:#f0f9ff;border-radius:10px;padding:8px;text-align:center;">
-                    <div style="font-size:9px;color:#0284c7;font-weight:600;text-transform:uppercase;letter-spacing:0.05em;">Ketinggian</div>
-                    <div style="font-size:16px;font-weight:800;color:#0f172a;margin-top:2px;">${s.ketinggian_air ?? "-"}</div>
-                    <div style="font-size:9px;color:#94a3b8;">cm</div>
-                </div>
-                <div style="background:#fff7ed;border-radius:10px;padding:8px;text-align:center;">
-                    <div style="font-size:9px;color:#ea580c;font-weight:600;text-transform:uppercase;letter-spacing:0.05em;">Suhu</div>
-                    <div style="font-size:16px;font-weight:800;color:#0f172a;margin-top:2px;">${s.suhu ?? "-"}</div>
-                    <div style="font-size:9px;color:#94a3b8;">°C</div>
-                </div>
-                <div style="background:#ecfeff;border-radius:10px;padding:8px;text-align:center;">
-                    <div style="font-size:9px;color:#0891b2;font-weight:600;text-transform:uppercase;letter-spacing:0.05em;">Kelembapan</div>
-                    <div style="font-size:16px;font-weight:800;color:#0f172a;margin-top:2px;">${s.kelembapan ?? "-"}</div>
-                    <div style="font-size:9px;color:#94a3b8;">%</div>
-                </div>
-                <div style="background:#f0fdf4;border-radius:10px;padding:8px;text-align:center;">
-                    <div style="font-size:9px;color:#16a34a;font-weight:600;text-transform:uppercase;letter-spacing:0.05em;">Tekanan</div>
-                    <div style="font-size:16px;font-weight:800;color:#0f172a;margin-top:2px;">${s.tekanan_udara ?? "-"}</div>
-                    <div style="font-size:9px;color:#94a3b8;">hPa</div>
-                </div>
-                <div style="background:#fffbeb;border-radius:10px;padding:8px;text-align:center;">
-                    <div style="font-size:9px;color:#d97706;font-weight:600;text-transform:uppercase;letter-spacing:0.05em;">Angin</div>
-                    <div style="font-size:16px;font-weight:800;color:#0f172a;margin-top:2px;">${s.kecepatan_angin ?? "-"}</div>
-                    <div style="font-size:9px;color:#94a3b8;">m/s</div>
-                </div>
-                <div style="background:#faf5ff;border-radius:10px;padding:8px;text-align:center;">
-                    <div style="font-size:9px;color:#9333ea;font-weight:600;text-transform:uppercase;letter-spacing:0.05em;">Arah Angin</div>
-                    <div style="font-size:16px;font-weight:800;color:#0f172a;margin-top:2px;">${s.arah_angin ?? "-"}</div>
-                    <div style="font-size:9px;color:#94a3b8;">°</div>
-                </div>
-            </div>
-            <div style="margin-top:8px;padding-top:8px;border-top:1px solid #f1f5f9;display:flex;align-items:center;justify-content:space-between;">
-                <span style="font-size:10px;color:#94a3b8;">${s.timestamp ?? "-"}</span>
-                <span style="font-size:10px;color:${isOnline ? "#22c55e" : "#ef4444"};font-weight:600;">● ${isOnline ? "Online" : "Offline"}</span>
-            </div>
-        `
-                    : `
-            <div style="text-align:center;padding:16px 0;color:#94a3b8;font-size:12px;">
-                Tidak ada data sensor
-            </div>
-        `;
-
-                marker.bindPopup(
-                    `
-            <div style="font-family:'Bricolage Grotesque',ui-sans-serif,sans-serif;min-width:240px;max-width:280px;">
-
-                <div style="display:flex;align-items:flex-start;justify-content:space-between;margin-bottom:8px;">
-                    <div>
-                        <div style="font-size:11px;color:#94a3b8;font-weight:500;">${d.name}</div>
-                        <div style="font-size:15px;font-weight:700;color:#0f172a;line-height:1.2;margin-top:1px;">${d.alias ?? d.name}</div>
+                const sensorHtml = s ? `
+                    <div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:6px;margin-top:10px;">
+                        <div style="background:#f0f9ff;border-radius:10px;padding:8px;text-align:center;">
+                            <div style="font-size:9px;color:#0284c7;font-weight:600;text-transform:uppercase;letter-spacing:0.05em;">Ketinggian</div>
+                            <div style="font-size:16px;font-weight:800;color:#0f172a;margin-top:2px;">${s.ketinggian_air ?? "-"}</div>
+                            <div style="font-size:9px;color:#94a3b8;">cm</div>
+                        </div>
+                        <div style="background:#fff7ed;border-radius:10px;padding:8px;text-align:center;">
+                            <div style="font-size:9px;color:#ea580c;font-weight:600;text-transform:uppercase;letter-spacing:0.05em;">Suhu</div>
+                            <div style="font-size:16px;font-weight:800;color:#0f172a;margin-top:2px;">${s.suhu ?? "-"}</div>
+                            <div style="font-size:9px;color:#94a3b8;">°C</div>
+                        </div>
+                        <div style="background:#ecfeff;border-radius:10px;padding:8px;text-align:center;">
+                            <div style="font-size:9px;color:#0891b2;font-weight:600;text-transform:uppercase;letter-spacing:0.05em;">Kelembapan</div>
+                            <div style="font-size:16px;font-weight:800;color:#0f172a;margin-top:2px;">${s.kelembapan ?? "-"}</div>
+                            <div style="font-size:9px;color:#94a3b8;">%</div>
+                        </div>
+                        <div style="background:#f0fdf4;border-radius:10px;padding:8px;text-align:center;">
+                            <div style="font-size:9px;color:#16a34a;font-weight:600;text-transform:uppercase;letter-spacing:0.05em;">Tekanan</div>
+                            <div style="font-size:16px;font-weight:800;color:#0f172a;margin-top:2px;">${s.tekanan_udara ?? "-"}</div>
+                            <div style="font-size:9px;color:#94a3b8;">hPa</div>
+                        </div>
+                        <div style="background:#fffbeb;border-radius:10px;padding:8px;text-align:center;">
+                            <div style="font-size:9px;color:#d97706;font-weight:600;text-transform:uppercase;letter-spacing:0.05em;">Angin</div>
+                            <div style="font-size:16px;font-weight:800;color:#0f172a;margin-top:2px;">${s.kecepatan_angin ?? "-"}</div>
+                            <div style="font-size:9px;color:#94a3b8;">m/s</div>
+                        </div>
+                        <div style="background:#faf5ff;border-radius:10px;padding:8px;text-align:center;">
+                            <div style="font-size:9px;color:#9333ea;font-weight:600;text-transform:uppercase;letter-spacing:0.05em;">Arah Angin</div>
+                            <div style="font-size:16px;font-weight:800;color:#0f172a;margin-top:2px;">${s.arah_angin ?? "-"}</div>
+                            <div style="font-size:9px;color:#94a3b8;">°</div>
+                        </div>
                     </div>
-                    <span style="
-                        background:${risikoBg};
-                        color:${risikoColor};
-                        font-size:10px;
-                        font-weight:700;
-                        padding:3px 10px;
-                        border-radius:999px;
-                        border:1px solid ${risikoColor}30;
-                        white-space:nowrap;
-                        margin-left:8px;
-                        flex-shrink:0;
-                    ">${risiko}</span>
-                </div>
-
-                <div style="margin-bottom:10px;">
-                    <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:4px;">
-                        <span style="font-size:10px;color:#94a3b8;">Skor Risiko Fuzzy</span>
-                        <span style="font-size:10px;font-weight:700;color:${risikoColor};">${d.score ?? 0}</span>
+                    <div style="margin-top:8px;padding-top:8px;border-top:1px solid #f1f5f9;display:flex;align-items:center;justify-content:space-between;">
+                        <span style="font-size:10px;color:#94a3b8;">${s.timestamp ?? "-"}</span>
+                        <span style="font-size:10px;color:${isOnline ? "#22c55e" : "#ef4444"};font-weight:600;">● ${isOnline ? "Online" : "Offline"}</span>
                     </div>
-                    <div style="background:#f1f5f9;border-radius:999px;height:5px;overflow:hidden;">
-                        <div style="background:${risikoColor};height:100%;width:${Math.min(d.score ?? 0, 100)}%;border-radius:999px;"></div>
+                ` : `
+                    <div style="text-align:center;padding:16px 0;color:#94a3b8;font-size:12px;">
+                        Tidak ada data sensor
                     </div>
-                </div>
+                `;
 
-                ${sensorHtml}
-            </div>
-        `,
-                    { maxWidth: 300, className: "rob-popup" },
-                );
+                const marker = LLeaflet.marker([lat, lng], { icon }).addTo(this.markersLayer);
+
+                marker.bindPopup(`
+                    <div style="font-family:'Bricolage Grotesque',ui-sans-serif,sans-serif;min-width:240px;max-width:280px;">
+                        <div style="display:flex;align-items:flex-start;justify-content:space-between;margin-bottom:8px;">
+                            <div>
+                                <div style="font-size:11px;color:#94a3b8;font-weight:500;">${d.name}</div>
+                                <div style="font-size:15px;font-weight:700;color:#0f172a;line-height:1.2;margin-top:1px;">${d.alias ?? d.name}</div>
+                            </div>
+                            <span style="
+                                background:${risikoBg};
+                                color:${risikoColor};
+                                font-size:10px;
+                                font-weight:700;
+                                padding:3px 10px;
+                                border-radius:999px;
+                                border:1px solid ${risikoColor}30;
+                                white-space:nowrap;
+                                margin-left:8px;
+                                flex-shrink:0;
+                            ">${risiko}</span>
+                        </div>
+
+                        <div style="margin-bottom:10px;">
+                            <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:4px;">
+                                <span style="font-size:10px;color:#94a3b8;">Skor Risiko Fuzzy</span>
+                                <span style="font-size:10px;font-weight:700;color:${risikoColor};">${d.score ?? 0}</span>
+                            </div>
+                            <div style="background:#f1f5f9;border-radius:999px;height:5px;overflow:hidden;">
+                                <div style="background:${risikoColor};height:100%;width:${Math.min(d.score ?? 0, 100)}%;border-radius:999px;"></div>
+                            </div>
+                        </div>
+
+                        ${sensorHtml}
+                    </div>
+                `, { maxWidth: 300, className: "rob-popup" });
             });
-
-            if (bounds.length > 0) {
-                const latLngBounds = LLeaflet.latLngBounds(bounds);
-                this.map.fitBounds(latLngBounds, { padding: [50, 50] });
-            }
         },
     }));
 });
 
+// ─── Alpine Component: searchableDeviceSelect ─────────────────────────────────
 document.addEventListener("alpine:init", () => {
     Alpine.data("searchableDeviceSelect", (config = {}) => ({
-        open: false,
-        query: "",
+        open:     false,
+        query:    "",
         selected: config.selected || null,
-        options: config.options || [],
+        options:  config.options  || [],
 
         init() {
             this.$watch("selected", (value) => {
-                if (config.onChange) {
-                    config.onChange(value);
-                }
+                if (config.onChange) config.onChange(value);
             });
         },
 
         get filteredOptions() {
             const q = (this.query || "").toLowerCase().trim();
             if (!q) return this.options;
-
             return this.options.filter((item) => {
-                const label = (
-                    item.label ||
-                    item.alias ||
-                    item.name ||
-                    ""
-                ).toLowerCase();
+                const label  = (item.label || item.alias || item.name || "").toLowerCase();
                 const status = (item.statusLabel || "").toLowerCase();
                 return label.includes(q) || status.includes(q);
             });
         },
 
         get selectedOption() {
-            return (
-                this.options.find(
-                    (item) => String(item.id) === String(this.selected),
-                ) || null
-            );
+            return this.options.find(
+                (item) => String(item.id) === String(this.selected),
+            ) || null;
         },
 
         select(item) {
             this.selected = item.id;
-            this.query = "";
-            this.open = false;
+            this.query    = "";
+            this.open     = false;
         },
 
         toggle() {
             this.open = !this.open;
             if (this.open) {
-                this.$nextTick(() => {
-                    this.$refs.searchInput?.focus();
-                });
+                this.$nextTick(() => this.$refs.searchInput?.focus());
             }
         },
 
         close() {
-            this.open = false;
+            this.open  = false;
             this.query = "";
         },
     }));
 });
 
+// ─── Alpine Component: searchSelect ──────────────────────────────────────────
 document.addEventListener("alpine:init", () => {
     Alpine.data("searchSelect", (config = {}) => ({
-        isOpen: false,
-        query: "",
-        value: config.value ?? null,
-        placeholder: config.placeholder ?? "Pilih...",
+        isOpen:            false,
+        query:             "",
+        value:             config.value             ?? null,
+        placeholder:       config.placeholder       ?? "Pilih...",
         searchPlaceholder: config.searchPlaceholder ?? "Cari...",
-        items: config.options ?? [],
-        getOptions: config.getOptions ?? null,
+        items:             config.options            ?? [],
+        getOptions:        config.getOptions         ?? null,
 
         init() {
             this.$watch("isOpen", (open) => {
-                if (open) {
-                    this.$nextTick(() => {
-                        this.$refs.search?.focus();
-                    });
-                }
+                if (open) this.$nextTick(() => this.$refs.search?.focus());
             });
         },
 
@@ -843,58 +842,43 @@ document.addEventListener("alpine:init", () => {
                 const result = this.getOptions();
                 return Array.isArray(result) ? result : [];
             }
-
             return Array.isArray(this.items) ? this.items : [];
         },
 
         filteredOptions() {
-            const q = this.query.toLowerCase().trim();
+            const q    = this.query.toLowerCase().trim();
             const opts = this.options();
-
             if (!q) return opts;
-
             return opts.filter(
                 (opt) =>
-                    String(opt.label ?? "")
-                        .toLowerCase()
-                        .includes(q) ||
-                    String(opt.name ?? "")
-                        .toLowerCase()
-                        .includes(q) ||
-                    String(opt.alias ?? "")
-                        .toLowerCase()
-                        .includes(q) ||
-                    String(opt.statusLabel ?? "")
-                        .toLowerCase()
-                        .includes(q),
+                    String(opt.label       ?? "").toLowerCase().includes(q) ||
+                    String(opt.name        ?? "").toLowerCase().includes(q) ||
+                    String(opt.alias       ?? "").toLowerCase().includes(q) ||
+                    String(opt.statusLabel ?? "").toLowerCase().includes(q),
             );
         },
 
         selectedOption() {
-            return (
-                this.options().find(
-                    (opt) => String(opt.value) === String(this.value),
-                ) || null
-            );
+            return this.options().find(
+                (opt) => String(opt.value) === String(this.value),
+            ) || null;
         },
 
         selectedLabel() {
             return this.selectedOption()?.label ?? this.placeholder;
         },
 
-        toggle() {
-            this.isOpen = !this.isOpen;
-        },
+        toggle() { this.isOpen = !this.isOpen; },
 
         close() {
             this.isOpen = false;
-            this.query = "";
+            this.query  = "";
         },
 
         select(val) {
-            this.value = val;
+            this.value  = val;
             this.isOpen = false;
-            this.query = "";
+            this.query  = "";
         },
     }));
 });
