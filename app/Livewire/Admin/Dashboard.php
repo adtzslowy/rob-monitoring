@@ -72,11 +72,11 @@ class Dashboard extends Component
         $setting = DashSetting::query()->firstOrCreate(
             ["user_id" => auth()->id()],
             [
-                "theme" => "dark",
+                "theme"              => "dark",
                 "selected_device_id" => null,
-                "selected_sensor" => "ketinggian_air",
+                "selected_sensor"    => "ketinggian_air",
                 "selected_time_range" => "5m",
-                "visible_sensors" => json_encode([
+                "visible_sensors"    => json_encode([
                     "suhu",
                     "kelembapan",
                     "tekanan_udara",
@@ -88,20 +88,18 @@ class Dashboard extends Component
         );
 
         $this->devices = $this->loadAllowedDevices($setting);
-        $this->theme = $setting->theme ?? "dark";
+        $this->theme   = $setting->theme ?? "dark";
 
         if (empty($this->devices)) {
             return;
         }
 
         $requestedDeviceId = (int) ($setting->selected_device_id ?? $this->devices[0]["id"]);
-        $resolvedDeviceId = $this->resolveAllowedDeviceId($requestedDeviceId);
+        $resolvedDeviceId  = $this->resolveAllowedDeviceId($requestedDeviceId);
         $this->selectedDeviceId = $resolvedDeviceId;
 
         if ((int) ($setting->selected_device_id ?? 0) !== $resolvedDeviceId) {
-            $setting->update([
-                "selected_device_id" => $resolvedDeviceId,
-            ]);
+            $setting->update(["selected_device_id" => $resolvedDeviceId]);
         }
 
         $this->chartMetric = array_key_exists($setting->selected_sensor, $this->metricLabels)
@@ -144,8 +142,8 @@ class Dashboard extends Component
                 ->orderBy("id")
                 ->get(["id", "name", "alias"])
                 ->map(fn($d) => [
-                    "id" => (int) $d->id,
-                    "name" => $d->name ?? ("ROB " . $d->id),
+                    "id"    => (int) $d->id,
+                    "name"  => $d->name ?? ("ROB " . $d->id),
                     "alias" => $d->alias ?? null,
                     "label" => $d->alias ?: ($d->name ?? ("ROB " . $d->id)),
                 ])
@@ -157,8 +155,8 @@ class Dashboard extends Component
             ->get(["devices.id", "devices.name", "devices.alias"]);
 
         $list = $owned?->map(fn($d) => [
-            "id" => (int) $d->id,
-            "name" => $d->name ?? ("ROB " . $d->id),
+            "id"    => (int) $d->id,
+            "name"  => $d->name ?? ("ROB " . $d->id),
             "alias" => $d->alias ?? null,
             "label" => $d->alias ?: ($d->name ?? ("ROB " . $d->id)),
         ])->toArray() ?? [];
@@ -166,9 +164,7 @@ class Dashboard extends Component
         if (!empty($list) && empty($setting->selected_device_id)) {
             DashSetting::query()
                 ->where("user_id", auth()->id())
-                ->update([
-                    "selected_device_id" => (int) $list[0]["id"],
-                ]);
+                ->update(["selected_device_id" => (int) $list[0]["id"]]);
         }
 
         return $list;
@@ -214,23 +210,22 @@ class Dashboard extends Component
         $out = [];
 
         foreach ($ids as $id) {
-            $r = $rows->get($id);
+            $r      = $rows->get($id);
             $status = $r?->status;
-            $last = $r?->last_seen;
-
+            $last   = $r?->last_seen;
             $online = false;
 
             if ($status === "online") {
                 $online = true;
             } elseif ($last) {
                 $diffSec = $now->diffInSeconds(Carbon::parse($last, "UTC"), false);
-                $online = abs($diffSec) <= 120;
+                $online  = abs($diffSec) <= 120;
             }
 
             $out[$id] = [
                 "online" => (bool) $online,
                 "status" => $status,
-                "last" => $last,
+                "last"   => $last,
             ];
         }
 
@@ -272,9 +267,8 @@ class Dashboard extends Component
         $this->refreshDeviceStatus();
         $this->dispatchMainChart();
 
-        if ($this->modalOpen) {
-            $this->dispatchMetricChart();
-        }
+        // FIX: jangan dispatch metric chart di sini kalau modal buka,
+        // biarkan pollMetric yang handle supaya tidak dobel
     }
 
     public function updatedChartMetric(): void
@@ -341,11 +335,11 @@ class Dashboard extends Component
         DashSetting::query()->updateOrCreate(
             ["user_id" => auth()->id()],
             [
-                "theme" => $this->theme,
+                "theme"              => $this->theme,
                 "selected_device_id" => $this->selectedDeviceId,
-                "selected_sensor" => $this->chartMetric,
+                "selected_sensor"    => $this->chartMetric,
                 "selected_time_range" => $this->selectedTimeRange,
-                "visible_sensors" => json_encode(array_values($this->visibleSensors)),
+                "visible_sensors"    => json_encode(array_values($this->visibleSensors)),
             ]
         );
     }
@@ -364,15 +358,15 @@ class Dashboard extends Component
             ->first();
 
         if (!$latest) {
-            $this->data = [];
-            $this->risk = "AMAN";
+            $this->data      = [];
+            $this->risk      = "AMAN";
             $this->riskScore = 0;
 
             $this->dispatch(
                 "dashboard-updated",
-                data: $this->data,
-                risk: $this->risk,
-                riskScore: $this->riskScore,
+                data:       $this->data,
+                risk:       $this->risk,
+                riskScore:  $this->riskScore,
                 riskStyles: $this->riskStyles,
             );
 
@@ -380,35 +374,32 @@ class Dashboard extends Component
         }
 
         $this->data = [
-            "project" => $latest->project ?? "ROB Monitoring",
-            "timestamp" => $latest->timestamp,
-            "suhu" => $latest->suhu,
-            "tekanan_udara" => $latest->tekanan_udara,
-            "kelembapan" => $latest->kelembapan,
+            "project"        => $latest->project ?? "ROB Monitoring",
+            "timestamp"      => $latest->timestamp,
+            "suhu"           => $latest->suhu,
+            "tekanan_udara"  => $latest->tekanan_udara,
+            "kelembapan"     => $latest->kelembapan,
             "ketinggian_air" => $latest->ketinggian_air,
-            "arah_angin" => $latest->arah_angin,
+            "arah_angin"     => $latest->arah_angin,
             "kecepatan_angin" => $latest->kecepatan_angin,
             "arah_angin_label" => $this->getWindDirectionLabel($latest->arah_angin),
         ];
 
         $previousRisk = $this->risk;
-
         $this->calculateRisk();
-
-        // Kirim notifikasi Telegram jika status berubah ke SIAGA atau BAHAYA
         $this->handleTelegramNotification($previousRisk, $this->risk);
 
         $this->dispatch(
             "dashboard-updated",
-            data: $this->data,
-            risk: $this->risk,
-            riskScore: $this->riskScore,
-            riskStyles: $this->riskStyles
+            data:       $this->data,
+            risk:       $this->risk,
+            riskScore:  $this->riskScore,
+            riskStyles: $this->riskStyles,
         );
 
-        if ($this->modalOpen) {
-            $this->dispatchMetricChart();
-        }
+        // FIX: hapus dispatchMetricChart() dari sini.
+        // pollMetric() sudah handle update chart saat modal buka.
+        // Memanggil di sini menyebabkan dobel dispatch → AbortError.
     }
 
     /**
@@ -417,26 +408,23 @@ class Dashboard extends Component
      */
     private function handleTelegramNotification(string $previousRisk, string $currentRisk): void
     {
-        // Hanya kirim jika status berubah
         if ($previousRisk === $currentRisk) {
             return;
         }
 
-        // Hanya kirim jika status baru adalah WASPADA, SIAGA, atau BAHAYA
         $alertStatuses = ['WASPADA', 'SIAGA', 'BAHAYA'];
         if (!in_array($currentRisk, $alertStatuses, true)) {
             return;
         }
 
-        $deviceId   = $this->selectedDeviceId;
-        $cacheKey   = "telegram_notif_{$deviceId}_{$currentRisk}";
+        $deviceId = $this->selectedDeviceId;
+        $cacheKey = "telegram_notif_{$deviceId}_{$currentRisk}";
 
-        // Cooldown 10 menit per device per status — hindari spam
+        // Cooldown 10 menit per device per status
         if (Cache::has($cacheKey)) {
             return;
         }
 
-        // Ambil semua setting notifikasi user yang punya device ini
         $settings = Notification::query()
             ->where('notifikasi_aktif', true)
             ->where('telegram_chat_id', '!=', null)
@@ -456,27 +444,32 @@ class Dashboard extends Component
 
         foreach ($settings as $setting) {
             $telegram->statusAlert(
-                chatId: $setting->telegram_chat_id,
-                status: $currentRisk,
+                chatId:     $setting->telegram_chat_id,
+                status:     $currentRisk,
                 deviceName: $deviceName,
                 sensorData: [
-                    'ketinggian_air'  => $this->data['ketinggian_air'] ?? null,
-                    'suhu'            => $this->data['suhu'] ?? null,
-                    'kelembapan'      => $this->data['kelembapan'] ?? null,
-                    'tekanan_udara'   => $this->data['tekanan_udara'] ?? null,
+                    'ketinggian_air'  => $this->data['ketinggian_air']  ?? null,
+                    'suhu'            => $this->data['suhu']            ?? null,
+                    'kelembapan'      => $this->data['kelembapan']      ?? null,
+                    'tekanan_udara'   => $this->data['tekanan_udara']   ?? null,
                     'kecepatan_angin' => $this->data['kecepatan_angin'] ?? null,
-                    'arah_angin'      => $this->data['arah_angin'] ?? null,
+                    'arah_angin'      => $this->data['arah_angin']      ?? null,
                 ],
             );
         }
 
-        // Set cooldown 10 menit
         Cache::put($cacheKey, true, now()->addMinutes(10));
     }
 
     public function refreshMainChart(): void
     {
         if (!$this->selectedDeviceId) {
+            return;
+        }
+
+        // FIX: jangan refresh main chart saat modal buka supaya tidak
+        // compete dengan pollMetric dan menyebabkan AbortError
+        if ($this->modalOpen) {
             return;
         }
 
@@ -535,24 +528,18 @@ class Dashboard extends Component
             ? $this->chartMetric
             : "ketinggian_air";
 
-        $base = SensorReading::query()
-            ->where("device_id", $this->selectedDeviceId);
-
+        $base  = SensorReading::query()->where("device_id", $this->selectedDeviceId);
         $query = $this->applyTimeRangeUtc(clone $base, $this->selectedTimeRange);
-        $take = $this->takePointsForRange($this->selectedTimeRange);
+        $take  = $this->takePointsForRange($this->selectedTimeRange);
 
-        $records = $query->latest("timestamp")
-            ->take($take)
-            ->get(["timestamp", $metric]);
+        $records = $query->latest("timestamp")->take($take)->get(["timestamp", $metric]);
 
         if ($records->count() === 0) {
-            $records = $base->latest("timestamp")
-                ->take(120)
-                ->get(["timestamp", $metric]);
+            $records = $base->latest("timestamp")->take(120)->get(["timestamp", $metric]);
         }
 
         $records = $records->reverse()->values();
-        $tz = config("app.timezone", "Asia/Jakarta");
+        $tz      = config("app.timezone", "Asia/Jakarta");
 
         $labels = $records->pluck("timestamp")
             ->map(fn($t) => Carbon::parse($t, "UTC")->setTimezone($tz)->format("d M H:i"))
@@ -566,7 +553,7 @@ class Dashboard extends Component
             "refreshChart",
             labels: $labels,
             values: $values,
-            title: $this->metricLabels[$metric] ?? $metric,
+            title:  $this->metricLabels[$metric] ?? $metric,
             metric: $metric,
         );
     }
@@ -574,39 +561,23 @@ class Dashboard extends Component
     private function calculateRisk(): void
     {
         $result = app(FuzzyRiskServices::class)->evaluate([
-            "ketinggian_air" => (float) ($this->data["ketinggian_air"] ?? 0),
-            "tekanan_udara" => (float) ($this->data["tekanan_udara"] ?? 0),
+            "ketinggian_air"  => (float) ($this->data["ketinggian_air"]  ?? 0),
+            "tekanan_udara"   => (float) ($this->data["tekanan_udara"]   ?? 0),
             "kecepatan_angin" => (float) ($this->data["kecepatan_angin"] ?? 0),
-            "arah_angin" => (float) ($this->data["arah_angin"] ?? 0),
+            "arah_angin"      => (float) ($this->data["arah_angin"]      ?? 0),
         ]);
 
         $this->riskScore = $result["score"];
-        $this->risk = $result["label"];
+        $this->risk      = $result["label"];
     }
 
     public function getRiskStylesProperty(): array
     {
         return match ($this->risk) {
-            "BAHAYA" => [
-                "bg" => "bg-red-500/10",
-                "border" => "border-red-500/30",
-                "text" => "text-red-500",
-            ],
-            "SIAGA" => [
-                "bg" => "bg-yellow-500/10",
-                "border" => "border-yellow-500/30",
-                "text" => "text-yellow-600",
-            ],
-            "WASPADA" => [
-                "bg" => "bg-orange-500/10",
-                "border" => "border-orange-500/30",
-                "text" => "text-orange-600",
-            ],
-            default => [
-                "bg" => "bg-emerald-500/10",
-                "border" => "border-emerald-500/30",
-                "text" => "text-emerald-600",
-            ],
+            "BAHAYA"  => ["bg" => "bg-red-500/10",     "border" => "border-red-500/30",     "text" => "text-red-500"],
+            "SIAGA"   => ["bg" => "bg-yellow-500/10",  "border" => "border-yellow-500/30",  "text" => "text-yellow-600"],
+            "WASPADA" => ["bg" => "bg-orange-500/10",  "border" => "border-orange-500/30",  "text" => "text-orange-600"],
+            default   => ["bg" => "bg-emerald-500/10", "border" => "border-emerald-500/30", "text" => "text-emerald-600"],
         };
     }
 
@@ -617,7 +588,7 @@ class Dashboard extends Component
         }
 
         $dirs = ["Utara", "Timur Laut", "Timur", "Tenggara", "Selatan", "Barat Daya", "Barat", "Barat Laut"];
-        $idx = (int) floor(((float) $degree + 22.5) / 45) % 8;
+        $idx  = (int) floor(((float) $degree + 22.5) / 45) % 8;
 
         return $dirs[$idx];
     }
@@ -628,21 +599,28 @@ class Dashboard extends Component
             return;
         }
 
-        $this->selectedMetric = $metric;
-        $this->modalOpen = true;
-        $this->modalTimeRange = $this->selectedTimeRange ?: "5m";
+        $this->selectedMetric  = $metric;
+        $this->modalOpen       = true;
+        $this->modalTimeRange  = $this->selectedTimeRange ?: "5m";
 
+        // FIX: dispatch event ke Alpine supaya flushMetricChartPending dipanggil
+        // setelah x-show render canvas, baru dispatch chart data
+        $this->dispatch("modal-opened");
         $this->dispatchMetricChart();
     }
 
     public function closeModal(): void
     {
         $this->modalOpen = false;
+
+        // FIX: tidak perlu destroy chart karena canvas tetap ada (x-show).
+        // Cukup reset pending supaya tidak ada chart lama yang ter-flush saat modal dibuka lagi.
         $this->dispatch("destroyModalChart");
     }
 
     public function pollMetric(): void
     {
+        // FIX: guard ketat — hanya jalan kalau modal benar-benar terbuka
         if (!$this->modalOpen) {
             return;
         }
@@ -662,24 +640,18 @@ class Dashboard extends Component
             ? $this->selectedMetric
             : "ketinggian_air";
 
-        $base = SensorReading::query()
-            ->where("device_id", $this->selectedDeviceId);
-
+        $base  = SensorReading::query()->where("device_id", $this->selectedDeviceId);
         $query = $this->applyTimeRangeUtc(clone $base, $this->modalTimeRange);
-        $take = $this->takePointsForRange($this->modalTimeRange);
+        $take  = $this->takePointsForRange($this->modalTimeRange);
 
-        $rows = $query->latest("timestamp")
-            ->take($take)
-            ->get(["timestamp", $metric]);
+        $rows = $query->latest("timestamp")->take($take)->get(["timestamp", $metric]);
 
         if ($rows->count() === 0) {
-            $rows = $base->latest("timestamp")
-                ->take(120)
-                ->get(["timestamp", $metric]);
+            $rows = $base->latest("timestamp")->take(120)->get(["timestamp", $metric]);
         }
 
         $rows = $rows->reverse()->values();
-        $tz = config("app.timezone", "Asia/Jakarta");
+        $tz   = config("app.timezone", "Asia/Jakarta");
 
         $labels = $rows->map(
             fn($r) => Carbon::parse($r->timestamp, "UTC")->setTimezone($tz)->format("d M H:i")
@@ -691,10 +663,10 @@ class Dashboard extends Component
 
         $this->dispatch(
             "modalChart",
-            title: $this->metricLabels[$metric] ?? $metric,
+            title:  $this->metricLabels[$metric] ?? $metric,
             labels: $labels,
             values: $values,
-            metric: $metric
+            metric: $metric,
         );
     }
 
