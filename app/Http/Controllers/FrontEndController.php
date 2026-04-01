@@ -20,4 +20,14 @@ class FrontEndController extends Controller
     {
         return view('landing.peta-alat');
     }
+
+    public function analitic()
+    {
+        return view('landing.analisis');
+    }
+
+    public function contact()
+    {
+        return view('landing.contact');
+    }
 }
