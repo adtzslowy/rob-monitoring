@@ -1,1070 +1,311 @@
 import { Chart } from "chart.js/auto";
 import L from "leaflet";
-import './preload';
+import "./preload";
 
 window.Chart = Chart;
 
+// =========================
+// GLOBAL CLEANUP
+// =========================
+function cleanupGlobalCharts() {
+    if (window.__robMainChart) {
+        try { window.__robMainChart.destroy(); } catch (_) {}
+        window.__robMainChart = null;
+    }
+
+    if (window.__robMetricChart) {
+        try { window.__robMetricChart.destroy(); } catch (_) {}
+        window.__robMetricChart = null;
+    }
+}
+
+document.addEventListener("livewire:navigated", cleanupGlobalCharts);
+window.addEventListener("beforeunload", cleanupGlobalCharts);
+
+// =========================
+// COLORS
+// =========================
 const SENSOR_COLORS = {
-    suhu: {
-        border: "#fb923c",
-        bg: "rgba(251,146,60,0.18)",
-    },
-
-    kelembapan: {
-        border: "#22d3ee",
-        bg: "rgba(43,211,238,0.18)",
-    },
-
-    tekanan_udara: {
-        border: "#34d399",
-        bg: "rgba(52,211,153,0.18)",
-    },
-
-    kecepatan_angin: {
-        border: "#fbbf24",
-        bg: "rgba(251,191,36,0.18)",
-    },
-
-    arah_angin: {
-        border: "#a78bfa",
-        bg: "rgba(167,139,250,0.18)",
-    },
-
-    ketinggian_air: {
-        border: "#38bdf8",
-        bg: "rgba(56,189,248,0.18)",
-    },
+    suhu:            { border: "#fb923c", bg: "rgba(251,146,60,0.18)"  },
+    kelembapan:      { border: "#22d3ee", bg: "rgba(43,211,238,0.18)"  },
+    tekanan_udara:   { border: "#34d399", bg: "rgba(52,211,153,0.18)"  },
+    kecepatan_angin: { border: "#fbbf24", bg: "rgba(251,191,36,0.18)"  },
+    arah_angin:      { border: "#a78bfa", bg: "rgba(167,139,250,0.18)" },
+    ketinggian_air:  { border: "#38bdf8", bg: "rgba(56,189,248,0.18)"  },
 };
 
-const leafletFromNpm = L;
-
-function loadScriptOnce(src) {
-    return new Promise((resolve, reject) => {
-        if ([...document.scripts].some((s) => s.src === src)) {
-            resolve();
-            return;
-        }
-        const script = document.createElement("script");
-        script.src = src;
-        script.async = true;
-        script.onload = resolve;
-        script.onerror = () => reject(new Error("Failed to load " + src));
-        document.head.appendChild(script);
-    });
-}
-
-document.addEventListener("DOMContentLoaded", () => {
-    const password = document.getElementById("password");
-    const toggle = document.getElementById("togglePassword");
-    const eyeOpen = document.getElementById("eyeOpen");
-    const eyeClose = document.getElementById("eyeSlash");
-
-    if (password && toggle) {
-        toggle.addEventListener("click", () => {
-            const isHidden = password.type === "password";
-            password.type = isHidden ? "text" : "password";
-
-            if (eyeOpen && eyeClose) {
-                eyeOpen.classList.toggle("hidden", isHidden);
-                eyeClose.classList.toggle("hidden", !isHidden);
-            }
-
-            toggle.setAttribute(
-                "aria-label",
-                isHidden ? "Sembunyikan password" : "Tampilkan password",
-            );
-        });
-    }
-
-    const password2 = document.getElementById("password_confirmation");
-    const toggle2   = document.getElementById("togglePassword2");
-    const eyeOpen2  = document.getElementById("eyeOpen2");
-    const eyeClose2 = document.getElementById("eyeSlash2");
-
-    if (password2 && toggle2) {
-        toggle2.addEventListener("click", () => {
-            const isHidden = password2.type === "password";
-            password2.type = isHidden ? "text" : "password";
-            if (eyeOpen2 && eyeClose2) {
-                eyeOpen2.classList.toggle("hidden", isHidden);
-                eyeClose2.classList.toggle("hidden", !isHidden);
-            }
-        });
-    }
-});
-
 // =========================
-// Chart globals
+// CHART GLOBAL STATE
 // =========================
-window.__robMainChart = window.__robMainChart || null;
-window.__robMetricChart = window.__robMetricChart || null;
-window.__robChartPending = window.__robChartPending || null;
-window.__robMetricPending = window.__robMetricPending || null;
-
-function normalizePayload(payload) {
-    if (!payload) return {};
-    if (payload.labels) return payload;
-    if (payload[0]?.labels) return payload[0];
-    if (payload?.detail?.labels) return payload.detail;
-    return payload;
-}
+window.__robMainChart   = null;
+window.__robMetricChart = null;
 
 function applyChartPayload(payload) {
     const chart = window.__robMainChart;
-    const p = normalizePayload(payload);
+    if (!chart) return;
 
-    if (!chart) {
-        window.__robChartPending = p;
-        return;
-    }
+    const labels = payload.labels ?? [];
+    const values = payload.values ?? [];
+    const metric = payload.metric || "ketinggian_air";
+    const color  = SENSOR_COLORS[metric] ?? SENSOR_COLORS.ketinggian_air;
 
-    const labels = p.labels ?? [];
-    const values = p.values ?? [];
-    const title = p.title ?? "Water Level";
-    const metric = p.metric || "ketinggian_air";
-    const color = SENSOR_COLORS[metric] || SENSOR_COLORS.ketinggian_air;
-
-    chart.data.labels = labels;
-
-    if (!chart.data.datasets.length) {
-        chart.data.datasets = [
-            {
-                label: title,
-                data: [],
-                tension: 0.4,
-                fill: true,
-                borderWidth: 2,
-                borderColor: color.border,
-                backgroundColor: color.bg,
-                pointRadius: 3,
-                pointHoverRadius: 4,
-                pointBackgroundColor: color.border,
-                pointBorderColor: color.border,
-                pointHoverBackgroundColor: color.border,
-                pointHoverBorderColor: color.border,
-            },
-        ];
-    }
-
-    const ds = chart.data.datasets[0];
-    ds.label = title;
-    ds.data = values;
-    ds.borderColor = color.border;
-    ds.backgroundColor = color.bg;
-    ds.pointRadius = 3;
-    ds.pointHoverRadius = 4;
-    ds.pointBackgroundColor = color.border;
-    ds.pointBorderColor = color.border;
-    ds.pointHoverBackgroundColor = color.border;
-    ds.pointHoverBorderColor = color.border;
+    chart.data.labels                       = labels;
+    chart.data.datasets[0].data            = values;
+    chart.data.datasets[0].borderColor     = color.border;
+    chart.data.datasets[0].backgroundColor = color.bg;
 
     chart.update("none");
 }
 
-window.addEventListener("refreshChart", (e) =>
-    applyChartPayload(e.detail || {}),
-);
-
-function flushMetricChartPending() {
-    if (!window.__robMetricPending) return;
-
-    const payload = window.__robMetricPending;
-    window.__robMetricPending = null;
-
-    requestAnimationFrame(() => {
-        requestAnimationFrame(() => {
-            renderMetricChart(payload);
-            window.__robMetricChart?.resize();
-        });
-    });
-}
-
+// =========================
+// METRIC CHART (modal)
+// =========================
 function renderMetricChart(payload) {
     const canvas = document.getElementById("metricChart");
+    if (!canvas) return;
 
-    if (!canvas) {
-        window.__robMetricPending = payload;
-        return;
-    }
-
-    const p = normalizePayload(payload);
-    const labels = p.labels ?? [];
-    const values = p.values ?? [];
-    const title = p.title ?? "Metric";
-    const metric = p.metric || "ketinggian_air";
-    const color = SENSOR_COLORS[metric] || SENSOR_COLORS.ketinggian_air;
-
-    // Destroy dulu kalau sudah ada
     if (window.__robMetricChart) {
-        window.__robMetricChart.destroy();
+        try { window.__robMetricChart.destroy(); } catch (_) {}
         window.__robMetricChart = null;
     }
+
+    const metric = payload.metric || "ketinggian_air";
+    const color  = SENSOR_COLORS[metric] ?? SENSOR_COLORS.ketinggian_air;
 
     window.__robMetricChart = new Chart(canvas.getContext("2d"), {
         type: "line",
         data: {
-            labels,
-            datasets: [
-                {
-                    label: title,
-                    data: values,
-                    tension: 0.4,
-                    fill: true,
-                    borderWidth: 2,
-                    borderColor: color.border,
-                    backgroundColor: color.bg,
-                    pointRadius: 3,
-                    pointHoverRadius: 4,
-                    pointBackgroundColor: color.border,
-                    pointBorderColor: color.border,
-                    pointHoverBackgroundColor: color.border,
-                    pointHoverBorderColor: "#ffffff",
-                },
-            ],
+            labels: payload.labels ?? [],
+            datasets: [{
+                label:           payload.title ?? "Metric",
+                data:            payload.values ?? [],
+                tension:         0.4,
+                fill:            true,
+                borderWidth:     2,
+                borderColor:     color.border,
+                backgroundColor: color.bg,
+            }],
         },
         options: {
-            responsive: true,
+            responsive:          true,
             maintainAspectRatio: false,
-            animation: false,
-            plugins: {
-                legend: { display: false },
-            },
-            scales: {
-                x: {
-                    ticks: { maxTicksLimit: 8, font: { size: 11 } },
-                    grid: { color: "rgba(255,255,255,0.05)" },
-                },
-                y: {
-                    ticks: { font: { size: 11 } },
-                    grid: { color: "rgba(255,255,255,0.05)" },
-                },
-            },
+            animation:           false,
         },
     });
-
-    window.__robMetricCanvas = canvas;
 }
 
-window.flushMetricChartPending = flushMetricChartPending;
-window.addEventListener("modalChart", (e) => renderMetricChart(e.detail || {}));
-window.addEventListener("destroyModalChart", () => {
+// ✅ Named functions agar bisa di-removeEventListener
+function handleModalChart(e)       { renderMetricChart(e.detail || {}); }
+function handleDestroyModalChart() {
     if (window.__robMetricChart) {
-        window.__robMetricChart.destroy();
+        try { window.__robMetricChart.destroy(); } catch (_) {}
         window.__robMetricChart = null;
     }
+}
 
-    window.__robMetricCanvas = null;
-    window.__robMetricPending = null;
-});
+// ✅ Remove dulu sebelum add — cegah duplicate saat HMR / Livewire re-init
+window.removeEventListener("modalChart",        handleModalChart);
+window.removeEventListener("destroyModalChart", handleDestroyModalChart);
+window.addEventListener("modalChart",           handleModalChart);
+window.addEventListener("destroyModalChart",    handleDestroyModalChart);
 
 // =========================
-// Dashboard Alpine
+// ALPINE COMPONENTS
 // =========================
 document.addEventListener("alpine:init", () => {
-    Alpine.data("dashboard", (liveTheme) => ({
-        data: {},
-        theme: liveTheme ?? "dark",
 
-        risk: "AMAN",
-        riskStyles: {
-            bg: "bg-emerald-500/10",
-            border: "border-emerald-500/30",
-            text: "text-emerald-600",
-        },
-
-        // FIX: simpan referensi handler untuk cleanup
-        _dashHandler: null,
+    // ----------------------
+    // DASHBOARD CHART
+    // ----------------------
+    Alpine.data("dashboard", () => ({
+        _chartHandler: null,
 
         init() {
-            this.applyTheme(this.theme);
-
             this.$nextTick(() => {
                 const canvas = this.$refs.waterChart;
                 if (!canvas) return;
 
-                if (!window.__robMainChart) {
-                    window.__robMainChart = new Chart(canvas.getContext("2d"), {
-                        type: "line",
-                        data: {
-                            labels: [],
-                            datasets: [
-                                {
-                                    label: "Grafik Sensor",
-                                    data: [],
-                                    tension: 0.4,
-                                    fill: true,
-                                    borderWidth: 2,
-                                    pointRadius: 3,
-                                    pointHoverRadius: 4,
-                                    borderColor:
-                                        SENSOR_COLORS.ketinggian_air.border,
-                                    backgroundColor:
-                                        SENSOR_COLORS.ketinggian_air.bg,
-                                    pointBackgroundColor:
-                                        SENSOR_COLORS.ketinggian_air.border,
-                                    pointBorderColor:
-                                        SENSOR_COLORS.ketinggian_air.border,
-                                    pointHoverBackgroundColor:
-                                        SENSOR_COLORS.ketinggian_air.border,
-                                    pointHoverBorderColor: "#ffffff",
-                                },
-                            ],
-                        },
-                        options: {
-                            responsive: true,
-                            maintainAspectRatio: false,
-                            animation: false,
-                        },
-                    });
+                if (window.__robMainChart) {
+                    try { window.__robMainChart.destroy(); } catch (_) {}
+                    window.__robMainChart = null;
                 }
 
-                if (window.__robChartPending) {
-                    applyChartPayload(window.__robChartPending);
-                    window.__robChartPending = null;
-                }
-            });
+                window.__robMainChart = new Chart(canvas.getContext("2d"), {
+                    type: "line",
+                    data: {
+                        labels: [],
+                        datasets: [{
+                            label:           "Grafik Sensor",
+                            data:            [],
+                            tension:         0.4,
+                            fill:            true,
+                            borderWidth:     2,
+                            borderColor:     SENSOR_COLORS.ketinggian_air.border,
+                            backgroundColor: SENSOR_COLORS.ketinggian_air.bg,
+                        }],
+                    },
+                    options: {
+                        responsive:          true,
+                        maintainAspectRatio: false,
+                        animation:           false,
+                    },
+                });
 
-            // FIX: simpan referensi supaya bisa di-remove di destroy()
-            this._dashHandler = (e) => {
-                this.data = e.detail?.data || {};
-                this.risk = e.detail?.risk || "AMAN";
-                this.riskStyles = e.detail?.riskStyles || {
-                    bg: "bg-emerald-500/10",
-                    border: "border-emerald-500/30",
-                    text: "text-emerald-600",
-                };
-            };
-
-            window.addEventListener("dashboard-updated", this._dashHandler);
-
-            this.$watch("theme", (value) => {
-                this.applyTheme(value);
+                // ✅ Simpan reference agar bisa di-remove saat destroy
+                this._chartHandler = (e) => applyChartPayload(e.detail || {});
+                window.addEventListener("refreshChart", this._chartHandler);
             });
         },
 
-        // FIX: cleanup listener saat komponen destroy
         destroy() {
-            if (this._dashHandler) {
-                window.removeEventListener("dashboard-updated", this._dashHandler);
-                this._dashHandler = null;
+            if (this._chartHandler) {
+                window.removeEventListener("refreshChart", this._chartHandler);
+                this._chartHandler = null;
             }
-        },
-
-        applyTheme(theme) {
-            const nextTheme = theme === "light" ? "light" : "dark";
-            this.theme = nextTheme;
-            document.documentElement.classList.toggle(
-                "dark",
-                nextTheme === "dark",
-            );
-        },
-
-        toggleTheme() {
-            this.theme = this.theme === "dark" ? "light" : "dark";
+            cleanupGlobalCharts();
         },
     }));
-});
 
-// =========================
-// Windy Map
-// =========================
-document.addEventListener("alpine:init", () => {
+    // ----------------------
+    // WINDY MAP
+    // ----------------------
     Alpine.data("windyMapComponent", (cfg) => ({
-        key: cfg?.key || "",
-        lat: cfg?.lat ?? -6.2,
-        lon: cfg?.lon ?? 106.8,
-        zoom: cfg?.zoom ?? 9,
-        overlay: cfg?.overlay ?? "wind",
-        devices: cfg?.devices || [],
+        map:                null,
+        markersLayer:       null,
+        _resizeHandler:     null,
+        _visibilityHandler: null,
+        _intersectionObs:   null,
+        _windyReady:        false,
 
-        map: null,
-        markersLayer: null,
-        loading: true,
-        error: "",
-        _observer: null,
-        _vw: null,
-        _vh: null,
-        __resizeBound: false,
-
-        // FIX: simpan referensi resize handler
-        _resizeHandler: null,
-
-        async init() {
-            if (window.__windyMap) {
-                this.map = window.__windyMap;
-                this.markersLayer = window.__windyMarkers;
-                this._watchHidden();
-                this.renderMarkers(this.devices);
-                this.loading = false;
-                this._invalidateSoon();
-                this.fitToDevices(this.devices);
-                return;
-            }
-
-            await this.$nextTick();
-            await new Promise((r) =>
-                requestAnimationFrame(() => requestAnimationFrame(r)),
-            );
-
+        init() {
             const container = document.getElementById("windy");
-            if (!container) {
-                this.error = "Container #windy tidak ditemukan";
-                return;
-            }
+            if (!container) return;
 
-            try {
-                await loadScriptOnce(
-                    "https://api.windy.com/assets/map-forecast/libBoot.js",
-                );
-            } catch (e) {
-                this.error = "Gagal load libBoot.js. Cek koneksi internet.";
-                return;
-            }
-
-            const windyReady = await new Promise((resolve) => {
-                let tries = 0;
-                const iv = setInterval(() => {
-                    tries++;
-                    if (typeof window.windyInit === "function") {
-                        clearInterval(iv);
-                        resolve(true);
-                    } else if (tries > 100) {
-                        clearInterval(iv);
-                        resolve(false);
-                    }
-                }, 100);
-            });
-
-            if (!windyReady) {
-                this.error = "Windy API timeout. Cek API key atau koneksi.";
-                return;
-            }
-
-            const rect = container.getBoundingClientRect();
-            const parent = container.parentElement;
-            const prect = parent ? parent.getBoundingClientRect() : rect;
-
-            const vw =
-                (rect.width > 0 ? rect.width : prect.width) ||
-                window.innerWidth;
-            const vh =
-                (rect.height > 0 ? rect.height : prect.height) ||
-                window.innerHeight - 200;
-
-            this._vw = vw;
-            this._vh = vh;
-
-            container.style.width = vw + "px";
-            container.style.height = vh + "px";
-            container.style.display = "block";
-
-            await new Promise((r) =>
-                requestAnimationFrame(() => requestAnimationFrame(r)),
+            // ✅ Lazy init — hanya mulai load Windy saat section masuk viewport
+            // Ini mencegah Windy memakan memory saat user belum scroll ke peta
+            this._intersectionObs = new IntersectionObserver(
+                (entries) => {
+                    if (!entries[0].isIntersecting) return;
+                    this._intersectionObs.disconnect();
+                    this._intersectionObs = null;
+                    this._loadWindy(cfg);
+                },
+                { threshold: 0.1 }
             );
+
+            this._intersectionObs.observe(container);
+        },
+
+        async _loadWindy(cfg) {
+            // Tunggu 2 frame agar DOM benar-benar siap
+            await new Promise((r) =>
+                requestAnimationFrame(() => requestAnimationFrame(r))
+            );
+
+            // ✅ Jangan append script Windy kalau sudah ada di <head>
+            if (!document.querySelector('script[src*="libBoot.js"]')) {
+                await new Promise((resolve) => {
+                    const script   = document.createElement("script");
+                    script.src     = "https://api.windy.com/assets/map-forecast/libBoot.js";
+                    script.onload  = resolve;
+                    script.onerror = resolve; // jangan hang kalau gagal load
+                    document.head.appendChild(script);
+                });
+            } else {
+                // Script sudah ada, tunggu windyInit tersedia via polling
+                await new Promise((resolve) => {
+                    if (window.windyInit) return resolve();
+                    const check = setInterval(() => {
+                        if (window.windyInit) {
+                            clearInterval(check);
+                            resolve();
+                        }
+                    }, 50);
+                });
+            }
+
+            // ✅ Guard: jangan double-init kalau sudah ada map
+            if (this.map || !window.windyInit) return;
 
             window.windyInit(
                 {
-                    key: this.key,
-                    lat: this.lat,
-                    lon: this.lon,
-                    zoom: this.zoom,
-                    overlay: this.overlay,
-                    verbose: false,
+                    key:  cfg.key,
+                    lat:  cfg.lat,
+                    lon:  cfg.lon,
+                    zoom: cfg.zoom,
                 },
                 (windyAPI) => {
-                    this.map = windyAPI.map;
-                    window.__windyMap = this.map;
+                    this.map         = windyAPI.map;
+                    this._windyReady = true;
 
-                    const windyEl = document.getElementById("windy");
-                    if (windyEl) {
-                        windyEl.classList.remove("hidden", "free-model");
-                        windyEl.style.width = this._vw + "px";
-                        windyEl.style.height = this._vh + "px";
-                        windyEl.style.display = "block";
-                    }
-
-                    this._watchHidden(this._vw, this._vh);
-
-                    const LLeaflet = window.L;
+                    const LLeaflet    = window.L;
                     this.markersLayer = LLeaflet.layerGroup().addTo(this.map);
-                    window.__windyMarkers = this.markersLayer;
 
-                    this.renderMarkers(this.devices);
-                    this.loading = false;
+                    // ✅ Resize handler
+                    this._resizeHandler = () => this.map?.invalidateSize();
+                    window.addEventListener("resize", this._resizeHandler);
 
-                    this._bindResize();
-                    this._invalidateSoon();
-                    this.fitToDevices(this.devices);
-                },
+                    // ✅ Kurangi activity Windy saat tab tidak aktif
+                    // Windy tidak punya pause API resmi, tapi kita bisa
+                    // lepas resize listener saat hidden dan pasang kembali saat visible
+                    this._visibilityHandler = () => {
+                        if (!this.map) return;
+                        if (document.hidden) {
+                            window.removeEventListener("resize", this._resizeHandler);
+                        } else {
+                            window.addEventListener("resize", this._resizeHandler);
+                            this.map.invalidateSize();
+                        }
+                    };
+                    document.addEventListener("visibilitychange", this._visibilityHandler);
+                }
             );
         },
 
-        // FIX: cleanup semua listener dan observer saat destroy
         destroy() {
-            if (this._observer) {
-                this._observer.disconnect();
-                this._observer = null;
+            // ✅ Stop IntersectionObserver kalau user navigate sebelum scroll ke peta
+            if (this._intersectionObs) {
+                this._intersectionObs.disconnect();
+                this._intersectionObs = null;
             }
 
+            // ✅ Remove semua event listener
             if (this._resizeHandler) {
                 window.removeEventListener("resize", this._resizeHandler);
                 this._resizeHandler = null;
             }
-        },
 
-        fitToDevices(devices) {
-            if (!this.map) return;
-
-            const LLeaflet = window.L;
-            const pts = (devices || [])
-                .map((d) => [parseFloat(d.lat), parseFloat(d.lng)])
-                .filter(
-                    ([lat, lng]) =>
-                        Number.isFinite(lat) && Number.isFinite(lng),
-                );
-
-            if (!pts.length) return;
-
-            const doFit = () => {
-                try {
-                    const b = LLeaflet.latLngBounds(pts);
-
-                    if (pts.length === 1) {
-                        this.map.setView(pts[0], 13, { animate: false });
-                        return;
-                    }
-
-                    this.map.fitBounds(b, {
-                        padding: [50, 50],
-                        animate: false,
-                    });
-                } catch (e) {
-                    setTimeout(() => {
-                        try {
-                            const b = LLeaflet.latLngBounds(pts);
-                            this.map.fitBounds(b, {
-                                padding: [50, 50],
-                                animate: false,
-                            });
-                        } catch (_) {}
-                    }, 150);
-                }
-            };
-
-            try {
-                this.map.invalidateSize(true);
-            } catch (_) {}
-
-            requestAnimationFrame(() => requestAnimationFrame(doFit));
-        },
-
-        _invalidateSoon() {
-            [0, 100, 300, 600].forEach((ms) => {
-                setTimeout(() => {
-                    try {
-                        this.map?.invalidateSize(true);
-                    } catch (_) {}
-                }, ms);
-            });
-        },
-
-        _bindResize() {
-            if (this.__resizeBound) return;
-            this.__resizeBound = true;
-
-            // FIX: simpan handler ke property supaya bisa di-remove
-            this._resizeHandler = () => {
-                const el = document.getElementById("windy");
-                if (!el) return;
-
-                const rect = el.getBoundingClientRect();
-                if (rect.width > 0 && rect.height > 0) {
-                    this._vw = rect.width;
-                    this._vh = rect.height;
-                    el.style.width = rect.width + "px";
-                    el.style.height = rect.height + "px";
-                }
-
-                this._invalidateSoon();
-            };
-
-            window.addEventListener("resize", this._resizeHandler);
-            setTimeout(this._resizeHandler, 50);
-        },
-
-        _watchHidden(vw, vh) {
-            const windyEl = document.getElementById("windy");
-            if (!windyEl || this._observer) return;
-
-            this._observer = new MutationObserver(() => {
-                const el = document.getElementById("windy");
-                if (!el) return;
-
-                if (
-                    el.classList.contains("hidden") ||
-                    el.style.display === "none"
-                ) {
-                    el.classList.remove("hidden", "free-model");
-                    el.style.removeProperty("display");
-                }
-
-                const w = vw ?? this._vw;
-                const h = vh ?? this._vh;
-
-                if (w && h) {
-                    el.style.width = w + "px";
-                    el.style.height = h + "px";
-                }
-
-                this._invalidateSoon();
-            });
-
-            this._observer.observe(windyEl, {
-                attributes: true,
-                attributeFilter: ["class", "style"],
-            });
-        },
-
-        onRenderMarkers(event) {
-            const devices = event?.detail?.devices || [];
-            this.devices = devices;
-            this.renderMarkers(devices);
-            this._invalidateSoon();
-            this.fitToDevices(devices);
-        },
-
-        renderMarkers(devices) {
-            if (!this.map || !this.markersLayer) return;
-
-            this.markersLayer.clearLayers();
-            const LLeaflet = window.L;
-            const bounds = [];
-
-            (devices || []).forEach((d) => {
-                const lat = parseFloat(d.lat);
-                const lng = parseFloat(d.lng);
-                if (!Number.isFinite(lat) || !Number.isFinite(lng)) return;
-
-                bounds.push([lat, lng]);
-
-                const isOnline =
-                    (d.status || "offline").toLowerCase() === "online";
-                const risiko = d.status_risiko ?? "UNKNOWN";
-
-                const risikoColor =
-                    {
-                        AMAN: "#22c55e",
-                        WASPADA: "#f59e0b",
-                        SIAGA: "#f97316",
-                        BAHAYA: "#ef4444",
-                        UNKNOWN: "#94a3b8",
-                    }[risiko] ?? "#94a3b8";
-
-                const risikoBg =
-                    {
-                        AMAN: "#f0fdf4",
-                        WASPADA: "#fefce8",
-                        SIAGA: "#fff7ed",
-                        BAHAYA: "#fef2f2",
-                        UNKNOWN: "#f8fafc",
-                    }[risiko] ?? "#f8fafc";
-
-                const icon = LLeaflet.divIcon({
-                    className: "",
-                    html: `
-                <div style="
-                    width:38px;height:38px;
-                    background:${risikoColor};
-                    border:3px solid white;
-                    border-radius:50%;
-                    box-shadow:0 2px 12px rgba(0,0,0,0.25);
-                    display:flex;align-items:center;justify-content:center;">
-                    <svg width="16" height="16" fill="white" viewBox="0 0 24 24">
-                        <path d="M12 2C8.13 2 5 5.13 5 9c0 5.25 7 13 7 13s7-7.75 7-13c0-3.87-3.13-7-7-7zm0 9.5c-1.38 0-2.5-1.12-2.5-2.5s1.12-2.5 2.5-2.5 2.5 1.12 2.5 2.5-1.12 2.5-2.5 2.5z"/>
-                    </svg>
-                </div>`,
-                    iconSize: [38, 38],
-                    iconAnchor: [19, 38],
-                    popupAnchor: [0, -42],
-                });
-
-                const marker = LLeaflet.marker([lat, lng], { icon }).addTo(
-                    this.markersLayer,
-                );
-
-                const s = d.sensor;
-                const sensorHtml = s
-                    ? `
-            <div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:6px;margin-top:10px;">
-                <div style="background:#f0f9ff;border-radius:10px;padding:8px;text-align:center;">
-                    <div style="font-size:9px;color:#0284c7;font-weight:600;text-transform:uppercase;letter-spacing:0.05em;">Ketinggian</div>
-                    <div style="font-size:16px;font-weight:800;color:#0f172a;margin-top:2px;">${s.ketinggian_air ?? "-"}</div>
-                    <div style="font-size:9px;color:#94a3b8;">cm</div>
-                </div>
-                <div style="background:#fff7ed;border-radius:10px;padding:8px;text-align:center;">
-                    <div style="font-size:9px;color:#ea580c;font-weight:600;text-transform:uppercase;letter-spacing:0.05em;">Suhu</div>
-                    <div style="font-size:16px;font-weight:800;color:#0f172a;margin-top:2px;">${s.suhu ?? "-"}</div>
-                    <div style="font-size:9px;color:#94a3b8;">°C</div>
-                </div>
-                <div style="background:#ecfeff;border-radius:10px;padding:8px;text-align:center;">
-                    <div style="font-size:9px;color:#0891b2;font-weight:600;text-transform:uppercase;letter-spacing:0.05em;">Kelembapan</div>
-                    <div style="font-size:16px;font-weight:800;color:#0f172a;margin-top:2px;">${s.kelembapan ?? "-"}</div>
-                    <div style="font-size:9px;color:#94a3b8;">%</div>
-                </div>
-                <div style="background:#f0fdf4;border-radius:10px;padding:8px;text-align:center;">
-                    <div style="font-size:9px;color:#16a34a;font-weight:600;text-transform:uppercase;letter-spacing:0.05em;">Tekanan</div>
-                    <div style="font-size:16px;font-weight:800;color:#0f172a;margin-top:2px;">${s.tekanan_udara ?? "-"}</div>
-                    <div style="font-size:9px;color:#94a3b8;">hPa</div>
-                </div>
-                <div style="background:#fffbeb;border-radius:10px;padding:8px;text-align:center;">
-                    <div style="font-size:9px;color:#d97706;font-weight:600;text-transform:uppercase;letter-spacing:0.05em;">Angin</div>
-                    <div style="font-size:16px;font-weight:800;color:#0f172a;margin-top:2px;">${s.kecepatan_angin ?? "-"}</div>
-                    <div style="font-size:9px;color:#94a3b8;">m/s</div>
-                </div>
-                <div style="background:#faf5ff;border-radius:10px;padding:8px;text-align:center;">
-                    <div style="font-size:9px;color:#9333ea;font-weight:600;text-transform:uppercase;letter-spacing:0.05em;">Arah Angin</div>
-                    <div style="font-size:16px;font-weight:800;color:#0f172a;margin-top:2px;">${s.arah_angin ?? "-"}</div>
-                    <div style="font-size:9px;color:#94a3b8;">°</div>
-                </div>
-            </div>
-            <div style="margin-top:8px;padding-top:8px;border-top:1px solid #f1f5f9;display:flex;align-items:center;justify-content:space-between;">
-                <span style="font-size:10px;color:#94a3b8;">${s.timestamp ?? "-"}</span>
-                <span style="font-size:10px;color:${isOnline ? "#22c55e" : "#ef4444"};font-weight:600;">● ${isOnline ? "Online" : "Offline"}</span>
-            </div>
-        `
-                    : `
-            <div style="text-align:center;padding:16px 0;color:#94a3b8;font-size:12px;">
-                Tidak ada data sensor
-            </div>
-        `;
-
-                marker.bindPopup(
-                    `
-            <div style="font-family:'Bricolage Grotesque',ui-sans-serif,sans-serif;min-width:240px;max-width:280px;">
-
-                <div style="display:flex;align-items:flex-start;justify-content:space-between;margin-bottom:8px;">
-                    <div>
-                        <div style="font-size:11px;color:#94a3b8;font-weight:500;">${d.name}</div>
-                        <div style="font-size:15px;font-weight:700;color:#0f172a;line-height:1.2;margin-top:1px;">${d.alias ?? d.name}</div>
-                    </div>
-                    <span style="
-                        background:${risikoBg};
-                        color:${risikoColor};
-                        font-size:10px;
-                        font-weight:700;
-                        padding:3px 10px;
-                        border-radius:999px;
-                        border:1px solid ${risikoColor}30;
-                        white-space:nowrap;
-                        margin-left:8px;
-                        flex-shrink:0;
-                    ">${risiko}</span>
-                </div>
-
-                <div style="margin-bottom:10px;">
-                    <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:4px;">
-                        <span style="font-size:10px;color:#94a3b8;">Skor Risiko Fuzzy</span>
-                        <span style="font-size:10px;font-weight:700;color:${risikoColor};">${d.score ?? 0}</span>
-                    </div>
-                    <div style="background:#f1f5f9;border-radius:999px;height:5px;overflow:hidden;">
-                        <div style="background:${risikoColor};height:100%;width:${Math.min(d.score ?? 0, 100)}%;border-radius:999px;"></div>
-                    </div>
-                </div>
-
-                ${sensorHtml}
-            </div>
-        `,
-                    { maxWidth: 300, className: "rob-popup" },
-                );
-            });
-
-            if (bounds.length > 0) {
-                const latLngBounds = LLeaflet.latLngBounds(bounds);
-                this.map.fitBounds(latLngBounds, { padding: [50, 50] });
-            }
-        },
-    }));
-});
-
-document.addEventListener("alpine:init", () => {
-    Alpine.data("searchableDeviceSelect", (config = {}) => ({
-        open: false,
-        query: "",
-        selected: config.selected || null,
-        options: config.options || [],
-
-        init() {
-            this.$watch("selected", (value) => {
-                if (config.onChange) {
-                    config.onChange(value);
-                }
-            });
-        },
-
-        get filteredOptions() {
-            const q = (this.query || "").toLowerCase().trim();
-            if (!q) return this.options;
-
-            return this.options.filter((item) => {
-                const label = (
-                    item.label ||
-                    item.alias ||
-                    item.name ||
-                    ""
-                ).toLowerCase();
-                const status = (item.statusLabel || "").toLowerCase();
-                return label.includes(q) || status.includes(q);
-            });
-        },
-
-        get selectedOption() {
-            return (
-                this.options.find(
-                    (item) => String(item.id) === String(this.selected),
-                ) || null
-            );
-        },
-
-        select(item) {
-            this.selected = item.id;
-            this.query = "";
-            this.open = false;
-        },
-
-        toggle() {
-            this.open = !this.open;
-            if (this.open) {
-                this.$nextTick(() => {
-                    this.$refs.searchInput?.focus();
-                });
-            }
-        },
-
-        close() {
-            this.open = false;
-            this.query = "";
-        },
-    }));
-});
-
-document.addEventListener("alpine:init", () => {
-    Alpine.data("searchSelect", (config = {}) => ({
-        isOpen: false,
-        query: "",
-        value: config.value ?? null,
-        placeholder: config.placeholder ?? "Pilih...",
-        searchPlaceholder: config.searchPlaceholder ?? "Cari...",
-        items: config.options ?? [],
-        getOptions: config.getOptions ?? null,
-
-        init() {
-            this.$watch("isOpen", (open) => {
-                if (open) {
-                    this.$nextTick(() => {
-                        this.$refs.search?.focus();
-                    });
-                }
-            });
-        },
-
-        options() {
-            if (typeof this.getOptions === "function") {
-                const result = this.getOptions();
-                return Array.isArray(result) ? result : [];
+            if (this._visibilityHandler) {
+                document.removeEventListener("visibilitychange", this._visibilityHandler);
+                this._visibilityHandler = null;
             }
 
-            return Array.isArray(this.items) ? this.items : [];
-        },
+            // ✅ Bersihkan markers layer
+            if (this.markersLayer) {
+                try { this.markersLayer.clearLayers(); } catch (_) {}
+                this.markersLayer = null;
+            }
 
-        filteredOptions() {
-            const q = this.query.toLowerCase().trim();
-            const opts = this.options();
+            // ✅ Destroy map — bebaskan WebGL context & tile cache Windy
+            if (this.map) {
+                try { this.map.remove(); } catch (_) {}
+                this.map = null;
+            }
 
-            if (!q) return opts;
-
-            return opts.filter(
-                (opt) =>
-                    String(opt.label ?? "")
-                        .toLowerCase()
-                        .includes(q) ||
-                    String(opt.name ?? "")
-                        .toLowerCase()
-                        .includes(q) ||
-                    String(opt.alias ?? "")
-                        .toLowerCase()
-                        .includes(q) ||
-                    String(opt.statusLabel ?? "")
-                        .toLowerCase()
-                        .includes(q),
-            );
-        },
-
-        selectedOption() {
-            return (
-                this.options().find(
-                    (opt) => String(opt.value) === String(this.value),
-                ) || null
-            );
-        },
-
-        selectedLabel() {
-            return this.selectedOption()?.label ?? this.placeholder;
-        },
-
-        toggle() {
-            this.isOpen = !this.isOpen;
-        },
-
-        close() {
-            this.isOpen = false;
-            this.query = "";
-        },
-
-        select(val) {
-            this.value = val;
-            this.isOpen = false;
-            this.query = "";
+            this._windyReady = false;
         },
     }));
+
 });
 
 // =========================
-// Analisis Chart
-// =========================
-document.addEventListener("alpine:init", () => {
-    Alpine.data("analisisChart", () => ({
-        charts: {},
-
-        // FIX: simpan semua handler referensi
-        _handlers: [],
-
-        init() {
-            this.$nextTick(() => this.renderCharts());
-
-            // FIX: buat named handler supaya bisa di-remove
-            const onNavigated = () => this.$nextTick(() => this.renderCharts());
-            const onUpdate    = () => this.$nextTick(() => this.renderCharts());
-
-            window.addEventListener("livewire:navigated", onNavigated);
-            document.addEventListener("livewire:update", onUpdate);
-
-            // Simpan referensi untuk cleanup di destroy()
-            this._handlers = [
-                { target: window,   event: "livewire:navigated", fn: onNavigated },
-                { target: document, event: "livewire:update",    fn: onUpdate },
-            ];
-        },
-
-        // FIX: cleanup semua listener dan chart saat komponen destroy
-        destroy() {
-            this.destroyAll();
-
-            this._handlers.forEach(({ target, event, fn }) => {
-                target.removeEventListener(event, fn);
-            });
-
-            this._handlers = [];
-        },
-
-        destroyAll() {
-            Object.values(this.charts).forEach((c) => {
-                try { c.destroy(); } catch (_) {}
-            });
-            this.charts = {};
-        },
-
-        renderCharts() {
-            this.destroyAll();
-
-            const sensorEl = document.getElementById("analisisSensorData");
-            const bmkgEl   = document.getElementById("analisisBmkgData");
-
-            if (!sensorEl || !bmkgEl) return;
-
-            const sensorData = JSON.parse(sensorEl.textContent || "[]");
-            const bmkgData   = JSON.parse(bmkgEl.textContent   || "[]");
-
-            const isDark    = document.documentElement.classList.contains("dark");
-            const gridColor = isDark ? "rgba(255,255,255,0.05)" : "rgba(0,0,0,0.05)";
-            const tickColor = isDark ? "#71717a" : "#a1a1aa";
-
-            const baseOptions = {
-                responsive: true,
-                maintainAspectRatio: false,
-                animation: false,
-                plugins: {
-                    legend: {
-                        labels: { color: tickColor, font: { size: 11 }, boxWidth: 12 },
-                    },
-                },
-                scales: {
-                    x: {
-                        ticks: { color: tickColor, maxTicksLimit: 6, font: { size: 10 } },
-                        grid:  { color: gridColor },
-                    },
-                    y: {
-                        ticks: { color: tickColor, font: { size: 10 } },
-                        grid:  { color: gridColor },
-                    },
-                },
-            };
-
-            const sensorLabels = sensorData.map((d) => d.local_datetime.substring(11, 16));
-            const bmkgLabels   = bmkgData.map((d) => d.local_datetime.substring(11, 16));
-            const labels       = sensorLabels.length ? sensorLabels : bmkgLabels;
-
-            const makeDataset = (label, data, color, dashed = false) => ({
-                label,
-                data,
-                borderColor: color,
-                backgroundColor: color + "22",
-                tension: 0.4,
-                fill: true,
-                borderWidth: 2,
-                borderDash: dashed ? [5, 5] : [],
-                pointRadius: 3,
-                pointHoverRadius: 5,
-            });
-
-            [
-                { id: "chartSuhu",       key: "suhu",            color: "#fb923c" },
-                { id: "chartKelembapan", key: "kelembapan",      color: "#22d3ee" },
-                { id: "chartAngin",      key: "kecepatan_angin", color: "#fbbf24" },
-            ].forEach(({ id, key, color }) => {
-                const canvas = document.getElementById(id);
-                if (!canvas || !window.Chart) return;
-
-                this.charts[id] = new Chart(canvas.getContext("2d"), {
-                    type: "line",
-                    data: {
-                        labels,
-                        datasets: [
-                            makeDataset("Sensor", sensorData.map((d) => d[key]), color),
-                            makeDataset("BMKG",   bmkgData.map((d) => d[key]),   "#94a3b8", true),
-                        ],
-                    },
-                    options: baseOptions,
-                });
-            });
-        },
-    }));
-});
-
-// =========================
-// Leaflet default icon fix
+// LEAFLET ICON FIX
 // =========================
 try {
-    delete leafletFromNpm.Icon.Default.prototype._getIconUrl;
-    leafletFromNpm.Icon.Default.mergeOptions({
-        iconRetinaUrl: new URL(
-            "leaflet/dist/images/marker-icon-2x.png",
-            import.meta.url,
-        ).href,
-        iconUrl: new URL("leaflet/dist/images/marker-icon.png", import.meta.url)
-            .href,
-        shadowUrl: new URL(
-            "leaflet/dist/images/marker-shadow.png",
-            import.meta.url,
-        ).href,
+    delete L.Icon.Default.prototype._getIconUrl;
+    L.Icon.Default.mergeOptions({
+        iconRetinaUrl: new URL("leaflet/dist/images/marker-icon-2x.png", import.meta.url).href,
+        iconUrl:       new URL("leaflet/dist/images/marker-icon.png",    import.meta.url).href,
+        shadowUrl:     new URL("leaflet/dist/images/marker-shadow.png",  import.meta.url).href,
     });
-} catch (e) {}
+} catch (_) {}
