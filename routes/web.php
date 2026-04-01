@@ -23,8 +23,7 @@ Route::prefix('/')->middleware('guest')->group(function() {
     Route::get('/', [FrontEndController::class, 'beranda'])->name('home');
     Route::get('tentang', [FrontEndController::class, 'about'])->name('tentang');
     Route::get('peta-monitoring', [FrontEndController::class, 'maps'])->name('peta');
-    Route::get('alur-kerja', [FrontEndController::class, 'workflows'])->name('alur_kerja');
-    Route::get('status', [FrontEndController::class, 'stats'])->name('status');
+    Route::get('analisis', [FrontEndController::class, 'analitic'])->name('analisis');
     Route::get('kontak', [FrontEndController::class, 'contact'])->name('kontak');
 });
 

@@ -3,8 +3,8 @@
         ['label' => 'Beranda', 'route' => 'home'],
         ['label' => 'Tentang', 'route' => 'tentang'],
         ['label' => 'Peta Monitoring', 'route' => 'peta'],
-        ['label' => 'Cara Kerja', 'route' => 'alur_kerja'],
-        ['label' => 'Status', 'route' => 'status'],
+        ['label' => 'Analisis', 'route' => 'analisis'],
+        ['label' => 'Kontak', 'route' => 'kontak'],
     ];
 @endphp
 
