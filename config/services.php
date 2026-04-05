@@ -36,16 +36,16 @@ return [
     ],
 
     'iot' => [
-        'url' => env('API_URL', 'https://iot.ketapangkab.go.id/api/rob')
+        'url' => env('API_URL', 'https://iot.ketapangkab.go.id/api/rob'),
     ],
 
     'windy' => [
-        'key' => env('WINDY_API_KEY')
+        'key' => env('WINDY_API_KEY'),
     ],
 
     'telegram' => [
         'token' => env('TELEGRAM_BOT_TOKEN'),
-        'chat_id' => env('TELEGRAM_BOT_CHAT')
-    ]
+        'chat_id' => env('TELEGRAM_BOT_CHAT'),
+    ],
 
 ];

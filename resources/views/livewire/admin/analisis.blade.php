@@ -28,6 +28,86 @@
             </button>
         </div>
 
+        {{-- Hasil Analisa --}}
+        @if (!empty($analisisData['analisa']))
+            @php
+                $status = $analisisData['analisa']['status'];
+                $statusColors = [
+                    'AMAN'    => 'emerald',
+                    'WASPADA' => 'amber',
+                    'BAHAYA'  => 'red',
+                ];
+                $color = $statusColors[$status] ?? 'zinc';
+            @endphp
+            <div class="rounded-2xl border border-{{ $color }}-200 dark:border-{{ $color }}-800 bg-white dark:bg-zinc-950 shadow-sm overflow-hidden">
+                <div class="px-4 py-3 border-b border-{{ $color }}-100 dark:border-{{ $color }}-800 bg-{{ $color }}-50/80 dark:bg-{{ $color }}-900/30 flex items-center justify-between">
+                    <div class="flex items-center gap-3">
+                        <span class="inline-flex items-center rounded-lg px-2.5 py-1 text-xs font-bold uppercase tracking-wider bg-{{ $color }}-500 text-white">
+                            {{ $status }}
+                        </span>
+                        <h2 class="text-sm font-bold text-zinc-700 dark:text-zinc-300">Hasil Analisa Kondisi</h2>
+                    </div>
+                    <span class="text-xs text-zinc-400">
+                        {{ $analisisData['timestamp'] }}
+                    </span>
+                </div>
+
+                <div class="p-4 space-y-4">
+                    {{-- Ringkasan --}}
+                    <div class="p-3 rounded-lg bg-{{ $color }}-50 dark:bg-{{ $color }}-900/20 border border-{{ $color }}-200 dark:border-{{ $color }}-800">
+                        <p class="text-sm font-semibold text-{{ $color }}-700 dark:text-{{ $color }}-300 leading-relaxed">
+                            {{ $analisisData['analisa']['ringkasan'] }}
+                        </p>
+                    </div>
+
+                    <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
+                        {{-- Kondisi --}}
+                        <div class="p-3 rounded-lg bg-zinc-50 dark:bg-zinc-900/50">
+                            <h3 class="text-xs font-bold uppercase tracking-wider text-zinc-500 dark:text-zinc-400 mb-2">
+                                Indikator Kondisi
+                            </h3>
+                            <div class="text-xs text-zinc-700 dark:text-zinc-300 whitespace-pre-line leading-relaxed">{{ $analisisData['analisa']['kondisi'] }}</div>
+                        </div>
+
+                        {{-- Resiko --}}
+                        <div class="p-3 rounded-lg bg-zinc-50 dark:bg-zinc-900/50">
+                            <h3 class="text-xs font-bold uppercase tracking-wider text-zinc-500 dark:text-zinc-400 mb-2">
+                                Tingkat Risiko
+                            </h3>
+                            <div class="text-xs text-zinc-700 dark:text-zinc-300 whitespace-pre-line leading-relaxed">{{ $analisisData['analisa']['resiko'] }}</div>
+                        </div>
+
+                        {{-- Rekomendasi --}}
+                        <div class="p-3 rounded-lg bg-zinc-50 dark:bg-zinc-900/50">
+                            <h3 class="text-xs font-bold uppercase tracking-wider text-zinc-500 dark:text-zinc-400 mb-2">
+                                Rekomendasi
+                            </h3>
+                            <div class="text-xs text-zinc-700 dark:text-zinc-300 whitespace-pre-line leading-relaxed">{{ $analisisData['analisa']['rekomendasi'] }}</div>
+                        </div>
+                    </div>
+
+                    {{-- Detail Indikator --}}
+                    @if (!empty($analisisData['analisa']['indikator']))
+                        <div class="pt-2 border-t border-zinc-100 dark:border-zinc-800">
+                            <h3 class="text-xs font-bold uppercase tracking-wider text-zinc-400 mb-3">Detail Data Sensor</h3>
+                            <div class="grid grid-cols-3 sm:grid-cols-6 gap-2 text-xs">
+                                @foreach ($analisisData['analisa']['indikator']['sensor'] ?? [] as $key => $value)
+                                    <div class="text-center p-2 rounded bg-zinc-100 dark:bg-zinc-800">
+                                        <div class="text-zinc-400 dark:text-zinc-500 text-[10px] uppercase">{{ str_replace('_', ' ', $key) }}</div>
+                                        <div class="font-semibold text-zinc-700 dark:text-zinc-300">{{ $value }}</div>
+                                    </div>
+                                @endforeach
+                            </div>
+                        </div>
+                    @endif
+                </div>
+            </div>
+        @elseif($analisisData['status'] === 'error')
+            <div class="rounded-2xl border border-red-200 dark:border-red-800 bg-red-50 dark:bg-red-950 p-4">
+                <p class="text-sm text-red-600 dark:text-red-400">{{ $analisisData['message'] }}</p>
+            </div>
+        @endif
+
         {{-- Filter --}}
         <div class="rounded-2xl border border-zinc-200 dark:border-zinc-800 bg-white dark:bg-zinc-950 shadow-sm p-4">
             <div class="flex flex-col sm:flex-row gap-3">

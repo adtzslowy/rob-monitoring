@@ -3,7 +3,8 @@
 use App\Http\Controllers\Auth\AuthController;
 use App\Http\Controllers\Auth\ForgotPasswordController;
 use App\Http\Controllers\FrontEndController;
-use App\Livewire\Admin\Analisis;
+use App\Livewire\Admin\Analisis as AdminAnalisis;
+use App\Livewire\Admin\ContactAdmin;
 use App\Livewire\Admin\Dashboard;
 use App\Livewire\Admin\DeviceManage;
 use App\Livewire\Admin\Pengaturan;
@@ -19,11 +20,13 @@ use Illuminate\Support\Facades\Route;
 //     return view('welcome');
 // })->name('home');
 
-Route::prefix('/')->middleware('guest')->group(function() {
+Route::prefix('/')->middleware('guest')->group(function () {
     Route::get('/', [FrontEndController::class, 'beranda'])->name('home');
     Route::get('tentang', [FrontEndController::class, 'about'])->name('tentang');
     Route::get('peta-monitoring', [FrontEndController::class, 'maps'])->name('peta');
-    Route::get('analisis', [FrontEndController::class, 'analitic'])->name('analisis');
+    Route::get('analisis', function () {
+        return view('landing.analisis');
+    })->name('analisis');
     Route::get('kontak', [FrontEndController::class, 'contact'])->name('kontak');
 });
 
@@ -46,6 +49,7 @@ Route::post('/logout', [AuthController::class, 'logout'])->middleware('auth')->n
 Route::post('/telegram/webhook', function (Request $request) {
     $update = $request->all();
     app(TelegramServices::class)->handleCommand($update);
+
     return response()->json(['ok' => true]);
 });
 /**
@@ -53,13 +57,14 @@ Route::post('/telegram/webhook', function (Request $request) {
  */
 Route::prefix('dashboard')->middleware(['auth', 'permission:view dashboard'])->group(function () {
     Route::get('/', Dashboard::class)->name('dashboard');
-    Route::get('/peta-monitoring', PetaMonitoring::class)->middleware('permission:view dashboard')->name('peta_monitoring');
+    Route::get('/peta-monitoring', PetaMonitoring::class)->name('peta_monitoring');
     Route::get('/daftar-alat', DeviceManage::class)->name('manajemen_alat');
 
-    Route::middleware(['auth', 'permission:manage users'])->get('/users', UserManagement::class)->name('admin.akun');
-    Route::get('/sensor-list', SensorList::class)->middleware('auth')->name('sensor.list');
+    Route::middleware(['permission:manage users'])->get('/users', UserManagement::class)->name('admin.akun');
+    Route::get('/sensor-list', SensorList::class)->name('sensor.list');
 
-    Route::get('/profil', Profile::class)->middleware('auth')->name('profil');
-    Route::get('/pengaturan', Pengaturan::class)->middleware('auth')->name('pengaturan');
-    Route::get('/analisis', Analisis::class)->middleware('auth')->name('analisis');
+    Route::get('/profil', Profile::class)->name('profil');
+    Route::get('/pengaturan', Pengaturan::class)->name('pengaturan');
+    Route::get('/analisis', AdminAnalisis::class)->name('analisis.data');
+    Route::get('/kritiksaran', ContactAdmin::class)->middleware('permission:manage users')->name('kritik.saran');
 });

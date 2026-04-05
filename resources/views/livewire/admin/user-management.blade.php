@@ -168,7 +168,7 @@
                                                    hover:text-blue-600 dark:hover:text-blue-400 transition cursor-pointer"
                                             title="Edit"
                                             type="button">
-                                            <x-heroicon-o-pencil-square class="w-4 h-4 sm:w-5 sm:h-5" />
+                                            <x-heroicon-o-pencil-square class="w-4 h-4 sm:w-5 sm:h-5 text-blue-500" />
                                         </button>
 
                                         <button
@@ -179,7 +179,7 @@
                                                    hover:text-red-600 dark:hover:text-red-400 transition cursor-pointer"
                                             title="Hapus"
                                             type="button">
-                                            <x-heroicon-o-trash class="w-4 h-4 sm:w-5 sm:h-5" />
+                                            <x-heroicon-o-trash class="w-4 h-4 sm:w-5 sm:h-5 text-red-500" />
                                         </button>
                                     </div>
                                 </td>

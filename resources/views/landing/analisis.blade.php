@@ -1,3 +1,3 @@
-<x-layouts::landing title="Analisis">
-    <x-landing.hero/>
+<x-layouts::landing title="Analisis - ROB Monitoring">
+    @livewire(\App\Livewire\Analisis::class)
 </x-layouts::landing>

@@ -5,6 +5,7 @@ namespace App\Livewire\Admin;
 use App\Models\Device;
 use App\Models\SensorReading;
 use App\Services\BmkgServices;
+use App\Services\WeatherAnalisisService;
 use Illuminate\Pagination\LengthAwarePaginator;
 use Illuminate\Support\Carbon;
 use Livewire\Attributes\Title;
@@ -17,13 +18,20 @@ class Analisis extends Component
     use WithPagination;
 
     public string $selectedWilayah = 'delta_pawan';
-    public string $selectedDevice  = '';
-    public int    $perPage         = 5;
-    public int    $bmkgPerPage      = 5;
 
-    public array $bmkgData   = [];
-    public array $devices    = [];
+    public string $selectedDevice = '';
+
+    public int $perPage = 5;
+
+    public int $bmkgPerPage = 5;
+
+    public array $bmkgData = [];
+
+    public array $devices = [];
+
     public array $comparison = [];
+
+    public array $analisisData = [];
 
     public function mount(): void
     {
@@ -31,18 +39,31 @@ class Analisis extends Component
             ->whereNotNull('longitude')
             ->orderBy('id')
             ->get(['id', 'name', 'alias'])
-            ->map(fn($d) => [
-                'id'    => $d->id,
-                'label' => $d->alias ?? $d->name ?? ('Device ' . $d->id),
+            ->map(fn ($d) => [
+                'id' => $d->id,
+                'label' => $d->alias ?? $d->name ?? ('Device '.$d->id),
             ])
             ->toArray();
 
-        if (!empty($this->devices)) {
+        if (! empty($this->devices)) {
             $this->selectedDevice = (string) $this->devices[0]['id'];
         }
 
         $this->loadBmkg();
         $this->buildComparison();
+        $this->runAnalisis();
+    }
+
+    public function runAnalisis(): void
+    {
+        if (! $this->selectedDevice) {
+            $this->analisisData = [];
+
+            return;
+        }
+
+        $service = app(WeatherAnalisisService::class);
+        $this->analisisData = $service->analyze((int) $this->selectedDevice, $this->selectedWilayah);
     }
 
     public function getWilayahLabelProperty(): string
@@ -60,12 +81,14 @@ class Analisis extends Component
         $this->resetPage('sensorPage');
         $this->loadBmkg();
         $this->buildComparison();
+        $this->runAnalisis();
     }
 
     public function updatedSelectedDevice(): void
     {
         $this->resetPage('sensorPage');
         $this->buildComparison();
+        $this->runAnalisis();
         $this->dispatch('chartDataUpdated');
     }
 
@@ -81,19 +104,19 @@ class Analisis extends Component
 
     public function loadBmkg(): void
     {
-        $bmkg           = app(BmkgServices::class);
-        $wilayah        = $bmkg->getByWilayah($this->selectedWilayah);
+        $bmkg = app(BmkgServices::class);
+        $wilayah = $bmkg->getByWilayah($this->selectedWilayah);
         $this->bmkgData = $wilayah['prakiraan'] ?? [];
     }
 
     public function buildComparison(): void
     {
-        $now     = Carbon::now('Asia/Pontianak');
+        $now = Carbon::now('Asia/Pontianak');
         $closest = null;
         $minDiff = PHP_INT_MAX;
 
         foreach ($this->bmkgData as $item) {
-            $dt   = Carbon::parse($item['local_datetime'], 'Asia/Pontianak');
+            $dt = Carbon::parse($item['local_datetime'], 'Asia/Pontianak');
             $diff = abs($now->diffInMinutes($dt));
             if ($diff < $minDiff) {
                 $minDiff = $diff;
@@ -101,8 +124,9 @@ class Analisis extends Component
             }
         }
 
-        if (!$this->selectedDevice) {
+        if (! $this->selectedDevice) {
             $this->comparison = ['bmkg' => $closest, 'sensor' => null, 'selisih' => null];
+
             return;
         }
 
@@ -118,18 +142,18 @@ class Analisis extends Component
             ->first();
 
         $sensorAvg = $recent && $recent->suhu !== null ? [
-            'suhu'            => round($recent->suhu, 1),
-            'kelembapan'      => round($recent->kelembapan, 1),
+            'suhu' => round($recent->suhu, 1),
+            'kelembapan' => round($recent->kelembapan, 1),
             'kecepatan_angin' => round($recent->kecepatan_angin, 1),
-            'arah_angin_deg'  => round($recent->arah_angin, 1),
+            'arah_angin_deg' => round($recent->arah_angin, 1),
         ] : null;
 
         $this->comparison = [
-            'bmkg'    => $closest,
-            'sensor'  => $sensorAvg,
+            'bmkg' => $closest,
+            'sensor' => $sensorAvg,
             'selisih' => $sensorAvg && $closest ? [
-                'suhu'            => round(abs(($sensorAvg['suhu'] ?? 0) - ($closest['suhu'] ?? 0)), 1),
-                'kelembapan'      => round(abs(($sensorAvg['kelembapan'] ?? 0) - ($closest['kelembapan'] ?? 0)), 1),
+                'suhu' => round(abs(($sensorAvg['suhu'] ?? 0) - ($closest['suhu'] ?? 0)), 1),
+                'kelembapan' => round(abs(($sensorAvg['kelembapan'] ?? 0) - ($closest['kelembapan'] ?? 0)), 1),
                 'kecepatan_angin' => round(abs(($sensorAvg['kecepatan_angin'] ?? 0) - ($closest['kecepatan_angin'] ?? 0)), 1),
             ] : null,
         ];
@@ -138,7 +162,8 @@ class Analisis extends Component
     private function degreesToCompass(float $deg): string
     {
         $directions = ['U', 'TL', 'T', 'TG', 'S', 'BD', 'B', 'BL'];
-        $index      = (int) round($deg / 45) % 8;
+        $index = (int) round($deg / 45) % 8;
+
         return $directions[$index];
     }
 
@@ -147,6 +172,7 @@ class Analisis extends Component
         app(BmkgServices::class)->clearCache();
         $this->loadBmkg();
         $this->buildComparison();
+        $this->runAnalisis();
     }
 
     public function render()
@@ -158,25 +184,25 @@ class Analisis extends Component
                 ->where('timestamp', '>=', now()->subHours(24))
                 ->orderByDesc('timestamp')
                 ->paginate($this->perPage, ['*'], 'sensorPage')
-                ->through(fn($r) => [
-                    'local_datetime'   => Carbon::parse($r->timestamp)
+                ->through(fn ($r) => [
+                    'local_datetime' => Carbon::parse($r->timestamp)
                         ->setTimezone('Asia/Pontianak')
                         ->format('Y-m-d H:i:s'),
-                    'suhu'             => $r->suhu,
-                    'kelembapan'       => $r->kelembapan,
-                    'tekanan_udara'    => $r->tekanan_udara,
-                    'kecepatan_angin'  => $r->kecepatan_angin,
-                    'arah_angin_deg'   => $r->arah_angin,
+                    'suhu' => $r->suhu,
+                    'kelembapan' => $r->kelembapan,
+                    'tekanan_udara' => $r->tekanan_udara,
+                    'kecepatan_angin' => $r->kecepatan_angin,
+                    'arah_angin_deg' => $r->arah_angin,
                     'arah_angin_label' => $r->arah_angin !== null
                         ? $this->degreesToCompass((float) $r->arah_angin)
                         : null,
-                    'ketinggian_air'   => $r->ketinggian_air,
+                    'ketinggian_air' => $r->ketinggian_air,
                 ]);
         }
 
         // Paginate bmkgData (array) secara manual
-        $bmkgPage    = request()->query('bmkgPage', 1);
-        $bmkgSliced  = array_slice($this->bmkgData, ($bmkgPage - 1) * $this->bmkgPerPage, $this->bmkgPerPage);
+        $bmkgPage = request()->query('bmkgPage', 1);
+        $bmkgSliced = array_slice($this->bmkgData, ($bmkgPage - 1) * $this->bmkgPerPage, $this->bmkgPerPage);
         $bmkgPaginated = new LengthAwarePaginator(
             $bmkgSliced,
             count($this->bmkgData),
@@ -186,8 +212,8 @@ class Analisis extends Component
         );
 
         return view('livewire.admin.analisis', [
-            'sensorData'     => $sensorData,
-            'bmkgPaginated'  => $bmkgPaginated,
+            'sensorData' => $sensorData,
+            'bmkgPaginated' => $bmkgPaginated,
         ]);
     }
 }
