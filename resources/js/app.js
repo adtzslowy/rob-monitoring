@@ -9,27 +9,22 @@ const SENSOR_COLORS = {
         border: "#fb923c",
         bg: "rgba(251,146,60,0.18)",
     },
-
     kelembapan: {
         border: "#22d3ee",
         bg: "rgba(43,211,238,0.18)",
     },
-
     tekanan_udara: {
         border: "#34d399",
         bg: "rgba(52,211,153,0.18)",
     },
-
     kecepatan_angin: {
         border: "#fbbf24",
         bg: "rgba(251,191,36,0.18)",
     },
-
     arah_angin: {
         border: "#a78bfa",
         bg: "rgba(167,139,250,0.18)",
     },
-
     ketinggian_air: {
         border: "#38bdf8",
         bg: "rgba(56,189,248,0.18)",
@@ -219,7 +214,6 @@ function renderMetricChart(payload) {
     const metric = p.metric || "ketinggian_air";
     const color = SENSOR_COLORS[metric] || SENSOR_COLORS.ketinggian_air;
 
-    // Destroy dulu kalau sudah ada
     if (window.__robMetricChart) {
         window.__robMetricChart.destroy();
         window.__robMetricChart = null;
@@ -377,7 +371,7 @@ document.addEventListener("alpine:init", () => {
 });
 
 // =========================
-// Windy Map
+// Windy Map (FIXED)
 // =========================
 let __windyInitAttempts = 0;
 const MAX_WINDY_INIT_ATTEMPTS = 3;
@@ -405,6 +399,14 @@ document.addEventListener("alpine:init", () => {
         async init() {
             this.__initAttempt++;
             
+            // 1. CEK APAKAH KEY KOSONG
+            if (!this.key || this.key.trim() === '') {
+                this.error = "Windy API Key belum dikonfigurasi di file .env (WINDY_KEY)";
+                this.loading = false;
+                console.error("Windy Key is empty");
+                return;
+            }
+
             if (this.__initAttempt > 1 && window.__windyMap) {
                 await this.$nextTick();
                 await this.waitForContainer();
@@ -507,7 +509,20 @@ document.addEventListener("alpine:init", () => {
                 verbose: false,
             };
 
-            window.windyInit(initOptions, (windyAPI) => {
+            // 2. WINDY INIT DENGAN TRY-CATCH DAN TIMEOUT
+            try {
+                const windyAPI = await new Promise((resolve, reject) => {
+                    // Timeout 10 detik agar tidak hang selamanya jika API gagal
+                    const timeoutId = setTimeout(() => {
+                        reject(new Error("Windy init timeout (10 detik). Cek koneksi internet atau pastikan API Key valid."));
+                    }, 10000);
+
+                    window.windyInit(initOptions, (api) => {
+                        clearTimeout(timeoutId);
+                        resolve(api);
+                    });
+                });
+
                 this.map = windyAPI.map;
                 window.__windyMap = this.map;
                 window.__windyReady = true;
@@ -526,12 +541,18 @@ document.addEventListener("alpine:init", () => {
 
                 this._ensureMapReady();
                 this.renderMarkers(this.devices);
-                this.loading = false;
+                this.loading = false; // Berhenti loading
 
                 this._bindResize();
                 this._invalidateSoon();
                 this.fitToDevices(this.devices);
-            });
+
+            } catch (err) {
+                // 3. TANGKAP ERROR DAN TAMPILKAN KE LAYAR
+                console.error("Windy Init Failed:", err);
+                this.error = err.message || "Gagal memuat peta Windy. Cek Console untuk detail.";
+                this.loading = false; // Berhenti loading
+            }
         },
 
         async waitForContainer() {
@@ -725,7 +746,6 @@ document.addEventListener("alpine:init", () => {
                         UNKNOWN: "#f8fafc",
                     }[risiko] ?? "#f8fafc";
 
-                // Icon marker warna ikut status risiko
                 const icon = LLeaflet.divIcon({
                     className: "",
                     html: `
@@ -749,7 +769,6 @@ document.addEventListener("alpine:init", () => {
                     this.markersLayer,
                 );
 
-                // Sensor grid HTML
                 const s = d.sensor;
                 const sensorHtml = s
                     ? `
@@ -1114,7 +1133,7 @@ try {
             .href,
         shadowUrl: new URL(
             "leaflet/dist/images/marker-shadow.png",
-            import.meta.url,
+            import.meta.url
         ).href,
     });
 } catch (e) {}
