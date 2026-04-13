@@ -90,21 +90,30 @@
                 <x-heroicon-o-presentation-chart-line class="w-5 h-5" />
                 Analisis Cuaca
             </a>
+
+            <a href="{{ route('kritik.saran') }}"
+                class="flex items-center gap-3 px-3 py-2 rounded-lg transition
+                {{ request()->routeIs('kritik.saran')
+                    ? 'bg-blue-500 text-white'
+                    : 'text-zinc-900 dark:text-zinc-400 hover:bg-blue-100 hover:text-zinc-900' }}">
+                <x-heroicon-o-inbox class="w-5 h-5" />
+                Kritik & Saran
+            </a>
         </div>
 
         @can('manage users')
             <div class="space-y-2">
                 <p class="px-3 text-xs font-semibold text-zinc-500 uppercase tracking-wider mb-2">
-                    Manajemen Publik
+                    Manajemen System
                 </p>
 
-                <a href="{{ route('kritik.saran') }}"
+                <a href="{{ route('pengaturan') }}"
                     class="flex items-center gap-3 px-3 py-2 rounded-lg transition
-                {{ request()->routeIs('kritik.saran')
+                {{ request()->routeIs('pengaturan')
                     ? 'bg-blue-500 text-white'
                     : 'text-zinc-900 dark:text-zinc-400 hover:bg-blue-100 hover:text-zinc-900' }}">
                     <x-heroicon-o-inbox class="w-5 h-5" />
-                    Kritik & Saran
+                    Notifikasi & </br> Threshold Sensor
                 </a>
             </div>
         @endcan
