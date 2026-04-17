@@ -5,13 +5,13 @@
         <div class="text-center max-w-2xl mx-auto mb-12 sm:mb-14">
             <span
                 class="inline-flex items-center rounded-full bg-blue-100 dark:bg-blue-900/30 px-4 py-1.5 text-sm font-semibold text-blue-600 dark:text-blue-400 mb-4">
-                Hubungi Kami
+                Kritik dan Saran
             </span>
             <h2 class="text-3xl sm:text-4xl lg:text-5xl font-bold text-slate-900 dark:text-white">
-                Apakah Anda Butuh Bantuan?
+                Apakah Anda Memiliki Kritik dan Saran?
             </h2>
             <p class="mt-4 text-base sm:text-lg text-slate-600 dark:text-slate-400 max-w-lg mx-auto">
-                Kami siap membantu Anda. Silakan hubungi kami melalui informasi di bawah ini.
+                Kami siap menerima masukan dan kritikan anda. Silakan isi form di bawah ini .
             </p>
         </div>
 
@@ -78,7 +78,7 @@
             {{-- Contact Form --}}
             <div
                 class="p-6 sm:p-8 rounded-2xl bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 shadow-sm">
-                <h3 class="text-xl font-bold text-slate-900 dark:text-white mb-6">Kirim Pesan</h3>
+                <h3 class="text-xl font-bold text-slate-900 dark:text-white mb-6">Kirimkan Kritik dan Saran Anda.</h3>
 
                 <form wire:submit.prevent="submit" class="space-y-5">
 

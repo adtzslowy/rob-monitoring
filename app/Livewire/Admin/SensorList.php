@@ -4,6 +4,7 @@ namespace App\Livewire\Admin;
 
 use App\Models\Device;
 use App\Models\SensorReading;
+use App\Models\Threshold;
 use Carbon\Carbon;
 use Illuminate\Contracts\Pagination\LengthAwarePaginator;
 use Illuminate\Support\Collection;
@@ -36,30 +37,53 @@ class SensorList extends Component
     public ?Device $detailDeviceData = null;
     public ?SensorReading $detailReadingData = null;
 
+    // ── Threshold ──────────────────────────────────────────────
+    public bool $thresholdModalOpen = false;
+    public ?int $thresholdDeviceId = null;
+    public ?string $thresholdDeviceName = null;
+
+    public array $thresholdForm = [
+        'suhu_min'            => '',
+        'suhu_max'            => '',
+        'kelembapan_min'      => '',
+        'kelembapan_max'      => '',
+        'tekanan_udara_min'   => '',
+        'tekanan_udara_max'   => '',
+        'kecepatan_angin_min' => '',
+        'kecepatan_angin_max' => '',
+        'arah_angin_min'      => '',
+        'arah_angin_max'      => '',
+        'ketinggian_air_min'  => '',
+        'ketinggian_air_max'  => '',
+    ];
+
+    public bool $thresholdSaved = false;
+    // ───────────────────────────────────────────────────────────
+
     public array $sensorMeta = [
         'suhu' => [
             'label' => 'Temperature',
-            'unit' => '°C',
+            'unit'  => '°C',
         ],
         'kelembapan' => [
             'label' => 'Kelembapan',
-            'unit' => '%',
+            'unit'  => '%',
         ],
         'tekanan_udara' => [
             'label' => 'Tekanan Udara',
-            'unit' => 'hPa',
+            'unit'  => 'hPa',
         ],
         'kecepatan_angin' => [
             'label' => 'Kecepatan Angin',
-            'unit' => 'm/s',
+            'unit'  => 'm/s',
         ],
         'arah_angin' => [
             'label' => 'Arah Angin',
-            'unit' => '°',
+            'unit'  => '°',
         ],
         'ketinggian_air' => [
             'label' => 'Ketinggian Air',
-            'unit' => 'cm',
+            'unit'  => 'cm',
         ],
     ];
 
@@ -68,7 +92,7 @@ class SensorList extends Component
         $user = auth()->user();
 
         $this->canManageDevices = $user?->can('manage devices') ?? false;
-        $this->allowedIds = $this->resolveAllowedDeviceIds();
+        $this->allowedIds       = $this->resolveAllowedDeviceIds();
         $this->refreshDeviceStatus();
     }
 
@@ -127,9 +151,9 @@ class SensorList extends Component
         $out = [];
 
         foreach ($this->allowedIds as $id) {
-            $row = $rows->get($id);
+            $row    = $rows->get($id);
             $status = $row?->status;
-            $last = $row?->last_seen;
+            $last   = $row?->last_seen;
 
             $online = false;
 
@@ -137,13 +161,13 @@ class SensorList extends Component
                 $online = true;
             } elseif ($last) {
                 $diffSec = $now->diffInSeconds(Carbon::parse($last), false);
-                $online = abs($diffSec) <= 120;
+                $online  = abs($diffSec) <= 120;
             }
 
             $out[$id] = [
                 'online' => (bool) $online,
                 'status' => $status,
-                'last' => $last,
+                'last'   => $last,
             ];
         }
 
@@ -159,6 +183,8 @@ class SensorList extends Component
         }
     }
 
+    // ── Detail modal ───────────────────────────────────────────
+
     public function openDetail(int $deviceId): void
     {
         if (!in_array($deviceId, $this->allowedIds, true)) {
@@ -166,8 +192,8 @@ class SensorList extends Component
         }
 
         $this->detailDeviceId = $deviceId;
-        $this->detailRange = '1h';
-        $this->detailPerPage = 10;
+        $this->detailRange    = '1h';
+        $this->detailPerPage  = 10;
         $this->resetPage('detailPage');
 
         $this->loadDetailData($deviceId);
@@ -176,9 +202,9 @@ class SensorList extends Component
 
     public function closeModal(): void
     {
-        $this->modalOpen = false;
-        $this->detailDeviceId = null;
-        $this->detailDeviceData = null;
+        $this->modalOpen         = false;
+        $this->detailDeviceId    = null;
+        $this->detailDeviceData  = null;
         $this->detailReadingData = null;
         $this->resetPage('detailPage');
     }
@@ -193,15 +219,111 @@ class SensorList extends Component
             ->first();
     }
 
+    // ── Threshold modal ────────────────────────────────────────
+
+    public function openThreshold(int $deviceId): void
+    {
+        if (!in_array($deviceId, $this->allowedIds, true)) {
+            abort(403, 'Unauthorized device access');
+        }
+
+        $device = Device::query()->find($deviceId);
+
+        $this->thresholdDeviceId   = $deviceId;
+        $this->thresholdDeviceName = $device?->alias ?: ($device?->name ?? 'ROB ' . $deviceId);
+        $this->thresholdSaved      = false;
+
+        // Load existing threshold kalau ada
+        $existing = Threshold::query()
+            ->where('device_id', $deviceId)
+            ->first();
+
+        $fields = [
+            'suhu_min', 'suhu_max',
+            'kelembapan_min', 'kelembapan_max',
+            'tekanan_udara_min', 'tekanan_udara_max',
+            'kecepatan_angin_min', 'kecepatan_angin_max',
+            'arah_angin_min', 'arah_angin_max',
+            'ketinggian_air_min', 'ketinggian_air_max',
+        ];
+
+        foreach ($fields as $field) {
+            $this->thresholdForm[$field] = $existing?->$field !== null
+                ? (string) $existing->$field
+                : '';
+        }
+
+        $this->thresholdModalOpen = true;
+    }
+
+    public function closeThresholdModal(): void
+    {
+        $this->thresholdModalOpen  = false;
+        $this->thresholdDeviceId   = null;
+        $this->thresholdDeviceName = null;
+        $this->thresholdSaved      = false;
+        $this->thresholdForm       = array_fill_keys(array_keys($this->thresholdForm), '');
+    }
+
+    public function saveThreshold(): void
+    {
+        if (!$this->thresholdDeviceId || !in_array($this->thresholdDeviceId, $this->allowedIds, true)) {
+            abort(403);
+        }
+
+        // Validasi: min tidak boleh lebih besar dari max
+        $pairs = [
+            'suhu', 'kelembapan', 'tekanan_udara',
+            'kecepatan_angin', 'arah_angin', 'ketinggian_air',
+        ];
+
+        $rules  = [];
+        $minMax = [];
+
+        foreach ($pairs as $sensor) {
+            $minKey = "{$sensor}_min";
+            $maxKey = "{$sensor}_max";
+
+            $rules[$minKey] = 'nullable|numeric';
+            $rules[$maxKey] = 'nullable|numeric';
+
+            $minVal = $this->thresholdForm[$minKey] !== '' ? (float) $this->thresholdForm[$minKey] : null;
+            $maxVal = $this->thresholdForm[$maxKey] !== '' ? (float) $this->thresholdForm[$maxKey] : null;
+
+            if ($minVal !== null && $maxVal !== null && $minVal > $maxVal) {
+                $label = $this->sensorMeta[$sensor]['label'];
+                $this->addError('threshold', "Nilai Min {$label} tidak boleh lebih besar dari Max.");
+                return;
+            }
+
+            $minMax[$minKey] = $minVal;
+            $minMax[$maxKey] = $maxVal;
+        }
+
+        $this->validate($rules, [], array_map(
+            fn ($k) => ucwords(str_replace('_', ' ', $k)),
+            array_combine(array_keys($rules), array_keys($rules))
+        ));
+
+        Threshold::updateOrCreate(
+            ['device_id' => $this->thresholdDeviceId],
+            $minMax
+        );
+
+        $this->thresholdSaved = true;
+    }
+
+    // ── Computed properties ────────────────────────────────────
+
     private function getDetailRangeStart(): Carbon
     {
         return match ($this->detailRange) {
-            '1m' => now()->subMinute(),
-            '1h' => now()->subHour(),
-            '1d' => now()->subDay(),
-            '1w' => now()->subWeek(),
+            '1m'  => now()->subMinute(),
+            '1h'  => now()->subHour(),
+            '1d'  => now()->subDay(),
+            '1w'  => now()->subWeek(),
             '1mo' => now()->subMonth(),
-            '1y' => now()->subYear(),
+            '1y'  => now()->subYear(),
             default => now()->subHour(),
         };
     }
@@ -209,12 +331,12 @@ class SensorList extends Component
     public function getDetailRangeLabelProperty(): string
     {
         return match ($this->detailRange) {
-            '1m' => '1 Menit',
-            '1h' => '1 Jam',
-            '1d' => '1 Hari',
-            '1w' => '1 Minggu',
+            '1m'  => '1 Menit',
+            '1h'  => '1 Jam',
+            '1d'  => '1 Hari',
+            '1w'  => '1 Minggu',
             '1mo' => '1 Bulan',
-            '1y' => '1 Tahun',
+            '1y'  => '1 Tahun',
             default => '1 Jam',
         };
     }
@@ -247,10 +369,7 @@ class SensorList extends Component
         if (!$this->detailDeviceId) {
             return SensorReading::query()
                 ->whereRaw('1 = 0')
-                ->paginate(
-                    perPage: $this->detailPerPage,
-                    pageName: 'detailPage'
-                );
+                ->paginate(perPage: $this->detailPerPage, pageName: 'detailPage');
         }
 
         $start = $this->getDetailRangeStart();
@@ -262,31 +381,27 @@ class SensorList extends Component
             ->paginate(
                 perPage: $this->detailPerPage,
                 columns: [
-                    'timestamp',
-                    'suhu',
-                    'kelembapan',
-                    'tekanan_udara',
-                    'kecepatan_angin',
-                    'arah_angin',
-                    'ketinggian_air',
+                    'timestamp', 'suhu', 'kelembapan',
+                    'tekanan_udara', 'kecepatan_angin',
+                    'arah_angin', 'ketinggian_air',
                 ],
                 pageName: 'detailPage'
             );
 
         $rows->through(function ($row) {
             return [
-                'timestamp' => $row->timestamp
+                'timestamp'       => $row->timestamp
                     ? Carbon::parse($row->timestamp, 'UTC')
                         ->setTimezone('Asia/Jakarta')
                         ->format('d M Y H:i:s')
                     : '-',
-                'suhu' => $row->suhu,
-                'kelembapan' => $row->kelembapan,
-                'tekanan_udara' => $row->tekanan_udara,
+                'suhu'            => $row->suhu,
+                'kelembapan'      => $row->kelembapan,
+                'tekanan_udara'   => $row->tekanan_udara,
                 'kecepatan_angin' => $row->kecepatan_angin,
-                'arah_angin' => $row->arah_angin,
+                'arah_angin'      => $row->arah_angin,
                 'arah_angin_label' => $this->getWindDirectionLabel($row->arah_angin),
-                'ketinggian_air' => $row->ketinggian_air,
+                'ketinggian_air'  => $row->ketinggian_air,
             ];
         });
 
@@ -300,7 +415,7 @@ class SensorList extends Component
         }
 
         $dirs = ['Utara', 'Timur Laut', 'Timur', 'Tenggara', 'Selatan', 'Barat Daya', 'Barat', 'Barat Laut'];
-        $idx = (int) floor((((float) $degree) + 22.5) / 45) % 8;
+        $idx  = (int) floor((((float) $degree) + 22.5) / 45) % 8;
 
         return $dirs[$idx];
     }
@@ -362,26 +477,25 @@ class SensorList extends Component
             $status = $this->deviceStatus[$device->id] ?? [
                 'online' => false,
                 'status' => null,
-                'last' => null,
+                'last'   => null,
             ];
 
             return [
-                'id' => (int) $device->id,
-                'name' => $device->name ?? ('ROB ' . $device->id),
-                'alias' => $device->alias ?? null,
-                'label' => $device->alias ?: ($device->name ?? ('ROB ' . $device->id)),
-                'online' => (bool) ($status['online'] ?? false),
-                'status' => $status['status'] ?? null,
-                'last_seen' => $status['last'] ?? null,
-
-                'suhu' => $reading?->suhu,
-                'kelembapan' => $reading?->kelembapan,
-                'tekanan_udara' => $reading?->tekanan_udara,
+                'id'              => (int) $device->id,
+                'name'            => $device->name ?? ('ROB ' . $device->id),
+                'alias'           => $device->alias ?? null,
+                'label'           => $device->alias ?: ($device->name ?? ('ROB ' . $device->id)),
+                'online'          => (bool) ($status['online'] ?? false),
+                'status'          => $status['status'] ?? null,
+                'last_seen'       => $status['last'] ?? null,
+                'suhu'            => $reading?->suhu,
+                'kelembapan'      => $reading?->kelembapan,
+                'tekanan_udara'   => $reading?->tekanan_udara,
                 'kecepatan_angin' => $reading?->kecepatan_angin,
-                'arah_angin' => $reading?->arah_angin,
+                'arah_angin'      => $reading?->arah_angin,
                 'arah_angin_label' => $this->getWindDirectionLabel($reading?->arah_angin),
-                'ketinggian_air' => $reading?->ketinggian_air,
-                'timestamp' => $reading?->timestamp,
+                'ketinggian_air'  => $reading?->ketinggian_air,
+                'timestamp'       => $reading?->timestamp,
             ];
         });
 

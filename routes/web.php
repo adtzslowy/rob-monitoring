@@ -27,7 +27,7 @@ Route::prefix('/')->middleware('guest')->group(function () {
     Route::get('analisis', function () {
         return view('landing.analisis');
     })->name('analisis');
-    Route::get('kontak', [FrontEndController::class, 'contact'])->name('kontak');
+    Route::get('kritiksaran', [FrontEndController::class, 'contact'])->name('kritiksaran');
 });
 
 Route::middleware('guest')->group(function () {

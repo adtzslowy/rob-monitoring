@@ -4,7 +4,7 @@
         ['label' => 'Tentang', 'route' => 'tentang'],
         ['label' => 'Peta Monitoring', 'route' => 'peta'],
         ['label' => 'Analisis', 'route' => 'analisis'],
-        ['label' => 'Kontak', 'route' => 'kontak'],
+        ['label' => 'Kritik & Saran', 'route' => 'kritiksaran'],
     ];
 @endphp
 
