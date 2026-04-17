@@ -47,9 +47,6 @@
                                 class="inline-flex h-2.5 w-2.5 rounded-full {{ $isOnline ? 'bg-emerald-500' : 'bg-zinc-400' }}"></span>
 
                             <div class="flex flex-col leading-tight">
-                                <span class="text-sm font-medium text-zinc-900 dark:text-zinc-100">
-                                    {{ $deviceName }}
-                                </span>
                                 <span class="text-xs text-zinc-500 dark:text-zinc-400">
                                     {{ $isOnline ? 'Online' : 'Offline' }}
                                 </span>

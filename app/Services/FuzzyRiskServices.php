@@ -7,156 +7,219 @@ use Illuminate\Support\Facades\Cache;
 class FuzzyRiskServices
 {
     /**
-     * Load threshold dari cache.
-     * Fallback ke nilai BMKG Ketapang, Kalimantan Barat.
+     * Load threshold per device dari fetch.
+     * Fallback ke nilai default BMKG Ketapang, Kalimantan Barat.
+     *
+     * Struktur cache key: fuzzy_threshold_{deviceId}
+     * Struktur nilai:
+     *   [sensor => ['aman' => x, 'waspada' => x, 'siaga' => x, 'bahaya' => x]]
      */
-    private function loadThreshold(): array
+    private function loadThreshold(int $deviceId): array
     {
-        return Cache::get('fuzzy_threshold', [
-            'ketinggian_air'  => ['waspada' => 130, 'bahaya' => 170],
-            'suhu'            => ['waspada' => 32,  'bahaya' => 35],
-            'kelembapan'      => ['waspada' => 85,  'bahaya' => 95],
-            'tekanan_udara'   => ['waspada' => 1005,'bahaya' => 995],
-            'kecepatan_angin' => ['waspada' => 8,   'bahaya' => 15],
-            'arah_angin'      => ['waspada' => 180, 'bahaya' => 270],
-        ]);
+        $defaults = [
+            'ketinggian_air'  => ['aman' =>  80, 'waspada' => 130, 'siaga' => 150, 'bahaya' => 170],
+            'suhu'            => ['aman' =>  30, 'waspada' =>  32, 'siaga' =>  34, 'bahaya' =>  36],
+            'kelembapan'      => ['aman' =>  80, 'waspada' =>  85, 'siaga' =>  90, 'bahaya' =>  95],
+            'tekanan_udara'   => ['aman' => 1013,'waspada' =>1008, 'siaga' =>1003, 'bahaya' => 998],
+            'kecepatan_angin' => ['aman' =>   5, 'waspada' =>   8, 'siaga' =>  12, 'bahaya' =>  15],
+            'arah_angin'      => ['aman' =>  90, 'waspada' => 180, 'siaga' => 225, 'bahaya' => 270],
+        ];
+
+        $saved = Cache::get("fuzzy_threshold_{$deviceId}", []);
+
+        // Merge per-key agar partial override tetap valid
+        foreach ($defaults as $sensor => $val) {
+            if (!empty($saved[$sensor])) {
+                $defaults[$sensor] = array_merge($val, $saved[$sensor]);
+            }
+        }
+
+        return $defaults;
     }
 
-    public function evaluate(array $input): array
+    /**
+     * Evaluasi risk fuzzy untuk satu device.
+     *
+     * @param  array $input   Data sensor mentah (ketinggian_air, suhu, dll.)
+     * @param  int   $deviceId
+     * @return array{score: float, label: string, memberships: array, debug: array}
+     */
+    public function evaluate(array $input, int $deviceId = 0): array
     {
+        $t = $this->loadThreshold($deviceId);
+
         $water     = (float) ($input['ketinggian_air']  ?? 0);
+        $temp      = (float) ($input['suhu']            ?? 0);
+        $humidity  = (float) ($input['kelembapan']      ?? 0);
         $pressure  = (float) ($input['tekanan_udara']   ?? 0);
         $windSpeed = (float) ($input['kecepatan_angin'] ?? 0);
         $windDir   = (float) ($input['arah_angin']      ?? 0);
 
-        // Load threshold dinamis dari cache / BMKG default
-        $t = $this->loadThreshold();
+        // ── Ketinggian Air (semakin tinggi = semakin bahaya) ──────────────────
+        $wA = (float) $t['ketinggian_air']['aman'];
+        $wW = (float) $t['ketinggian_air']['waspada'];
+        $wS = (float) $t['ketinggian_air']['siaga'];
+        $wB = (float) $t['ketinggian_air']['bahaya'];
 
-        // Ketinggian Air
-        $wW = (float) $t['ketinggian_air']['waspada']; // 130
-        $wB = (float) $t['ketinggian_air']['bahaya'];  // 170
-        $wMid = ($wW + $wB) / 2;
+        $waterLow    = $this->trapDesc($water, 0,   $wA * 0.5, $wW);
+        $waterMedium = $this->tri($water,      $wA, $wW,       $wS);
+        $waterHigh   = $this->tri($water,      $wW, $wS,       $wB);
+        $waterVHigh  = $this->trapAsc($water,  $wS, $wB,       $wB * 1.5);
 
-        $waterLow    = $this->trap($water, 0,           0,            $wW * 0.15, $wW * 0.35);
-        $waterMedium = $this->tri($water,  $wW * 0.15,  $wMid,        $wB);
-        $waterHigh   = $this->trap($water, $wW,         $wB,          $wB * 2,    $wB * 2);
+        // ── Suhu (semakin tinggi = semakin bahaya) ────────────────────────────
+        $tA = (float) $t['suhu']['aman'];
+        $tW = (float) $t['suhu']['waspada'];
+        $tS = (float) $t['suhu']['siaga'];
+        $tB = (float) $t['suhu']['bahaya'];
 
-        // Tekanan Udara (nilai rendah = bahaya)
-        $pB   = (float) min($t['tekanan_udara']['waspada'], $t['tekanan_udara']['bahaya']); // 995
-        $pW   = (float) max($t['tekanan_udara']['waspada'], $t['tekanan_udara']['bahaya']); // 1005
-        $pMid = ($pW + $pB) / 2;
+        $tempLow    = $this->trapDesc($temp, 0,  $tA * 0.9, $tW);
+        $tempMedium = $this->tri($temp,      $tA, $tW,       $tS);
+        $tempHigh   = $this->tri($temp,      $tW, $tS,       $tB);
+        $tempVHigh  = $this->trapAsc($temp,  $tS, $tB,       $tB + 5);
 
-        $pressureLow    = $this->trapDesc($pressure, $pB,       $pB + 5,    $pW);
-        $pressureMedium = $this->tri($pressure,      $pB,       $pMid,      $pW + 10);
-        $pressureHigh   = $this->trapAsc($pressure,  $pW,       $pW + 5,    $pW + 20);
+        // ── Kelembapan (semakin tinggi = semakin bahaya) ──────────────────────
+        $hA = (float) $t['kelembapan']['aman'];
+        $hW = (float) $t['kelembapan']['waspada'];
+        $hS = (float) $t['kelembapan']['siaga'];
+        $hB = (float) $t['kelembapan']['bahaya'];
 
-        // Kecepatan Angin
-        $vW   = (float) $t['kecepatan_angin']['waspada']; // 8
-        $vB   = (float) $t['kecepatan_angin']['bahaya'];  // 15
-        $vMid = ($vW + $vB) / 2;
+        $humLow    = $this->trapDesc($humidity, 0,  $hA * 0.9, $hW);
+        $humMedium = $this->tri($humidity,      $hA, $hW,       $hS);
+        $humHigh   = $this->tri($humidity,      $hW, $hS,       $hB);
+        $humVHigh  = $this->trapAsc($humidity,  $hS, $hB,       100);
 
-        $windLow    = $this->trapDesc($windSpeed, 0,    0,           $vW * 0.25, $vW * 0.5);
-        $windMedium = $this->tri($windSpeed,      $vW * 0.25, $vMid, $vB);
-        $windHigh   = $this->trapAsc($windSpeed,  $vW,  $vB,         $vB * 2,    $vB * 2);
+        // ── Tekanan Udara (semakin rendah = semakin bahaya) ───────────────────
+        $pA = (float) max(array_values($t['tekanan_udara'])); // aman = nilai tertinggi
+        $pW = (float) $t['tekanan_udara']['waspada'];
+        $pS = (float) $t['tekanan_udara']['siaga'];
+        $pB = (float) min(array_values($t['tekanan_udara'])); // bahaya = nilai terendah
 
-        // Arah Angin
+        $pressureHigh   = $this->trapAsc($pressure,  $pW,       $pA,      $pA + 10); // aman
+        $pressureMedium = $this->tri($pressure,      $pS,       $pW,      $pA);
+        $pressureLow    = $this->tri($pressure,      $pB,       $pS,      $pW);
+        $pressureVLow   = $this->trapDesc($pressure, $pB - 10,  $pB,      $pS);      // bahaya
+
+        // ── Kecepatan Angin (semakin tinggi = semakin bahaya) ─────────────────
+        $vA = (float) $t['kecepatan_angin']['aman'];
+        $vW = (float) $t['kecepatan_angin']['waspada'];
+        $vS = (float) $t['kecepatan_angin']['siaga'];
+        $vB = (float) $t['kecepatan_angin']['bahaya'];
+
+        $windLow    = $this->trapDesc($windSpeed, 0,  $vA * 0.5, $vW);
+        $windMedium = $this->tri($windSpeed,      $vA, $vW,       $vS);
+        $windHigh   = $this->tri($windSpeed,      $vW, $vS,       $vB);
+        $windVHigh  = $this->trapAsc($windSpeed,  $vS, $vB,       $vB * 1.5);
+
+        // ── Arah Angin (membership berbasis sektor arah) ──────────────────────
         $onshore    = $this->onshoreMembership($windDir);
         $crossshore = $this->crossshoreMembership($windDir);
         $offshore   = $this->offshoreMembership($windDir);
 
-        // Aturan Fuzzy
+        // ════════════════════════════════════════════════════════════════════════
+        // Aturan Fuzzy (Mamdani / rule-based)
+        // ════════════════════════════════════════════════════════════════════════
         $aman    = [];
         $waspada = [];
         $siaga   = [];
         $bahaya  = [];
 
-        $aman[] = min($waterLow, $windLow, max($pressureMedium, $pressureHigh));
-        $aman[] = min($waterLow, $offshore);
+        // ── AMAN ──
+        $aman[] = min($waterLow,   $windLow,    $pressureHigh);
+        $aman[] = min($waterLow,   $offshore,   $tempLow);
+        $aman[] = min($waterLow,   $humLow,     $pressureHigh);
 
-        $waspada[] = min($waterMedium, $windLow);
-        $waspada[] = min($waterLow, $windMedium, $onshore);
+        // ── WASPADA ──
+        $waspada[] = min($waterMedium, $windLow,    $pressureMedium);
+        $waspada[] = min($waterLow,    $windMedium, $onshore);
         $waspada[] = min($waterMedium, $offshore);
+        $waspada[] = min($waterLow,    $tempMedium, $humMedium);
+        $waspada[] = min($waterMedium, $tempLow,    $pressureMedium);
 
-        $siaga[] = min($waterMedium, $windMedium, $onshore);
-        $siaga[] = min($waterHigh, $windLow);
+        // ── SIAGA ──
+        $siaga[] = min($waterMedium, $windMedium,  $onshore);
+        $siaga[] = min($waterHigh,   $windLow,     $pressureMedium);
         $siaga[] = min($waterMedium, $pressureLow, $onshore);
-        $siaga[] = min($waterMedium, $windHigh, $crossshore);
+        $siaga[] = min($waterMedium, $windHigh,    $crossshore);
+        $siaga[] = min($waterHigh,   $tempMedium,  $humMedium);
+        $siaga[] = min($waterMedium, $tempHigh,    $windMedium);
 
-        $bahaya[] = min($waterHigh, $windMedium, $onshore);
-        $bahaya[] = min($waterHigh, $windHigh);
-        $bahaya[] = min($waterHigh, $pressureLow);
-        $bahaya[] = min($waterHigh, $windHigh, $onshore);
-        $bahaya[] = min($waterMedium, $windHigh, $pressureLow, $onshore);
+        // ── BAHAYA ──
+        $bahaya[] = min($waterHigh,  $windMedium,  $onshore);
+        $bahaya[] = min($waterHigh,  $windHigh);
+        $bahaya[] = min($waterHigh,  $pressureLow);
+        $bahaya[] = min($waterHigh,  $windHigh,    $onshore);
+        $bahaya[] = min($waterVHigh, $pressureVLow);
+        $bahaya[] = min($waterVHigh, $windVHigh,   $onshore);
+        $bahaya[] = min($waterHigh,  $tempVHigh,   $pressureLow);
+        $bahaya[] = min($waterMedium,$windHigh,    $pressureLow, $onshore);
 
-        $muAman    = max($aman    ?: [0]);
-        $muWaspada = max($waspada ?: [0]);
-        $muSiaga   = max($siaga   ?: [0]);
-        $muBahaya  = max($bahaya  ?: [0]);
+        $muAman    = round(max($aman    ?: [0]), 4);
+        $muWaspada = round(max($waspada ?: [0]), 4);
+        $muSiaga   = round(max($siaga   ?: [0]), 4);
+        $muBahaya  = round(max($bahaya  ?: [0]), 4);
 
-        // Defuzzifikasi (Weighted Average / Sugeno)
-        $zAman    = 20;
-        $zWaspada = 45;
-        $zSiaga   = 70;
-        $zBahaya  = 95;
+        // ── Defuzzifikasi — Weighted Average (Sugeno) ─────────────────────────
+        $zAman    = 15;
+        $zWaspada = 40;
+        $zSiaga   = 68;
+        $zBahaya  = 92;
 
-        $numerator   = ($muAman * $zAman) + ($muWaspada * $zWaspada) + ($muSiaga * $zSiaga) + ($muBahaya * $zBahaya);
-        $denominator = $muAman + $muWaspada + $muSiaga + $muBahaya;
-
-        $score = $denominator > 0 ? round($numerator / $denominator, 2) : 0.0;
+        $num   = ($muAman * $zAman) + ($muWaspada * $zWaspada) + ($muSiaga * $zSiaga) + ($muBahaya * $zBahaya);
+        $den   = $muAman + $muWaspada + $muSiaga + $muBahaya;
+        $score = $den > 0 ? round($num / $den, 2) : 0.0;
 
         $label = match (true) {
-            $score >= 85 => 'BAHAYA',
-            $score >= 65 => 'SIAGA',
-            $score >= 40 => 'WASPADA',
+            $score >= 80 => 'BAHAYA',
+            $score >= 58 => 'SIAGA',
+            $score >= 33 => 'WASPADA',
             default      => 'AMAN',
         };
 
         return [
             'score'       => $score,
             'label'       => $label,
-            'memberships' => [
-                'aman'    => round($muAman,    4),
-                'waspada' => round($muWaspada, 4),
-                'siaga'   => round($muSiaga,   4),
-                'bahaya'  => round($muBahaya,  4),
-            ],
-            'debug' => [
-                'water'     => compact('waterLow',    'waterMedium',    'waterHigh'),
-                'pressure'  => compact('pressureLow', 'pressureMedium', 'pressureHigh'),
-                'wind'      => compact('windLow',     'windMedium',     'windHigh'),
-                'direction' => compact('onshore',     'crossshore',     'offshore'),
+            'memberships' => compact('muAman', 'muWaspada', 'muSiaga', 'muBahaya'),
+            'debug'       => [
+                'water'    => compact('waterLow',    'waterMedium',    'waterHigh',   'waterVHigh'),
+                'temp'     => compact('tempLow',     'tempMedium',     'tempHigh',    'tempVHigh'),
+                'humidity' => compact('humLow',      'humMedium',      'humHigh',     'humVHigh'),
+                'pressure' => compact('pressureVLow','pressureLow',    'pressureMedium','pressureHigh'),
+                'wind'     => compact('windLow',     'windMedium',     'windHigh',    'windVHigh'),
+                'direction'=> compact('onshore',     'crossshore',     'offshore'),
             ],
         ];
     }
 
+    /**
+     * Simpan threshold device ke cache.
+     * Dipanggil dari Livewire saat user save form threshold.
+     *
+     * @param int   $deviceId
+     * @param array $thresholds  ['sensor' => ['aman'=>x,'waspada'=>x,'siaga'=>x,'bahaya'=>x]]
+     */
+    public function saveThreshold(int $deviceId, array $thresholds): void
+    {
+        Cache::put("fuzzy_threshold_{$deviceId}", $thresholds, now()->addYear());
+    }
+
+    /**
+     * Ambil threshold tersimpan untuk device, sudah merged dengan default.
+     */
+    public function getThreshold(int $deviceId): array
+    {
+        return $this->loadThreshold($deviceId);
+    }
+
     private function tri(float $x, float $a, float $b, float $c): float
     {
-        if ($a === $b && $x === $a) return $x <= $b ? 1.0 : 0.0;
-        if ($b === $c && $x === $c) return $x >= $b ? 1.0 : 0.0;
-        if ($x <= $a || $x >= $c)  return 0.0;
-        if ($x === $b)              return 1.0;
-
+        if ($x <= $a || $x >= $c) return 0.0;
+        if ($x === $b)            return 1.0;
         if ($x < $b) {
             $den = $b - $a;
             return $den != 0.0 ? ($x - $a) / $den : 0.0;
         }
-
         $den = $c - $b;
         return $den != 0.0 ? ($c - $x) / $den : 0.0;
-    }
-
-    private function trap(float $x, float $a, float $b, float $c, float $d): float
-    {
-        if ($x <= $a || $x >= $d) return 0.0;
-        if ($x >= $b && $x <= $c) return 1.0;
-
-        if ($x > $a && $x < $b) {
-            $den = $b - $a;
-            return $den != 0.0 ? ($x - $a) / $den : 0.0;
-        }
-
-        $den = $d - $c;
-        return $den != 0.0 ? ($d - $x) / $den : 0.0;
     }
 
     private function trapDesc(float $x, float $a, float $b, float $c): float
@@ -164,7 +227,6 @@ class FuzzyRiskServices
         if ($x <= $a) return 1.0;
         if ($x >= $c) return 0.0;
         if ($x <= $b) return 1.0;
-
         $den = $c - $b;
         return $den != 0.0 ? ($c - $x) / $den : 0.0;
     }
@@ -174,7 +236,6 @@ class FuzzyRiskServices
         if ($x <= $a) return 0.0;
         if ($x >= $c) return 1.0;
         if ($x >= $b) return 1.0;
-
         $den = $b - $a;
         return $den != 0.0 ? ($x - $a) / $den : 0.0;
     }
@@ -194,10 +255,8 @@ class FuzzyRiskServices
     private function sectorMembership(float $deg, float $center, float $fullWidth = 60.0, float $fadeWidth = 120.0): float
     {
         $dist = $this->angularDistance($deg, $center);
-
-        if ($dist <= $fullWidth / 2)  return 1.0;
-        if ($dist >= $fadeWidth / 2)  return 0.0;
-
+        if ($dist <= $fullWidth / 2) return 1.0;
+        if ($dist >= $fadeWidth / 2) return 0.0;
         $startFade = $fullWidth / 2;
         $endFade   = $fadeWidth / 2;
         return ($endFade - $dist) / ($endFade - $startFade);
@@ -210,9 +269,10 @@ class FuzzyRiskServices
 
     private function crossshoreMembership(float $deg): float
     {
-        $a = $this->sectorMembership($deg, 225, 60, 140);
-        $b = $this->sectorMembership($deg, 0,   60, 140);
-        return max($a, $b);
+        return max(
+            $this->sectorMembership($deg, 225, 60, 140),
+            $this->sectorMembership($deg, 0,   60, 140),
+        );
     }
 
     private function offshoreMembership(float $deg): float

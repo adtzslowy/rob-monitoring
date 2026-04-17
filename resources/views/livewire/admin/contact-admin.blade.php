@@ -54,7 +54,7 @@
 
                     <thead class="bg-zinc-50 dark:bg-zinc-900 text-xs uppercase text-zinc-500 border-b border-zinc-200/40 dark:border-zinc-800/30">
                         <tr>
-                            <th class="px-4 py-3 text-left font-medium">No</th>
+                            <th class="px-4 py-3 text-center font-medium">No</th>
                             <th class="px-4 py-3 text-left font-medium">Nama</th>
                             <th class="px-4 py-3 text-left font-medium">Email</th>
                             <th class="px-4 py-3 text-left font-medium">Pesan</th>
@@ -67,7 +67,7 @@
                         @forelse($contacts as $c)
                             <tr class="hover:bg-zinc-50/50 dark:hover:bg-zinc-800/20 transition-colors duration-150">
 
-                                <td class="px-4 py-3 text-left text-zinc-500 dark:text-zinc-400">
+                                <td class="px-4 py-3 text-center text-zinc-500 dark:text-zinc-400">
                                     {{ ($contacts->firstItem() ?? 1) + $loop->index }}
                                 </td>
 

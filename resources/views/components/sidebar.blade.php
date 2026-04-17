@@ -112,8 +112,8 @@
                 {{ request()->routeIs('pengaturan')
                     ? 'bg-blue-500 text-white'
                     : 'text-zinc-900 dark:text-zinc-400 hover:bg-blue-100 hover:text-zinc-900' }}">
-                    <x-heroicon-o-inbox class="w-5 h-5" />
-                    Notifikasi & </br> Threshold Sensor
+                    <x-heroicon-o-bell class="w-5 h-5" />
+                    Notifikasi
                 </a>
             </div>
         @endcan
