@@ -10,6 +10,7 @@ Artisan::command('inspire', function () {
 })->purpose('Display an inspiring quote');
 
 Schedule::command('app:sync-iot')->everyTwoSeconds();
+Schedule::command('bmkg:sync')->everyFiveMinutes();
 
 Schedule::call(function () {
     (new CheckSensorStatus)->handle();
