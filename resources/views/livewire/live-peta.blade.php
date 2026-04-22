@@ -6,8 +6,8 @@
     lon: 110.0167,
     zoom: 11,
 })" x-init="init()"
-    x-on:render-markers.window="onRenderMarkers($event)" class="w-full px-3 sm:px-4 lg:px-6 py-3 sm:py-4 lg:py-6">
-    
+    x-on:render-markers.window="onRenderMarkers($event)" class="w-full px-4 sm:px-6 lg:px-12 xl:px-16 py-3 sm:py-4 lg:py-6">
+
     {{-- Intro teks --}}
     <div class="text-center max-w-2xl mt-10 mx-auto mb-4 sm:mb-6 lg:mb-8 px-2 sm:px-4 pt-2 sm:pt-4">
         <span
@@ -22,8 +22,8 @@
             Setiap titik menunjukkan kondisi terkini — dari aman hingga bahaya.
         </p>
     </div>
-    
-    <div class="rounded-xl sm:rounded-2xl border border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-900 shadow-sm overflow-hidden">
+
+    <div class="max-w-7xl mx-auto rounded-xl sm:rounded-2xl border border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-900 shadow-sm overflow-hidden">
 
         <!-- ================= HEADER ================= -->
         <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-2 sm:gap-0 px-3 sm:px-4 py-2.5 sm:py-3 border-b border-slate-200 dark:border-slate-800">
@@ -105,7 +105,7 @@
         </div>
 
         <!-- ================= MAP ================= -->
-        <div class="relative w-full h-[40vh] sm:h-[45vh] lg:h-[50vh] xl:h-[55vh] min-h-[250px] sm:min-h-[300px] lg:min-h-[350px] max-h-[500px]">
+        <div class="relative w-full" style="height: 500px;"></div>a
 
             <!-- MAP -->
             <div wire:ignore class="absolute inset-0">
@@ -141,7 +141,7 @@
                 </div>
             </div>
 
-            <!-- MOBILE LEGEND - Bottom left -->
+            <!-- MOBILE LEGEND - Bottom right -->
             <div class="absolute bottom-3 right-3 sm:hidden z-[1000]">
                 <div
                     class="px-2.5 py-2 rounded-lg shadow
