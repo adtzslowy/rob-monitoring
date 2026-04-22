@@ -14,7 +14,7 @@ class Notification extends Model
         'notifikasi_waspada',
         'notifikasi_siaga',
         'notifikasi_bahaya'
-    ]; 
+    ];
 
     protected $casts = [
         'notifikasi_aktif'=> 'boolean',
